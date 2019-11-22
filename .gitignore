@@ -1,0 +1,7 @@
+*.yml
+index.Rmd
+*.tex
+*.css
+*.bib
+*.log
+*.rproj
