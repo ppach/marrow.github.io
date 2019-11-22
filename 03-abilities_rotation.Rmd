@@ -1,0 +1,12 @@
+# Abilities and Rotation{#abilities}
+        ## Bloodthirst
+        ## Whirlwind
+        ## Execute
+                        ### Execute Switch
+        ## Heroic Strike and Cleae
+                        ### HS Queuing
+        ## Slam
+        ## Hamstring
+        ## Overpower
+        ## Damage per Rage
+        ## The Warrior Priority System
