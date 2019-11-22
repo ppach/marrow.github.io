@@ -1,9 +1,9 @@
 # Consumables{#consums}
-        ## Juju/Giant
-        ## Mongoose
-        ## R.O.I.D.S and Scorpok
-        ## Protection Potions
-        ## AssortedS
-                ### Limited Invulnerability Potions
-                ### Restorative Potions
-                ### Free Action Potions
+## Juju/Giant
+## Mongoose
+## R.O.I.D.S and Scorpok
+## Protection Potions
+## AssortedS
+### Limited Invulnerability Potions
+### Restorative Potions
+### Free Action Potions

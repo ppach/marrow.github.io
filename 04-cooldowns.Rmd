@@ -1,6 +1,6 @@
 # Cooldowns{#cds}
-        ## Death Wish
-        ## Recklessness
-        ## Mighty Rage Potion
-        ## Bloodrage
-        ## Berserker Rage
+## Death Wish
+## Recklessness
+## Mighty Rage Potion
+## Bloodrage
+## Berserker Rage
