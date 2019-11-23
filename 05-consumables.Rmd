@@ -1,6 +1,8 @@
 # Consumables{#consums}
-## Juju/Giant
-## Mongoose
+## Required
+### Mongoose
+### Juju/Giants
+### Firewater/Juju
 ## R.O.I.D.S and Scorpok
 ## Protection Potions
 ## Assorted

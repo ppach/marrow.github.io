@@ -2,6 +2,9 @@
 
 ## What is the aim of this guide?
 
-This guide aims to help the reader from the ground up: from the foundational mechanics of World of Warcraft (WoW) combat, such as 
+This guide aims to help the reader from the ground up: from the foundational mechanics of World of Warcraft (WoW) combat, to an in-depth overview of warrior abilities and their utilization, to cooldown management, raid consumables, and finally how to analyze parses and learn from your own mistakes.
 
 ## What is NOT the aim of this guide
+
+1. Accurately simulating DPS
+2. Gearing decisions

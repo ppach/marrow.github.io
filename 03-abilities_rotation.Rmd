@@ -1,7 +1,16 @@
 # Abilities and Rotation{#abilities}
 ## Bloodthirst
+1. Introduction to BT(CD,usage, formula, percent of overall damage)
+2. Why is BT so good? Scaling
+3. BT damage is weapon agnostic
 ## Whirlwind
+1. Intro to WW (CD, usage, formula, percent of overall damage)
+2. When to use and prioritize WW (ST vs Multi-target fights)
+3. WW damage scales with weapon topend
 ## Execute
+1. Intro to Execute (CD, usage, formula, % of overall damage)
+2. Execute batching
+3. Execute damage per rage
 ### Execute Switch
 ## Heroic Strike and Cleave
 ### HS Queuing

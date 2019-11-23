@@ -1,6 +1,10 @@
 # Cooldowns{#cds}
 ## Death Wish
 ## Recklessness
+## Trinkets
 ## Mighty Rage Potion
 ## Bloodrage
 ## Berserker Rage
+## Racials
+### Blood Fury
+### Berserking
