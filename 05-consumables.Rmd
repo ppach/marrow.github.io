@@ -3,7 +3,7 @@
 ## Mongoose
 ## R.O.I.D.S and Scorpok
 ## Protection Potions
-## AssortedS
+## Assorted
 ### Limited Invulnerability Potions
 ### Restorative Potions
 ### Free Action Potions
