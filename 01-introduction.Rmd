@@ -2,6 +2,6 @@
 
 ## What is the aim of this guide?
 
-This guide is meant to help the reader play as *efficiently* as possible. As such, questions such as "what's more fun?", "what looks coolest"
+This guide aims to help the reader from the ground up: from the foundational mechanics of World of Warcraft (WoW) combat, such as 
 
 ## What is NOT the aim of this guide
