@@ -1,7 +1,29 @@
 # Parsing{#parsing}
 
+1. Intro to parses
+2. How parses can be gamed
+3. Your parse does not define how good of a player you are
+4. Parses can still be very useful
+
 ## Factors Affecting Parses
+
 ### World Buffs
+
+1. List obtainbale world buffs
+2. Lay out the value you get from them
+3. World buffs are essential if you want to parse highly.
+
 ### Kill Time & Raid DPS
-### Overall Raid Time
-## "What did I do wrong?"
+
+1. Your guild is the most important factor in whether you'll parse well or not.
+2. Your guild DPS severely impact your parses
+        i. High guild DPS is essential
+        ii. Fitting a boss kill within a Reck/DW window.
+
+### "What did I do wrong?"
+
+1. Importance of critical self evaluation
+2. How to look at your own parses and evaluate your performance
+        a. BT casts per minute and interval between BTs
+        b. Boss uptime and the importance of Charge and Intercept
+        c. Cooldown timings
