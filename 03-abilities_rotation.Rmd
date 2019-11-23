@@ -12,10 +12,30 @@
 2. Execute batching
 3. Execute damage per rage
 ### Execute Switch
+1. Why it was effective on private servers
+2. Why it's not effective in Classic
+        a. Batching
+        b. Execute phase duration
 ## Heroic Strike and Cleave
+1. Introduction (formula)
+2. Opportunity cost - why damage per ratio is deceptive
 ### HS Queuing
+1. Explanation (include macro)
+2. Consequences
+3. When should you queue?
 ## Slam
+1. Intro to Slam
+2. How spell batching affects Slam
+3. Viability of Slam
 ## Hamstring
+1. Intro to Hamstring
+2. Why use Hamstring?
 ## Overpower
+1. Intro to Overpower
+2. Should you use OP? If so, when?
 ## Damage per Rage
+1. Damage per Rage comparison between main rotational abilities (BT, WW, Exec)
+2. Execute DPR decreases the more rage you have
+3. The impact of scaling on DPR, and how that affects your rotation
 ## The Warrior Priority System
+1. The Warrior Priority System
