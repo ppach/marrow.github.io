@@ -6,5 +6,9 @@ This guide aims to help the reader from the ground up: from the foundational mec
 
 ## What is NOT the aim of this guide
 
+DPS simulations will not be covered
 1. Accurately simulating DPS
+
 2. Gearing decisions
+
+In the same vein, questions on how to (specifically) gear will not be covered in this guide. This is because gearing is *highly* contextual - answering questions such as "What is better, Black Dragonscale 3set or Devilsaur Set with Truestrike Shoulders?" is impossible without knowing the rest of your gear and race. Therefore, when this guide makes recommendations, please be aware that exceptions *do exist*, but are rare. By the end, I hope the reader is knowledgeable enough about the base mechanics to critically assess and reason any gearing questions that he or she may have. 

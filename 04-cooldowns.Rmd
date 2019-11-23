@@ -1,26 +1,26 @@
 # Cooldowns{#cds}
 ## Death Wish
-1. Intro to DW
-2. Utilization
+        1. Intro to DW
+        2. Utilization
 ## Recklessness
-1. Intro to Reck
-2. Utilization
+        1. Intro to Reck
+        2. Utilization
 ## Trinkets
 ## Mighty Rage Potion
-1. Intro to MRP
-2. Utilization
+        1. Intro to MRP
+        2. Utilization
 ## Bloodrage
-1. Intro to Bloodrage
-2. Utilization
+        1. Intro to Bloodrage
+        2. Utilization
 ## Berserker Rage
-1. Intro
-2. Utilization
+        1. Intro
+        2. Utilization
 ## Racials
 ### Blood Fury
-1. Intro
-2. Formula
-3. Scaling (AP/Str)
-4. Utilization
+        1. Intro
+        2. Formula
+        3. Scaling (AP/Str)
+        4. Utilization
 ### Berserking
-1. Intro
-2. Utilization
+        1. Intro
+        2. Utilization

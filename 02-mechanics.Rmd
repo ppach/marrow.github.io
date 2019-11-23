@@ -4,4 +4,4 @@
 ## Weapon Skill
 ## Miss Chance
 ## The Crit Cap
-## Flurry
+## Flurrye
