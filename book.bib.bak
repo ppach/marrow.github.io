@@ -48,4 +48,11 @@
   url    = {https://wowwiki.fandom.com/wiki/Miss?oldid=347982},
 }
 
+@Misc{blizz_hitcap2019,
+  author = {Blizzard},
+  title  = {Hit Cap Clarification},
+  year   = {2019},
+  url    = {https://us.forums.blizzard.com/en/wow/t/bug-hit-tables/185675/32},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}

@@ -21,7 +21,7 @@ A mob being attacked from behind *cannot* block or parry, and thus these two out
 
 ### Miss Chance{#miss_chance}
 
-Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from Magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
+Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
 
 If the target is mob and the difference between it's defense rating and the attacker's weapon skill is 11 or more:
 
@@ -44,11 +44,11 @@ P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
 (\#eq:dwmissprob)
 \end{equation}
 
-As a disclaimer, Magey notes that further testing is still required to assert the correctness of this formula.
+As a disclaimer, magey notes that further testing is still required to assert the correctness of this formula.
 
 ### Glancing Blows{#glancing_blows}
 
-Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, Magey et al. have determined the glancing blow probability to be as follows:
+Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, magey et al. have determined the glancing blow probability to be as follows:
 
 
 \begin{equation}
@@ -82,7 +82,7 @@ This means that against a level 63 enemy mob (all raid bosses) and with 300 weap
 
 ### Weapon Skill{#weapon_skill}
 
-Magey's work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza's formulas (\@ref(eq:glancingprob), \@ref(eq:missprob1)  and \@ref(eq:missprob2)). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
+magey's work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza's formulas (\@ref(eq:glancingprob), \@ref(eq:missprob1)  and \@ref(eq:missprob2)). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
 ```{r include=FALSE}
 options(scipen = 999)
 library(ggplot2)
@@ -152,7 +152,7 @@ wepskillplot1 <- ggplot(wepskill_code, aes(x = weapon_skill, y = percent_of_whit
         labs(x = "Weapon Skill", 
              y = "Glancing blow damage as percent of white attack",
              title = "Weapon skill greatly reduces the glancing blow damage penalty") +
-        scale_x_continuous(breaks = c(301:315)) +
+        scale_x_continuous(breaks = c(300:315)) +
         scale_y_continuous(breaks = c(0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1)) +
         theme_light()
 wepskillplot1
@@ -164,7 +164,7 @@ ggplot(wepskill_code, aes(x = weapon_skill, y = glancing_blow_damage_increase)) 
         geom_point() +
         labs(x = "Weapon Skill",
              y = "Damage increase percentage",
-             title = "Damage increase is linear until 307 weapon skill",
+             title = "Glancing blow damage increase is linear until 307 weapon skill",
              subtitle = "Relative to 300 weapon skill") +
         scale_x_continuous(breaks = c(300:315)) +
         theme_light()
@@ -195,7 +195,7 @@ As we can see, the player's hit cap starts 1% higher than $P(Miss)$ at 305 weapo
 
 This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit modifier, and adds a significant amount of hit until 305. This is also why a weapon skill of at least 305 and at most 308 is **highly** recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill's value in respect to hit chance is *vastly* diminished after 305 clearly indicates that 305 weapon skill is the **most** optimal weapon skill value for Fury Warriors in Classic WoW. 
 
-This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as giving you 2% hit and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as [Edgemaster's Handguards](https://classic.wowhead.com/item=14551/edgemasters-handguards), since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats *in addition* to weapon skill, such as [Aged Core Leather Gloves](https://classic.wowhead.com/item=18823/aged-core-leather-gloves), incredibly good.
+This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your $P(Miss)$ by 2%, and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as [Edgemaster's Handguards](https://classic.wowhead.com/item=14551/edgemasters-handguards), since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats *in addition* to weapon skill, such as [Aged Core Leather Gloves](https://classic.wowhead.com/item=18823/aged-core-leather-gloves) (ACLG), incredibly good.
 
 ## The Crit Cap{#crit_cap}
 
