@@ -82,13 +82,23 @@ This means that against a level 63 enemy mob (all raid bosses) and with 300 weap
 
 ### Weapon Skill{#weapon_skill}
 
-Magey's results again corroborate the impact of weapon skill on  \@ref(eq:glancingprob). The table below summarizes the impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
+Magey's work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza's formulas (\@ref(eq:glancingprob), \@ref(eq:missprob1)  and \@ref(eq:missprob1)). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
 ```{r include=FALSE}
 library(ggplot2)
 library(ggpubr)
 library(ggthemes)
 library(tidyverse)
 library(janitor)
+library(ggsci)
+library(RColorBrewer)
+
+# The palette with grey:
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# The palette with black:
+cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 wepskill_tbl <- tibble::tribble(
         ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
                      15,    0.35,       0.08,   0.09,
@@ -114,17 +124,24 @@ wepskill_tbl <- tibble::tribble(
         
 wepskill_code <- wepskill_tbl %>%
                 clean_names()
+
+inherit_miss <- wepskill_code %>%
+        select(weapon_skill, everything(), -percent_of_white_attack) %>%
+        pivot_longer(-weapon_skill, names_to = "type") %>%
+        mutate(value = value * 100)
 ```
-
-
 ```{r echo=FALSE}
 
 knitr::kable(wepskill_tbl,
              booktabs = TRUE,
              caption = "Weapon skill impact on glancing blow damage reduction, miss chance, and hit cap.")
 ```
+As we can see, weapon skill not only reduces the glancing blow damage penalty, it also reduces the hit cap and the $P(Miss)$.
 
-```{r echo=FALSE}
+
+The glancing blow damage penalty reduction is more easily shown graphically:
+
+```{r echo=FALSE, fig.cap = wepskill_1}
 ggplot(wepskill_code, aes(x = weapon_skill, y = percent_of_white_attack)) +
         geom_line() +
         geom_point() +
@@ -136,23 +153,29 @@ ggplot(wepskill_code, aes(x = weapon_skill, y = percent_of_white_attack)) +
         theme_light()
 ```
 
-```{r}
-wepskill_code %>%
-        select(weapon_skill, everything(), -percent_of_white_attack) %>%
-        pivot_longer(-weapon_skill, names_to = "type") %>%
-        mutate(value = value * 100) %>%
+As we can see, our glancing blows increase in damage linearly with weapon skill *until* 308 weapon skill. This is incredibly important, as it indicates 308 weapon skill to being the soft cap for glancing blow damage penalty reduction - meaning the player gains no benefits in this aspect if their weapon skill is higher than 308 when facing a raid boss.
+
+Similarly, the impact of weapon skill on the $P(Miss)$ and hit cap is clearer when shown graphically:
+
+```{r echo=FALSE, fig.cap = wepskill_2}
+inherit_miss %>%
         ggplot(aes(x = weapon_skill, y = value, colour = type)) +
         geom_line() +
+        geom_point() +
         labs(x = "Weapon Skill",
              y = "Percent",
              title = "305 weapon skill negates the inherent 1% miss chance") +
-        scale_colour_manual(values = c("blue", "red"),
+        scale_colour_manual(values = cbp2,
                 name = "Type",
                 labels = c("Hit Cap", "Miss Probability")) +
         theme_light()
 
         
 ```
+
+As we can see, the player's hit cap starts 1% higher than $P(Miss)$ at 305 weapon skill. This is because vanilla WoW code explicitly adds the **first 1%** of +hit gained from talents or gear to be **ignored** against enemy mobs with more than 10 defense skill above the player's weapon skill[@blizz_hitcap2019], in accordance with \@ref(eq:missprob1). This hit modifier is **not** applied, however, if the difference between the attacker's weapon skill and the enemy mob's defense skill is less than 10 \@ref(eq:missprob2). Not that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.
+
+This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit modifier, and adds a significant amount of hit until 305. This is also why a weapon skill of at least 305 and at most 308 is **highly** recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill's value in respect to hit chance is *vastly* diminished after 305 points to 305 weapon skill as the **most** optimal weapon skill value for Fury Warriors in Classic WoW. 
 
 ## The Crit Cap{#crit_cap}
 
