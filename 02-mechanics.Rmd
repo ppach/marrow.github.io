@@ -21,7 +21,7 @@ A mob being attacked from behind *cannot* block or parry, and thus these two out
 
 ### Miss Chance{#miss_chance}
 
-Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
+Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from Magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
 
 If the target is mob and the difference between it's defense rating and the attacker's weapon skill is 11 or more:
 
@@ -48,7 +48,7 @@ As a disclaimer, Magey notes that further testing is still required to assert th
 
 ### Glancing Blows{#glancing_blows}
 
-Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, Magey has determined the glancing blow probability to be as follows:
+Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, Magey et al. have determined the glancing blow probability to be as follows:
 
 
 \begin{equation}
@@ -82,12 +82,13 @@ This means that against a level 63 enemy mob (all raid bosses) and with 300 weap
 
 ### Weapon Skill{#weapon_skill}
 
-
+Magey's results again corroborate the impact of weapon skill on  \@ref(eq:glancingprob). The table below summarizes the impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
 ```{r include=FALSE}
 library(ggplot2)
 library(ggpubr)
 library(ggthemes)
 library(tidyverse)
+library(janitor)
 wepskill_tbl <- tibble::tribble(
         ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
                      15,    0.35,       0.08,   0.09,
@@ -111,7 +112,8 @@ wepskill_tbl <- tibble::tribble(
                `Percent of White Attack` = 1-`Glancing Penalty`) %>%
         select(`Weapon Skill`, `Percent of White Attack`, everything(), -c(Delta, `Glancing Penalty`))
         
-
+wepskill_code <- wepskill_tbl %>%
+                clean_names()
 ```
 
 
@@ -119,11 +121,11 @@ wepskill_tbl <- tibble::tribble(
 
 knitr::kable(wepskill_tbl,
              booktabs = TRUE,
-             caption = "Good Title here")
+             caption = "Weapon skill impact on glancing blow damage reduction, miss chance, and hit cap.")
 ```
 
 ```{r echo=FALSE}
-ggplot(wepskill_tbl, aes(x = `Weapon Skill`, y = `Percent of White Attack`)) +
+ggplot(wepskill_code, aes(x = weapon_skill, y = percent_of_white_attack)) +
         geom_line() +
         geom_point() +
         labs(x = "Weapon Skill", 
@@ -132,6 +134,24 @@ ggplot(wepskill_tbl, aes(x = `Weapon Skill`, y = `Percent of White Attack`)) +
         scale_x_continuous(breaks = c(301:315)) +
         scale_y_continuous(breaks = c(0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1)) +
         theme_light()
+```
+
+```{r}
+wepskill_code %>%
+        select(weapon_skill, everything(), -percent_of_white_attack) %>%
+        pivot_longer(-weapon_skill, names_to = "type") %>%
+        mutate(value = value * 100) %>%
+        ggplot(aes(x = weapon_skill, y = value, colour = type)) +
+        geom_line() +
+        labs(x = "Weapon Skill",
+             y = "Percent",
+             title = "305 weapon skill negates the inherent 1% miss chance") +
+        scale_colour_manual(values = c("blue", "red"),
+                name = "Type",
+                labels = c("Hit Cap", "Miss Probability")) +
+        theme_light()
+
+        
 ```
 
 ## The Crit Cap{#crit_cap}
