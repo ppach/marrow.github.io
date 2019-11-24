@@ -76,12 +76,11 @@
 </ul></li>
 <li class="chapter" data-level="3" data-path="mechanics.html"><a href="mechanics.html"><i class="fa fa-check"></i><b>3</b> Mechanics</a><ul>
 <li class="chapter" data-level="3.1" data-path="mechanics.html"><a href="mechanics.html#mechanics_intro"><i class="fa fa-check"></i><b>3.1</b> Introduction</a></li>
-<li class="chapter" data-level="3.2" data-path="mechanics.html"><a href="mechanics.html#white-attacks"><i class="fa fa-check"></i><b>3.2</b> White Attacks</a></li>
-<li class="chapter" data-level="3.3" data-path="mechanics.html"><a href="mechanics.html#miss-chance-weapon-skill-and-glancing-blows"><i class="fa fa-check"></i><b>3.3</b> Miss Chance, Weapon Skill, and Glancing Blows</a></li>
-<li class="chapter" data-level="3.4" data-path="mechanics.html"><a href="mechanics.html#glancing_blows"><i class="fa fa-check"></i><b>3.4</b> Glancing Blows</a></li>
-<li class="chapter" data-level="3.5" data-path="mechanics.html"><a href="mechanics.html#weapon_skill"><i class="fa fa-check"></i><b>3.5</b> Weapon Skill</a></li>
-<li class="chapter" data-level="3.6" data-path="mechanics.html"><a href="mechanics.html#crit_cap"><i class="fa fa-check"></i><b>3.6</b> The Crit Cap</a></li>
-<li class="chapter" data-level="3.7" data-path="mechanics.html"><a href="mechanics.html#flurry"><i class="fa fa-check"></i><b>3.7</b> Flurry</a></li>
+<li class="chapter" data-level="3.2" data-path="mechanics.html"><a href="mechanics.html#miss-chance-weapon-skill-and-glancing-blows"><i class="fa fa-check"></i><b>3.2</b> Miss Chance, Weapon Skill, and Glancing Blows</a></li>
+<li class="chapter" data-level="3.3" data-path="mechanics.html"><a href="mechanics.html#glancing_blows"><i class="fa fa-check"></i><b>3.3</b> Glancing Blows</a></li>
+<li class="chapter" data-level="3.4" data-path="mechanics.html"><a href="mechanics.html#weapon_skill"><i class="fa fa-check"></i><b>3.4</b> Weapon Skill</a></li>
+<li class="chapter" data-level="3.5" data-path="mechanics.html"><a href="mechanics.html#crit_cap"><i class="fa fa-check"></i><b>3.5</b> The Crit Cap</a></li>
+<li class="chapter" data-level="3.6" data-path="mechanics.html"><a href="mechanics.html#flurry"><i class="fa fa-check"></i><b>3.6</b> Flurry</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="abilities.html"><a href="abilities.html"><i class="fa fa-check"></i><b>4</b> Abilities and Rotation</a><ul>
 <li class="chapter" data-level="4.1" data-path="abilities.html"><a href="abilities.html#bloodthirst"><i class="fa fa-check"></i><b>4.1</b> Bloodthirst</a></li>
@@ -157,11 +156,7 @@
 <div id="mechanics_intro" class="section level2">
 <h2><span class="header-section-number">3.1</span> Introduction</h2>
 <p>Combat mechanics are at the core of the warrior class, and deeply impact our talent and gearing choices and combat rotation. Therefore, it is important to build a solid foundational understanding of these mechanics in order to make the correct decisions and <em>understand</em> the theory behind our choices moving forward.</p>
-<p>A warrior’s melee attacks in World of Warcraft can be divided into two categories: white (auto attacks) and yellow (special attacks, such as Bloodthirst). This distinction is important, as the roll that ultimately decides the fate of the attack works differently in each case - while white attacks utilize a one roll table, special attacks utilize a to roll table.</p>
-</div>
-<div id="white-attacks" class="section level2">
-<h2><span class="header-section-number">3.2</span> White Attacks</h2>
-<p>Each white attack made by players against enemy mobs will result in one of the following:</p>
+<p>Each melee attack made by players against enemy mobs will result in one of the following:</p>
 <ul>
 <li>Miss</li>
 <li>Dodge</li>
@@ -171,34 +166,40 @@
 <li>Critical Strike</li>
 <li>Hit</li>
 </ul>
+<p>A mob being attacked from behind <em>cannot</em> block or parry, and thus these two outcomes are removed from the roll table. This means our attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize <span class="math inline">\(P(Miss)\)</span>, <span class="math inline">\(P(Dodge)\)</span> and <span class="math inline">\(P(Glance)\)</span>, and maximize <span class="math inline">\(P(Crit)\)</span>. In the subsequent sections, we will take a deeper look into how we can achieve that.</p>
 </div>
 <div id="miss-chance-weapon-skill-and-glancing-blows" class="section level2">
-<h2><span class="header-section-number">3.3</span> Miss Chance, Weapon Skill, and Glancing Blows</h2>
+<h2><span class="header-section-number">3.2</span> Miss Chance, Weapon Skill, and Glancing Blows</h2>
 <p>Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a>)</span>. Empirical work from <span class="citation">(Magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
 <p>If the target is mob and the difference between it’s defense rating and the attacker’s weapon skill is 11 or more:</p>
 <span class="math display" id="eq:misschance1">\[\begin{equation}
 
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\cdot5\right)-Atk_{skill}\right)\cdot0.2
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.2
 \tag{3.1}
 \end{equation}\]</span>
 <p>If the target is mob and the difference between it’s defense rating and the attacker’s weapon skill is 10 or less:</p>
-<span class="math display" id="eq:binom">\[\begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\cdot5\right)-Atk_{skill}\right)\cdot0.1
+<span class="math display" id="eq:misschance2">\[\begin{equation}
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.1
 \tag{3.2}
 \end{equation}\]</span>
-<p>Where <span class="math inline">\(T_{lvl}\)</span> is the target’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the attacker’s weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings (and which will be further analyzed in the <a href="mechanics.html#weapon_skill">weapon skill</a></p>
+<p>Where <span class="math inline">\(T_{lvl}\)</span> is the target’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the attacker’s weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings (and which will be further analyzed in the <a href="mechanics.html#weapon_skill">weapon skill</a> section).</p>
+<p>It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, the miss chance is calculated as:</p>
+<span class="math display" id="eq:dwmisschance">\[\begin{equation}
+P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 20\%
+\tag{3.3}
+\end{equation}\]</span>
 </div>
 <div id="glancing_blows" class="section level2">
-<h2><span class="header-section-number">3.4</span> Glancing Blows</h2>
+<h2><span class="header-section-number">3.3</span> Glancing Blows</h2>
 </div>
 <div id="weapon_skill" class="section level2">
-<h2><span class="header-section-number">3.5</span> Weapon Skill</h2>
+<h2><span class="header-section-number">3.4</span> Weapon Skill</h2>
 </div>
 <div id="crit_cap" class="section level2">
-<h2><span class="header-section-number">3.6</span> The Crit Cap</h2>
+<h2><span class="header-section-number">3.5</span> The Crit Cap</h2>
 </div>
 <div id="flurry" class="section level2">
-<h2><span class="header-section-number">3.7</span> Flurry</h2>
+<h2><span class="header-section-number">3.6</span> Flurry</h2>
 
 </div>
 </div>

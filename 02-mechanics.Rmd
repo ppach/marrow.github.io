@@ -4,11 +4,7 @@
 
 Combat mechanics are at the core of the warrior class, and deeply impact our talent and gearing choices and combat rotation. Therefore, it is important to build a solid foundational understanding of these mechanics in order to make the correct decisions and *understand* the theory behind our choices moving forward.
 
-A warrior's melee attacks in World of Warcraft can be divided into two categories: white (auto attacks) and yellow (special attacks, such as Bloodthirst). This distinction is important, as the roll that ultimately decides the fate of the attack works differently in each case - while white attacks utilize a one roll table, special attacks utilize a to roll table.
-
-## White Attacks
-
-Each white attack made by players against enemy mobs will result in one of the following:
+Each melee attack made by players against enemy mobs will result in one of the following:
 
 * Miss
 * Dodge
@@ -17,6 +13,9 @@ Each white attack made by players against enemy mobs will result in one of the f
 * Block
 * Critical Strike
 * Hit
+
+A mob being attacked from behind *cannot* block or parry, and thus these two outcomes are removed from the roll table. This means our attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize $P(Miss)$, $P(Dodge)$ and $P(Glance)$, and maximize $P(Crit)$. In the subsequent sections, we will take a deeper look into how we can achieve that.
+
 
 ## Miss Chance, Weapon Skill, and Glancing Blows
 
@@ -27,7 +26,7 @@ If the target is mob and the difference between it's defense rating and the atta
 
 \begin{equation}
 
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\cdot5\right)-Atk_{skill}\right)\cdot0.2
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.2
 (\#eq:misschance1)
 \end{equation}
 
@@ -35,13 +34,20 @@ P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\cdot5\right)-Atk_{skill}\rig
 If the target is mob and the difference between it's defense rating and the attacker's weapon skill is 10 or less:
 
 \begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\cdot5\right)-Atk_{skill}\right)\cdot0.1
-(\#eq:binom)
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.1
+(\#eq:misschance2)
 \end{equation}
 
 Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings (and which will be further analyzed in the  [weapon skill](#weapon_skill) section).
 
+It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, the miss chance is calculated as:
 
+\begin{equation}
+P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 20\%
+(\#eq:dwmisschance)
+\end{equation}
+
+As a disclaimer, [@magey_2019] notes that further testing is still required to assert the correctness of this formula.
 
 
 ## Glancing Blows{#glancing_blows}
