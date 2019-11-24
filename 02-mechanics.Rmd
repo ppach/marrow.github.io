@@ -4,7 +4,7 @@
 
 Combat mechanics are at the core of the warrior class, and deeply impact our talent and gearing choices and combat rotation. Therefore, it is important to build a solid foundational understanding of these mechanics in order to make the correct decisions and *understand* the theory behind our choices moving forward.
 
-Each melee attack made by players against enemy mobs will result in one of the following:
+There are two types of melee attacks: white (auto attacks) and yellow (special attacks). White attacks function exactly like white attacks, except they *cannot* glance. Each white attack made by players against enemy mobs will result in one of the following:
 
 * Miss
 * Dodge
@@ -14,7 +14,7 @@ Each melee attack made by players against enemy mobs will result in one of the f
 * Critical Strike
 * Hit
 
-A mob being attacked from behind *cannot* block or parry, and thus these two outcomes are removed from the roll table. This means our attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize $P(Miss)$, $P(Dodge)$ and $P(Glance)$, and maximize $P(Crit)$. In the subsequent sections, we will take a deeper look into how we can achieve that.
+A mob being attacked from behind *cannot* block or parry, and thus these two outcomes are removed from the roll table. This means our white attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize $P(Miss)$, $P(Dodge)$ and $P(Glance)$, and maximize $P(Crit)$. In the subsequent sections, we will take a deeper look into how we can achieve that.
 
 
 ## Miss Chance, Weapon Skill, and Glancing Blows
@@ -27,7 +27,7 @@ If the target is mob and the difference between it's defense rating and the atta
 \begin{equation}
 
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.2
-(\#eq:misschance1)
+(\#eq:missprob1)
 \end{equation}
 
 
@@ -35,24 +35,100 @@ If the target is mob and the difference between it's defense rating and the atta
 
 \begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.1
-(\#eq:misschance2)
+(\#eq:missprob2)
 \end{equation}
 
 Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings (and which will be further analyzed in the  [weapon skill](#weapon_skill) section).
 
-It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, the miss chance is calculated as:
+It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, probability of missing an attack is calculated as:
 
 \begin{equation}
-P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 20\%
-(\#eq:dwmisschance)
+P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
+(\#eq:dwmissprob)
 \end{equation}
 
-As a disclaimer, [@magey_2019] notes that further testing is still required to assert the correctness of this formula.
+As a disclaimer, Magey notes that further testing is still required to assert the correctness of this formula.
 
 
 ## Glancing Blows{#glancing_blows}
 
+Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, Magey has determined the glancing blow probability to be as follows:
+
+\begin{equation}
+P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times5,\ Atk_{skill}\right)\right)\times0.2
+(\#eq:glancingprob)
+\end{equation}
+
+Where $Atk_{lvl}$ is the player's level, and $Atk_{skill}$ is the player's weapon skill value. Knowing that, we can compute the probability that our white attacks will glance, and the damage penalty that that glancing blow carries:
+
+```{r glancing_tbl_calc, include=FALSE}
+glancing_tbl <- tibble::tribble(
+        ~"Level Difference", ~"Probability", ~"Damage Penalty",
+              0,            0.1,                 0.05,
+              1,            0.2,                 0.05,
+              2,            0.3,                0.15,
+              3,            0.4,                0.35
+        )
+```
+
+```{r glancing_tbl, echo=FALSE}
+
+knitr::kable(glancing_tbl,
+             booktabs = TRUE,
+             caption = "Glancing blow probability and damage penalty per level difference.")
+```
+
+
 ## Weapon Skill{#weapon_skill}
+
+```{r include=FALSE}
+library(tidyverse)
+wepskill_tbl <- tibble::tribble(
+        ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
+                     15,    0.35,       0.08,   0.09,
+                     14,             0.31,       0.078,   0.088,
+                     13,   0.27,       0.075,   0.086,
+                     12,   0.23,       0.074,   0.084,
+                     11,             0.19,       0.072,   0.082,
+                     10,   0.15,       0.06,   0.06,
+                      9,             0.11,       0.059,   0.059,
+                      8,              0.07,       0.058,   0.058,
+                      7,     0.05,       0.057,   0.057,
+                      6,              0.05,       0.056,   0.056,
+                      5,     0.05,       0.055,   0.055,
+                      4,              0.05,       0.054,   0.054,
+                      3,              0.05,       0.053,   0.053,
+                      2,              0.05,       0.052,   0.052,
+                      1,              0.05,       0.051,   0.051,
+                      0,              0.05,       0.05,   0.05
+        ) %>%
+        mutate(`Weapon Skill` = seq(300, 315, by = 1),
+               `Percent of White Attack` = 1-`Glancing Penalty`) %>%
+        select(`Weapon Skill`, everything(), -c(Delta, `Glancing Penalty`))
+        
+
+```
+
+```{r echo=FALSE}
+
+knitr::kable(wepskill_tbl,
+             booktabs = TRUE,
+             caption = "Good Title here")
+```
+
+```{r echo=FALSE}
+library(ggplot2)
+library(ggpubr)
+ggplot(wepskill_tbl, aes(x = `Weapon Skill`, y = `Percent of White Attack`)) +
+        geom_line() +
+        labs(x = "Weapon Skill", 
+             y = "Glancing blow damage as percent of white attack",
+             title = "Weapon skill greatly reduces the glancing blow damage penalty",
+             subtitle = "At 308 weapon skill, its effects saturate") +
+        scale_x_continuous(breaks = c(301:315)) +
+        scale_y_continuous(breaks = c(0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1)) +
+        theme_pubr()
+```
 
 ## The Crit Cap{#crit_cap}
 
