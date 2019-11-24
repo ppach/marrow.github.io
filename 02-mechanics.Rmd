@@ -122,7 +122,7 @@ wepskill_tbl <- tibble::tribble(
         ) %>%
         mutate(`Weapon Skill` = seq(300, 315, by = 1),
                `Percent of White Attack` = 1-`Glancing Penalty`,
-               `Glancing Blow Damage Increase` = round((`Percent of White Attack` / 0.65)-1), digits = 3) %>%
+               `Glancing Blow Damage Increase` = (`Percent of White Attack` / 0.65)-1) %>%
         select(`Weapon Skill`, `Percent of White Attack`, `Glancing Blow Damage Increase`, everything(), -c(Delta, `Glancing Penalty`))
         
 wepskill_code <- wepskill_tbl %>%
@@ -137,7 +137,7 @@ inherit_miss <- wepskill_code %>%
 
 knitr::kable(wepskill_tbl,
              booktabs = TRUE,
-             caption = "Weapon skill impact on glancing blow damage reduction, miss chance, and hit cap.")
+             caption = "Weapon skill impact on glancing blow damage reduction, miss chance, and hit cap. Damage increase is relative to 300 weapon skill.")
 ```
 
 As we can see, weapon skill not only reduces the glancing blow damage penalty, it also reduces the hit cap and the $P(Miss)$.
@@ -158,14 +158,15 @@ wepskillplot1 <- ggplot(wepskill_code, aes(x = weapon_skill, y = percent_of_whit
 wepskillplot1
 ```
 
-```{r echo=FALSE, fig.cap = "Weapon skill increases damage on glancing."}
+```{r echo=FALSE, fig.cap = "Weapon skill increases damage on glancing, relative to 300 weapon skill."}
 ggplot(wepskill_code, aes(x = weapon_skill, y = glancing_blow_damage_increase)) +
         geom_line() +
         geom_point() +
         labs(x = "Weapon Skill",
-             y = "Damage Increase on glancing blow",
-             title = "Damage increase is linear until 307 weapon skill") +
-        scale_x_continuous(breaks = c(301:315)) +
+             y = "Damage increase percentage",
+             title = "Damage increase is linear until 307 weapon skill",
+             subtitle = "Relative to 300 weapon skill") +
+        scale_x_continuous(breaks = c(300:315)) +
         theme_light()
 ```
 
