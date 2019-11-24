@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2019-11-23" />
+<meta name="date" content="2019-11-24" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -76,11 +76,13 @@
 </ul></li>
 <li class="chapter" data-level="3" data-path="mechanics.html"><a href="mechanics.html"><i class="fa fa-check"></i><b>3</b> Mechanics</a><ul>
 <li class="chapter" data-level="3.1" data-path="mechanics.html"><a href="mechanics.html#mechanics_intro"><i class="fa fa-check"></i><b>3.1</b> Introduction</a></li>
-<li class="chapter" data-level="3.2" data-path="mechanics.html"><a href="mechanics.html#miss-chance-weapon-skill-and-glancing-blows"><i class="fa fa-check"></i><b>3.2</b> Miss Chance, Weapon Skill, and Glancing Blows</a></li>
-<li class="chapter" data-level="3.3" data-path="mechanics.html"><a href="mechanics.html#glancing_blows"><i class="fa fa-check"></i><b>3.3</b> Glancing Blows</a></li>
-<li class="chapter" data-level="3.4" data-path="mechanics.html"><a href="mechanics.html#weapon_skill"><i class="fa fa-check"></i><b>3.4</b> Weapon Skill</a></li>
-<li class="chapter" data-level="3.5" data-path="mechanics.html"><a href="mechanics.html#crit_cap"><i class="fa fa-check"></i><b>3.5</b> The Crit Cap</a></li>
-<li class="chapter" data-level="3.6" data-path="mechanics.html"><a href="mechanics.html#flurry"><i class="fa fa-check"></i><b>3.6</b> Flurry</a></li>
+<li class="chapter" data-level="3.2" data-path="mechanics.html"><a href="mechanics.html#miss_weapon_glancing"><i class="fa fa-check"></i><b>3.2</b> Miss Chance, Weapon Skill, and Glancing Blows</a><ul>
+<li class="chapter" data-level="3.2.1" data-path="mechanics.html"><a href="mechanics.html#miss_chance"><i class="fa fa-check"></i><b>3.2.1</b> Miss Chance</a></li>
+<li class="chapter" data-level="3.2.2" data-path="mechanics.html"><a href="mechanics.html#glancing_blows"><i class="fa fa-check"></i><b>3.2.2</b> Glancing Blows</a></li>
+<li class="chapter" data-level="3.2.3" data-path="mechanics.html"><a href="mechanics.html#weapon_skill"><i class="fa fa-check"></i><b>3.2.3</b> Weapon Skill</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="mechanics.html"><a href="mechanics.html#crit_cap"><i class="fa fa-check"></i><b>3.3</b> The Crit Cap</a></li>
+<li class="chapter" data-level="3.4" data-path="mechanics.html"><a href="mechanics.html#flurry"><i class="fa fa-check"></i><b>3.4</b> Flurry</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="abilities.html"><a href="abilities.html"><i class="fa fa-check"></i><b>4</b> Abilities and Rotation</a><ul>
 <li class="chapter" data-level="4.1" data-path="abilities.html"><a href="abilities.html#bloodthirst"><i class="fa fa-check"></i><b>4.1</b> Bloodthirst</a></li>
@@ -156,7 +158,7 @@
 <div id="mechanics_intro" class="section level2">
 <h2><span class="header-section-number">3.1</span> Introduction</h2>
 <p>Combat mechanics are at the core of the warrior class, and deeply impact our talent and gearing choices and combat rotation. Therefore, it is important to build a solid foundational understanding of these mechanics in order to make the correct decisions and <em>understand</em> the theory behind our choices moving forward.</p>
-<p>There are two types of melee attacks: white (auto attacks) and yellow (special attacks). White attacks function exactly like white attacks, except they <em>cannot</em> glance. Each white attack made by players against enemy mobs will result in one of the following:</p>
+<p>There are two types of melee attacks: white (auto attacks) and yellow (special attacks). Yellow attacks function exactly like white attacks, except they <em>cannot</em> glance. Each white attack made by players against enemy mobs will result in one of the following:</p>
 <ul>
 <li>Miss</li>
 <li>Dodge</li>
@@ -166,40 +168,40 @@
 <li>Critical Strike</li>
 <li>Hit</li>
 </ul>
-<p>A mob being attacked from behind <em>cannot</em> block or parry, and thus these two outcomes are removed from the roll table. This means our white attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize <span class="math inline">\(P(Miss)\)</span>, <span class="math inline">\(P(Dodge)\)</span> and <span class="math inline">\(P(Glance)\)</span>, and maximize <span class="math inline">\(P(Crit)\)</span>. In the subsequent sections, we will take a deeper look into how we can achieve that.</p>
+<p>A mob being attacked from behind <em>cannot</em> block or parry, and thus these two outcomes are removed from the roll table. This means our white attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize P(Miss), P(Dodge) and P(Glance), and maximize P(Crit). In the subsequent sections, we will take a deeper look into how we can achieve that.</p>
 </div>
-<div id="miss-chance-weapon-skill-and-glancing-blows" class="section level2">
+<div id="miss_weapon_glancing" class="section level2">
 <h2><span class="header-section-number">3.2</span> Miss Chance, Weapon Skill, and Glancing Blows</h2>
+<div id="miss_chance" class="section level3">
+<h3><span class="header-section-number">3.2.1</span> Miss Chance</h3>
 <p>Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a>)</span>. Empirical work from <span class="citation">(Magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
 <p>If the target is mob and the difference between it’s defense rating and the attacker’s weapon skill is 11 or more:</p>
 <span class="math display" id="eq:missprob1">\[\begin{equation}
-
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.2
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 \tag{3.1}
 \end{equation}\]</span>
 <p>If the target is mob and the difference between it’s defense rating and the attacker’s weapon skill is 10 or less:</p>
 <span class="math display" id="eq:missprob2">\[\begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.1
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
 \tag{3.2}
 \end{equation}\]</span>
-<p>Where <span class="math inline">\(T_{lvl}\)</span> is the target’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the attacker’s weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings (and which will be further analyzed in the <a href="mechanics.html#weapon_skill">weapon skill</a> section).</p>
-<p>It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, probability of missing an attack is calculated as:</p>
+<p>Where <span class="math inline">\(T_{lvl}\)</span> is the target’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the attacker’s weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings. It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, probability of missing an attack is calculated as:</p>
 <span class="math display" id="eq:dwmissprob">\[\begin{equation}
-P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2\%
+P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
 \tag{3.3}
 \end{equation}\]</span>
 <p>As a disclaimer, Magey notes that further testing is still required to assert the correctness of this formula.</p>
 </div>
-<div id="glancing_blows" class="section level2">
-<h2><span class="header-section-number">3.3</span> Glancing Blows</h2>
+<div id="glancing_blows" class="section level3">
+<h3><span class="header-section-number">3.2.2</span> Glancing Blows</h3>
 <p>Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, Magey has determined the glancing blow probability to be as follows:</p>
 <span class="math display" id="eq:glancingprob">\[\begin{equation}
-P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times5,\ Atk_{skill}\right)\right)\times0.2
+P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.2
 \tag{3.4}
 \end{equation}\]</span>
-<p>Where <span class="math inline">\(Atk_{lvl}\)</span> is the player’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the player’s weapon skill value. Knowing that, we can compute the probability that our white attacks will glance, and the damage penalty that that glancing blow carries:</p>
+<p>Where <span class="math inline">\(Atk_{lvl}\)</span> is the player’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the player’s weapon skill value. Knowing that, we can compute the probability that our white attacks will glance, and the damage penalty that that glancing blow carries against enemies of different levels:</p>
 <table>
-<caption>(#tab:glancing_tbl)Glancing blow probability and damage penalty per level difference.</caption>
+<caption><span id="tab:unnamed-chunk-1">Table 3.1: </span>Glancing blow probability and damage penalty per level difference.</caption>
 <thead>
 <tr class="header">
 <th align="right">Level Difference</th>
@@ -230,15 +232,127 @@ P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\
 </tr>
 </tbody>
 </table>
+<p>This means that against a level 63 enemy mob (all raid bosses) and with 300 weapon skill our white attacks have a 40% chance of being glancing blows, therefore only being capable of dealing 65% of their maximum damage. Needless to say this is an immense DPS loss and should be mitigated as much as possible, and the <em>only</em> way that can be done is through increasing the player’s weapon skill.</p>
 </div>
-<div id="weapon_skill" class="section level2">
-<h2><span class="header-section-number">3.4</span> Weapon Skill</h2>
+<div id="weapon_skill" class="section level3">
+<h3><span class="header-section-number">3.2.3</span> Weapon Skill</h3>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 3.2: </span>Good Title here</caption>
+<thead>
+<tr class="header">
+<th align="right">Weapon Skill</th>
+<th align="right">Percent of White Attack</th>
+<th align="right">Miss Probability</th>
+<th align="right">Hit Cap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">300</td>
+<td align="right">0.65</td>
+<td align="right">0.080</td>
+<td align="right">0.090</td>
+</tr>
+<tr class="even">
+<td align="right">301</td>
+<td align="right">0.69</td>
+<td align="right">0.078</td>
+<td align="right">0.088</td>
+</tr>
+<tr class="odd">
+<td align="right">302</td>
+<td align="right">0.73</td>
+<td align="right">0.075</td>
+<td align="right">0.086</td>
+</tr>
+<tr class="even">
+<td align="right">303</td>
+<td align="right">0.77</td>
+<td align="right">0.074</td>
+<td align="right">0.084</td>
+</tr>
+<tr class="odd">
+<td align="right">304</td>
+<td align="right">0.81</td>
+<td align="right">0.072</td>
+<td align="right">0.082</td>
+</tr>
+<tr class="even">
+<td align="right">305</td>
+<td align="right">0.85</td>
+<td align="right">0.060</td>
+<td align="right">0.060</td>
+</tr>
+<tr class="odd">
+<td align="right">306</td>
+<td align="right">0.89</td>
+<td align="right">0.059</td>
+<td align="right">0.059</td>
+</tr>
+<tr class="even">
+<td align="right">307</td>
+<td align="right">0.93</td>
+<td align="right">0.058</td>
+<td align="right">0.058</td>
+</tr>
+<tr class="odd">
+<td align="right">308</td>
+<td align="right">0.95</td>
+<td align="right">0.057</td>
+<td align="right">0.057</td>
+</tr>
+<tr class="even">
+<td align="right">309</td>
+<td align="right">0.95</td>
+<td align="right">0.056</td>
+<td align="right">0.056</td>
+</tr>
+<tr class="odd">
+<td align="right">310</td>
+<td align="right">0.95</td>
+<td align="right">0.055</td>
+<td align="right">0.055</td>
+</tr>
+<tr class="even">
+<td align="right">311</td>
+<td align="right">0.95</td>
+<td align="right">0.054</td>
+<td align="right">0.054</td>
+</tr>
+<tr class="odd">
+<td align="right">312</td>
+<td align="right">0.95</td>
+<td align="right">0.053</td>
+<td align="right">0.053</td>
+</tr>
+<tr class="even">
+<td align="right">313</td>
+<td align="right">0.95</td>
+<td align="right">0.052</td>
+<td align="right">0.052</td>
+</tr>
+<tr class="odd">
+<td align="right">314</td>
+<td align="right">0.95</td>
+<td align="right">0.051</td>
+<td align="right">0.051</td>
+</tr>
+<tr class="even">
+<td align="right">315</td>
+<td align="right">0.95</td>
+<td align="right">0.050</td>
+<td align="right">0.050</td>
+</tr>
+</tbody>
+</table>
+<p><img src="marrow_compendium_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
 </div>
 <div id="crit_cap" class="section level2">
-<h2><span class="header-section-number">3.5</span> The Crit Cap</h2>
+<h2><span class="header-section-number">3.3</span> The Crit Cap</h2>
 </div>
 <div id="flurry" class="section level2">
-<h2><span class="header-section-number">3.6</span> Flurry</h2>
+<h2><span class="header-section-number">3.4</span> Flurry</h2>
 
 </div>
 </div>

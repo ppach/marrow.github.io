@@ -4,7 +4,7 @@
 
 Combat mechanics are at the core of the warrior class, and deeply impact our talent and gearing choices and combat rotation. Therefore, it is important to build a solid foundational understanding of these mechanics in order to make the correct decisions and *understand* the theory behind our choices moving forward.
 
-There are two types of melee attacks: white (auto attacks) and yellow (special attacks). White attacks function exactly like white attacks, except they *cannot* glance. Each white attack made by players against enemy mobs will result in one of the following:
+There are two types of melee attacks: white (auto attacks) and yellow (special attacks). Yellow attacks function exactly like white attacks, except they *cannot* glance. Each white attack made by players against enemy mobs will result in one of the following:
 
 * Miss
 * Dodge
@@ -14,33 +14,30 @@ There are two types of melee attacks: white (auto attacks) and yellow (special a
 * Critical Strike
 * Hit
 
-A mob being attacked from behind *cannot* block or parry, and thus these two outcomes are removed from the roll table. This means our white attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize $P(Miss)$, $P(Dodge)$ and $P(Glance)$, and maximize $P(Crit)$. In the subsequent sections, we will take a deeper look into how we can achieve that.
+A mob being attacked from behind *cannot* block or parry, and thus these two outcomes are removed from the roll table. This means our white attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize P(Miss), P(Dodge) and P(Glance), and maximize P(Crit). In the subsequent sections, we will take a deeper look into how we can achieve that.
 
 
-## Miss Chance, Weapon Skill, and Glancing Blows
+## Miss Chance, Weapon Skill, and Glancing Blows{#miss_weapon_glancing}
 
+### Miss Chance{#miss_chance}
 
 Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
 
 If the target is mob and the difference between it's defense rating and the attacker's weapon skill is 11 or more:
 
 \begin{equation}
-
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.2
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 (\#eq:missprob1)
 \end{equation}
-
 
 If the target is mob and the difference between it's defense rating and the attacker's weapon skill is 10 or less:
 
 \begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times5\right)-Atk_{skill}\right)\times0.1
+P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
 (\#eq:missprob2)
 \end{equation}
 
-Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings (and which will be further analyzed in the  [weapon skill](#weapon_skill) section).
-
-It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, probability of missing an attack is calculated as:
+Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings. It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, probability of missing an attack is calculated as:
 
 \begin{equation}
 P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
@@ -49,17 +46,18 @@ P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
 
 As a disclaimer, Magey notes that further testing is still required to assert the correctness of this formula.
 
-
-## Glancing Blows{#glancing_blows}
+### Glancing Blows{#glancing_blows}
 
 Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, Magey has determined the glancing blow probability to be as follows:
 
+
 \begin{equation}
-P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times5,\ Atk_{skill}\right)\right)\times0.2
+P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.2
 (\#eq:glancingprob)
 \end{equation}
 
-Where $Atk_{lvl}$ is the player's level, and $Atk_{skill}$ is the player's weapon skill value. Knowing that, we can compute the probability that our white attacks will glance, and the damage penalty that that glancing blow carries:
+
+Where $Atk_{lvl}$ is the player's level, and $Atk_{skill}$ is the player's weapon skill value. Knowing that, we can compute the probability that our white attacks will glance, and the damage penalty that that glancing blow carries against enemies of different levels:
 
 ```{r glancing_tbl_calc, include=FALSE}
 glancing_tbl <- tibble::tribble(
@@ -71,17 +69,24 @@ glancing_tbl <- tibble::tribble(
         )
 ```
 
-```{r glancing_tbl, echo=FALSE}
+```{r echo=FALSE}
 
-knitr::kable(glancing_tbl,
-             booktabs = TRUE,
-             caption = "Glancing blow probability and damage penalty per level difference.")
+knitr::kable(
+        glancing_tbl,
+        booktabs = TRUE,
+             caption = "Glancing blow probability and damage penalty per level difference."
+        )
 ```
 
+This means that against a level 63 enemy mob (all raid bosses) and with 300 weapon skill our white attacks have a 40% chance of being glancing blows, therefore only being capable of dealing 65% of their maximum damage. Needless to say this is an immense DPS loss and should be mitigated as much as possible, and the *only* way that can be done is through increasing the player's weapon skill.
 
-## Weapon Skill{#weapon_skill}
+### Weapon Skill{#weapon_skill}
+
 
 ```{r include=FALSE}
+library(ggplot2)
+library(ggpubr)
+library(ggthemes)
 library(tidyverse)
 wepskill_tbl <- tibble::tribble(
         ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
@@ -104,10 +109,11 @@ wepskill_tbl <- tibble::tribble(
         ) %>%
         mutate(`Weapon Skill` = seq(300, 315, by = 1),
                `Percent of White Attack` = 1-`Glancing Penalty`) %>%
-        select(`Weapon Skill`, everything(), -c(Delta, `Glancing Penalty`))
+        select(`Weapon Skill`, `Percent of White Attack`, everything(), -c(Delta, `Glancing Penalty`))
         
 
 ```
+
 
 ```{r echo=FALSE}
 
@@ -117,17 +123,15 @@ knitr::kable(wepskill_tbl,
 ```
 
 ```{r echo=FALSE}
-library(ggplot2)
-library(ggpubr)
 ggplot(wepskill_tbl, aes(x = `Weapon Skill`, y = `Percent of White Attack`)) +
         geom_line() +
+        geom_point() +
         labs(x = "Weapon Skill", 
              y = "Glancing blow damage as percent of white attack",
-             title = "Weapon skill greatly reduces the glancing blow damage penalty",
-             subtitle = "At 308 weapon skill, its effects saturate") +
+             title = "Weapon skill greatly reduces the glancing blow damage penalty") +
         scale_x_continuous(breaks = c(301:315)) +
         scale_y_continuous(breaks = c(0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1)) +
-        theme_pubr()
+        theme_light()
 ```
 
 ## The Crit Cap{#crit_cap}
