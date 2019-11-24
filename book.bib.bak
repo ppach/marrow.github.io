@@ -20,9 +20,31 @@
 
 @Misc{aurana2019,
   author = {Aurana},
-  title  = {Classic WoW Fury DPS simulator},
+  title  = {Classic WoW Fury DPS Simulator},
   year   = {2019},
   url    = {https://github.com/wow-aurana/},
+}
+
+@Misc{blizz_atktbl2019,
+  author = {Blizzard},
+  title  = {Attack Table Clarifications},
+  month  = jun,
+  year   = {2019},
+  url    = {https://classic.wowhead.com/news=292085/hit-cap-in-classic-wow-clarifications?webhook},
+}
+
+@Misc{magey_atktbl2019,
+  author = {Magey; Vilius; dmzor; Pufffymuffins; Towneh; Scylla; Pyte},
+  title  = {Attack Table in Classic WoW},
+  year   = {2019},
+}
+
+@Article{beaza_miss2006,
+  author = {Beaza},
+  title  = {Miss Chance in World of Warcraft},
+  year   = {2006},
+  month  = nov,
+  url    = {https://wowwiki.fandom.com/wiki/Miss?oldid=347982},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}

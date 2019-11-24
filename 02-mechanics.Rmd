@@ -1,7 +1,13 @@
 # Mechanics{#mechanics}
 
 ## Introduction
-## Weapon Skill
+
+Combat mechanics are at the core of the warrior class, and deeply impact our talent and gearing choices and combat rotation. Therefore, it is important to build a solid foundational understanding of these mechanics in order to make the correct decisions and *understand* the theory behind our choices moving forward.
+
 ## Miss Chance
+
+Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla World of Warcraft [@beaza_miss2006]
+## Glancing Blows
+## Weapon Skill
 ## The Crit Cap
-## Flurrye
+## Flurry
