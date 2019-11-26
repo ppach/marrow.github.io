@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2019-11-24" />
+<meta name="date" content="2019-11-25" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -52,6 +52,43 @@
 
 
 
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -174,7 +211,7 @@
 <h2><span class="header-section-number">3.2</span> Miss Chance, Glancing Blows, and Weapon Skill</h2>
 <div id="miss_chance" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Miss Chance</h3>
-<p>Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from Magey and others <span class="citation">(Magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
+<p>Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from magey and others <span class="citation">(magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
 <p>If the target is mob and the difference between it’s defense rating and the attacker’s weapon skill is 11 or more:</p>
 <span class="math display" id="eq:missprob1">\[\begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
@@ -190,11 +227,11 @@ P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\r
 P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
 \tag{3.3}
 \end{equation}\]</span>
-<p>As a disclaimer, Magey notes that further testing is still required to assert the correctness of this formula.</p>
+<p>As a disclaimer, magey notes that further testing is still required to assert the correctness of this formula.</p>
 </div>
 <div id="glancing_blows" class="section level3">
 <h3><span class="header-section-number">3.2.2</span> Glancing Blows</h3>
-<p>Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, Magey et al. have determined the glancing blow probability to be as follows:</p>
+<p>Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, magey et al. have determined the glancing blow probability to be as follows:</p>
 <span class="math display" id="eq:glancingprob">\[\begin{equation}
 P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.2
 \tag{3.4}
@@ -236,7 +273,7 @@ P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\
 </div>
 <div id="weapon_skill" class="section level3">
 <h3><span class="header-section-number">3.2.3</span> Weapon Skill</h3>
-<p>Magey’s work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza’s formulas (<a href="mechanics.html#eq:glancingprob">(3.4)</a>, <a href="mechanics.html#eq:missprob1">(3.1)</a> and <a href="mechanics.html#eq:missprob2">(3.2)</a>). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.</p>
+<p>magey’s work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza’s formulas (<a href="mechanics.html#eq:glancingprob">(3.4)</a>, <a href="mechanics.html#eq:missprob1">(3.1)</a> and <a href="mechanics.html#eq:missprob2">(3.2)</a>). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.</p>
 <table>
 <caption><span id="tab:unnamed-chunk-3">Table 3.2: </span>Weapon skill impact on glancing blow damage reduction, miss chance, and hit cap. Damage increase is relative to 300 weapon skill.</caption>
 <thead>
@@ -385,9 +422,9 @@ Figure 3.2: Weapon skill increases damage on glancing, relative to 300 weapon sk
 Figure 3.3: Weapon skill contributes to overcome the 1% hit suppression and the miss probability, but suffers steep diminishing returns after 305.
 </p>
 </div>
-<p>As we can see, the player’s hit cap starts 1% higher than <span class="math inline">\(P(Miss)\)</span> at 305 weapon skill. This is because vanilla WoW code explicitly suppresses the <strong>first 1%</strong> of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player’s weapon skill <span class="citation">(Blizzard <a href="#ref-blizz_hitcap2019">2019</a><a href="#ref-blizz_hitcap2019">a</a>)</span>, in accordance with <a href="mechanics.html#eq:missprob1">(3.1)</a>. This hit suppression is <strong>not</strong> applied, however, if the difference between the attacker’s weapon skill and the enemy mob’s defense skill is less than 10 <a href="mechanics.html#eq:missprob2">(3.2)</a>. Not that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.</p>
-<p>This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit modifier, and adds a significant amount of hit until 305. This is also why a weapon skill of at least 305 and at most 308 is <strong>highly</strong> recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill’s value in respect to hit chance is <em>vastly</em> diminished after 305 clearly indicates that 305 weapon skill is the <strong>most</strong> optimal weapon skill value for Fury Warriors in Classic WoW.</p>
-<p>This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as giving you 2% hit and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as <a href="https://classic.wowhead.com/item=14551/edgemasters-handguards">Edgemaster’s Handguards</a>, since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats <em>in addition</em> to weapon skill, such as <a href="https://classic.wowhead.com/item=18823/aged-core-leather-gloves">Aged Core Leather Gloves</a>, incredibly good.</p>
+<p>As we can see, the player’s hit cap starts 1% higher than <span class="math inline">\(P(Miss)\)</span> at 300 weapon skill. This is because vanilla WoW code explicitly suppresses the <strong>first 1%</strong> of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player’s weapon skill <span class="citation">(Blizzard <a href="#ref-blizz_hitcap2019">2019</a><a href="#ref-blizz_hitcap2019">a</a>)</span>, in accordance with <a href="mechanics.html#eq:missprob1">(3.1)</a>. This hit suppression is <strong>not</strong> applied, however, if the difference between the attacker’s weapon skill and the enemy mob’s defense skill is less than 10 <a href="mechanics.html#eq:missprob2">(3.2)</a>. Not that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.</p>
+<p>This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit suppresion, and significantly reduces <span class="math inline">\(P(Miss)\)</span> until 305. This is also why a weapon skill of at least 305 and at most 308 is <strong>highly</strong> recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill’s value in respect to hit chance is <em>vastly</em> diminished after 305 clearly indicates that 305 weapon skill is the <strong>most</strong> optimal weapon skill value for Fury Warriors in Classic WoW.</p>
+<p>This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your <span class="math inline">\(P(Miss)\)</span> by 2%, and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as <a href="https://classic.wowhead.com/item=14551/edgemasters-handguards">Edgemaster’s Handguards</a>, since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats <em>in addition</em> to weapon skill, such as <a href="https://classic.wowhead.com/item=18823/aged-core-leather-gloves">Aged Core Leather Gloves</a> (ACLG), are incredibly good.</p>
 </div>
 </div>
 <div id="crit_cap" class="section level2">
@@ -395,6 +432,18 @@ Figure 3.3: Weapon skill contributes to overcome the 1% hit suppression and the 
 </div>
 <div id="flurry" class="section level2">
 <h2><span class="header-section-number">3.4</span> Flurry</h2>
+<p>Flurry is a 5 point talent that, when maxed, increases the warrior’s attack speed by 30% for the next 3 swings after dealing a critical strike. This represents a very significant damage increase, and as such warrior itemization values crit very highly in order to obtain higher and higher flurry uptimes, which can be calculated as follows:</p>
+<span class="math display" id="eq:flurryuptime">\[\begin{equation}
+F_{up}\ =\ 1\ -\ \left(\left(1-P\left(Crit\right)\right)^A\right)
+\tag{3.5}
+\end{equation}\]</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">flurry &lt;-<span class="st"> </span><span class="cf">function</span>(crit, attks){
+        uptime =<span class="st"> </span><span class="dv">1</span> <span class="op">-</span><span class="st"> </span>(( <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>crit ) <span class="op">^</span><span class="st"> </span>attks)
+        <span class="kw">return</span>(uptime)
+}</code></pre></div>
+<p>Where <span class="math inline">\(F_{up}\)</span> is the uptime, <span class="math inline">\(P(Crit)\)</span> is the player’s crit chance, and <span class="math inline">\(A\)</span> is the number of attacks made in one cycle of Flurry (3 from auto attack swings, and generally one additional from an instant attack; 4 is a reasonable number for a dual wielding player). Flurry is often misunderstood - the main misconception being that 33% crit will translate to 100% flurry uptime. This is wrong, as we can see graphically:</p>
+<p><img src="marrow_compendium_files/figure-html/Crit%20Chance%20vs%20Flurry%20Uptime%20Graph-1.png" width="672" /></p>
+<p>We cab we now see that a <span class="math inline">\(P(Crit) = .33\)</span> only actually results in roughly 80% Flurry up-time. In fact, any amount of crit under 100% (or the crit cap) will result in less than 100% Flurry uptime, with increasing amounts of crit becoming less valuable the higher your <span class="math inline">\(P(Crit)\)</span> is. This is to say that the amount of Flurry uptime gained going for 1% crit to 11% crit is much greater than going from 40% to 50%, despite both cases representing a 10% overall <span class="math inline">\(P(Crit)\)</span> increase.</p>
 
 </div>
 </div>
@@ -410,7 +459,7 @@ Figure 3.3: Weapon skill contributes to overcome the 1% hit suppression and the 
 <p>Blizzard. 2019b. “Attack Table Clarifications.” <a href="https://classic.wowhead.com/news=292085/hit-cap-in-classic-wow-clarifications?webhook" class="uri">https://classic.wowhead.com/news=292085/hit-cap-in-classic-wow-clarifications?webhook</a>.</p>
 </div>
 <div id="ref-magey_atktbl2019">
-<p>Magey, Vilius, dmzor, Pufffymuffins, Towneh, Scylla, and Pyte. 2019. “Attack Table in Classic Wow.” <a href="https://github.com/magey/classic-warrior/wiki/Attack-table" class="uri">https://github.com/magey/classic-warrior/wiki/Attack-table</a>.</p>
+<p>magey, Vilius, dmzor, Pufffymuffins, Towneh, Scylla, and Pyte. 2019. “Attack Table in Classic Wow.” <a href="https://github.com/magey/classic-warrior/wiki/Attack-table" class="uri">https://github.com/magey/classic-warrior/wiki/Attack-table</a>.</p>
 </div>
 </div>
             </section>

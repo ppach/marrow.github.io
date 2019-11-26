@@ -1,5 +1,56 @@
 # Mechanics{#mechanics}
 
+```{r include=FALSE}
+options(scipen = 999)
+library(ggplot2)
+library(ggpubr)
+library(ggthemes)
+library(tidyverse)
+library(janitor)
+library(ggsci)
+library(RColorBrewer)
+library(cowplot)
+
+# The palette with grey:
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# The palette with black:
+cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+wepskill_tbl <- tibble::tribble(
+        ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
+                     15,    0.35,       0.08,   0.09,
+                     14,             0.31,       0.078,   0.088,
+                     13,   0.27,       0.076,   0.086,
+                     12,   0.23,       0.074,   0.084,
+                     11,             0.19,       0.072,   0.082,
+                     10,   0.15,       0.06,   0.06,
+                      9,             0.11,       0.059,   0.059,
+                      8,              0.07,       0.058,   0.058,
+                      7,     0.05,       0.057,   0.057,
+                      6,              0.05,       0.056,   0.056,
+                      5,     0.05,       0.055,   0.055,
+                      4,              0.05,       0.054,   0.054,
+                      3,              0.05,       0.053,   0.053,
+                      2,              0.05,       0.052,   0.052,
+                      1,              0.05,       0.051,   0.051,
+                      0,              0.05,       0.05,   0.05
+        ) %>%
+        mutate(`Weapon Skill` = seq(300, 315, by = 1),
+               `Percent of White Attack` = 1-`Glancing Penalty`,
+               `Glancing Blow Damage Increase` = (`Percent of White Attack` / 0.65)-1) %>%
+        select(`Weapon Skill`, `Percent of White Attack`, `Glancing Blow Damage Increase`, everything(), -c(Delta, `Glancing Penalty`))
+        
+wepskill_code <- wepskill_tbl %>%
+        clean_names()
+
+inherit_miss <- wepskill_code %>%
+        select(weapon_skill, everything(), -c(percent_of_white_attack, glancing_blow_damage_increase)) %>%
+        pivot_longer(-weapon_skill, names_to = "type") %>%
+        mutate(value = value * 100)
+```
+
 ## Introduction{#mechanics_intro}
 
 Combat mechanics are at the core of the warrior class, and deeply impact our talent and gearing choices and combat rotation. Therefore, it is important to build a solid foundational understanding of these mechanics in order to make the correct decisions and *understand* the theory behind our choices moving forward.
@@ -83,56 +134,7 @@ This means that against a level 63 enemy mob (all raid bosses) and with 300 weap
 ### Weapon Skill{#weapon_skill}
 
 magey's work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza's formulas (\@ref(eq:glancingprob), \@ref(eq:missprob1)  and \@ref(eq:missprob2)). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
-```{r include=FALSE}
-options(scipen = 999)
-library(ggplot2)
-library(ggpubr)
-library(ggthemes)
-library(tidyverse)
-library(janitor)
-library(ggsci)
-library(RColorBrewer)
-library(cowplot)
 
-# The palette with grey:
-cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
-          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-
-# The palette with black:
-cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
-          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-wepskill_tbl <- tibble::tribble(
-        ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
-                     15,    0.35,       0.08,   0.09,
-                     14,             0.31,       0.078,   0.088,
-                     13,   0.27,       0.076,   0.086,
-                     12,   0.23,       0.074,   0.084,
-                     11,             0.19,       0.072,   0.082,
-                     10,   0.15,       0.06,   0.06,
-                      9,             0.11,       0.059,   0.059,
-                      8,              0.07,       0.058,   0.058,
-                      7,     0.05,       0.057,   0.057,
-                      6,              0.05,       0.056,   0.056,
-                      5,     0.05,       0.055,   0.055,
-                      4,              0.05,       0.054,   0.054,
-                      3,              0.05,       0.053,   0.053,
-                      2,              0.05,       0.052,   0.052,
-                      1,              0.05,       0.051,   0.051,
-                      0,              0.05,       0.05,   0.05
-        ) %>%
-        mutate(`Weapon Skill` = seq(300, 315, by = 1),
-               `Percent of White Attack` = 1-`Glancing Penalty`,
-               `Glancing Blow Damage Increase` = (`Percent of White Attack` / 0.65)-1) %>%
-        select(`Weapon Skill`, `Percent of White Attack`, `Glancing Blow Damage Increase`, everything(), -c(Delta, `Glancing Penalty`))
-        
-wepskill_code <- wepskill_tbl %>%
-        clean_names()
-
-inherit_miss <- wepskill_code %>%
-        select(weapon_skill, everything(), -c(percent_of_white_attack, glancing_blow_damage_increase)) %>%
-        pivot_longer(-weapon_skill, names_to = "type") %>%
-        mutate(value = value * 100)
-```
 ```{r echo=FALSE}
 
 knitr::kable(wepskill_tbl,
@@ -191,12 +193,47 @@ inherit_miss %>%
         
 ```
 
-As we can see, the player's hit cap starts 1% higher than $P(Miss)$ at 305 weapon skill. This is because vanilla WoW code explicitly suppresses the  **first 1%** of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player's weapon skill [@blizz_hitcap2019], in accordance with \@ref(eq:missprob1). This hit suppression is **not** applied, however, if the difference between the attacker's weapon skill and the enemy mob's defense skill is less than 10 \@ref(eq:missprob2). Not that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.
+As we can see, the player's hit cap starts 1% higher than $P(Miss)$ at 300 weapon skill. This is because vanilla WoW code explicitly suppresses the  **first 1%** of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player's weapon skill [@blizz_hitcap2019], in accordance with \@ref(eq:missprob1). This hit suppression is **not** applied, however, if the difference between the attacker's weapon skill and the enemy mob's defense skill is less than 10 \@ref(eq:missprob2). Not that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.
 
-This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit modifier, and adds a significant amount of hit until 305. This is also why a weapon skill of at least 305 and at most 308 is **highly** recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill's value in respect to hit chance is *vastly* diminished after 305 clearly indicates that 305 weapon skill is the **most** optimal weapon skill value for Fury Warriors in Classic WoW. 
+This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit suppresion, and significantly reduces $P(Miss)$ until 305. This is also why a weapon skill of at least 305 and at most 308 is **highly** recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill's value in respect to hit chance is *vastly* diminished after 305 clearly indicates that 305 weapon skill is the **most** optimal weapon skill value for Fury Warriors in Classic WoW. 
 
-This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your $P(Miss)$ by 2%, and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as [Edgemaster's Handguards](https://classic.wowhead.com/item=14551/edgemasters-handguards), since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats *in addition* to weapon skill, such as [Aged Core Leather Gloves](https://classic.wowhead.com/item=18823/aged-core-leather-gloves) (ACLG), incredibly good.
+This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your $P(Miss)$ by 2%, and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as [Edgemaster's Handguards](https://classic.wowhead.com/item=14551/edgemasters-handguards), since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats *in addition* to weapon skill, such as [Aged Core Leather Gloves](https://classic.wowhead.com/item=18823/aged-core-leather-gloves) (ACLG), are incredibly good.
 
 ## The Crit Cap{#crit_cap}
 
 ## Flurry{#flurry}
+
+Flurry is a 5 point talent that, when maxed, increases the warrior's attack speed by 30% for the next 3 swings after dealing a critical strike. This represents a very significant damage increase, and as such warrior itemization values crit very highly in order to obtain higher and higher flurry uptimes, which can be calculated as follows: 
+
+\begin{equation}
+F_{up}\ =\ 1\ -\ \left(\left(1-P\left(Crit\right)\right)^A\right)
+(\#eq:flurryuptime)
+\end{equation}
+
+
+```{r Flurry Formula, message=FALSE, warning=FALSE, include=FALSE}
+flurry <- function(crit, attks){
+        uptime = 1 - (( 1 - crit ) ^ attks)
+        return(uptime)
+}
+```
+
+Where $F_{up}$ is the uptime, $P(Crit)$ is the player's crit chance, and $A$ is the number of attacks made in one cycle of Flurry (3 from auto attack swings, and generally one additional from an instant attack; 4 is a reasonable number for a dual wielding player). Flurry is often misunderstood - the main misconception being that 33% crit will translate to 100% flurry uptime. This is wrong, as we can see graphically: 
+
+```{r Crit Chance vs Flurry Uptime Graph, echo=FALSE, message=FALSE, warning=FALSE}
+dat <- as.data.frame(seq(0, 1, .01))
+flurry_uptime <- as.data.frame(lapply(dat, flurry, attks = 4))
+test <- cbind(dat, flurry_uptime)
+
+ggplot(test, aes(x = test$`seq(0, 1, 0.01)`, y = test$seq.0..1..0.01.)) +
+        geom_line() +
+        labs(x = "Crit chance", 
+             y = "Flurry uptime",
+             title = "Crit chance impact on flurry uptime") +
+        scale_x_continuous(breaks = seq(0, 1, .1)) +
+        scale_y_continuous(breaks = seq(0, 1, .2)) +
+        theme_light()
+```
+
+We can we now see that a $P(Crit) = .33$ only actually results in roughly 80% Flurry uptime. In fact, any amount of crit under 100% (or the crit cap) will result in less than 100% Flurry uptime, with increasing amounts of crit becoming less valuable the higher your $P(Crit)$ is. This is to say that the amount of Flurry uptime gained going for 1% crit to 11% crit is much greater than going from 40% to 50%, despite both cases representing a 10% overall $P(Crit)$ increase. 
+
