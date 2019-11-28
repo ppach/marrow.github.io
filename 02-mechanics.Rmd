@@ -18,6 +18,8 @@ cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
 # The palette with black:
 cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
 wepskill_tbl <- tibble::tribble(
         ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
                      15,    0.35,       0.08,   0.09,
@@ -88,7 +90,7 @@ P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\r
 (\#eq:missprob2)
 \end{equation}
 
-Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings. It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, probability of missing an attack is calculated as:
+Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings. It is important to note, however, that this is the behavior exhibited by wielding one weapon. If dual wielding, the probability of missing an attack is calculated as:
 
 \begin{equation}
 P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
