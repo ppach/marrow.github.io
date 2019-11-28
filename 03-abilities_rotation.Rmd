@@ -313,7 +313,7 @@ dagger_comparison_dpr <- as_tibble(cbind(ap_vals, btdmg, n1_dagger)) %>%
 #         # geom_point() +
 #         # geom_line() +
 #         # scale_colour_manual(values = cbp2,
-#         #         name = "Damage source",
+#         #         name = "Number of targets",
 #         #         labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
 #         #         scale_y_continuous(breaks = seq(0, 120, by = 15),
 #         #                            limits = c(0, 120)) + 
@@ -331,7 +331,7 @@ ggplot(twohander_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
         geom_point() +
         geom_line() +
         scale_colour_manual(values = cbp2,
-                name = "Damage source",
+                name = "Number of targets",
                 labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
         scale_y_continuous(breaks = seq(0, 120, by = 15),
                                    limits = c(0, 120)) +
@@ -348,7 +348,7 @@ ggplot(sword_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
         geom_point() +
         geom_line() +
         scale_colour_manual(values = cbp2,
-                name = "Damage source",
+                name = "Number of targets",
                 labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
                 scale_y_continuous(breaks = seq(0, 120, by = 15),
                                    limits = c(0, 120)) +
@@ -364,7 +364,7 @@ ggplot(dagger_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
         geom_point() +
         geom_line() +
         scale_colour_manual(values = cbp2,
-                name = "Damage source",
+                name = "Number of targets",
                 labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
                 scale_y_continuous(breaks = seq(0, 120, by = 15),
                                    limits = c(0, 120)) +
