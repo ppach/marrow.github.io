@@ -390,10 +390,17 @@ The graphs above paint a clear picture: Whirlwind damage per rage increases line
 
 Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown, variable rage cost, and that can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past it's activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability at 5 rage per talent point. Therefore, we can calculate its damage as:
 
-```{r Execute Damage Formula, eval = T, echo=TRUE, message=FALSE, warning=FALSE }
+```{r Execute Damage Formula, message=FALSE, warning=FALSE, include=FALSE}
 
-execute <- function(rage, ac){
-        damage = 600 + ((rage-ac)*15)
+execute <- function(rage, points = c(0, 1, 2)){
+        if(points == 0){
+                added = rage-20
+        } else if (points == 1){
+                added = rage-15
+        } else if (points == 2){
+                added = rage-10
+        }
+        damage = 600 + (added*15)
         return(damage)
 }
 
@@ -407,23 +414,23 @@ Execute_{dmg}\ =\ 600\ +\ \left(\left(R-Ac\right)\ \times\ 15\right)
 
 Where $R$ is the player's current rage, $Ac$ is the activation cost of the ability (dictated by how many points the player has in improved execute) and 15 is the damage multiplier per point of rage. Knowing this, we can quickly visualize the damage per rage of the ability at 0, 1, and 2 points into the Improved Execute talent:
 
-```{r}
-rage <- seq(0, 100, by = 1)
-execute_dmg0 <- as_tibble(sapply(rage, execute, ac = 20)) %>%
-        rename(damage0 = value) %>%
-        mutate(rage0 = seq(20, 100, length.out = 101)) %>%
-        mutate(dpr0 = damage0/rage0)
-
-execute_dmg1 <- as_tibble(sapply(rage, execute, ac = 15)) %>%
-        rename(damage1 = value) %>%
-        mutate(rage1 = seq(15, 100, length.out = 101)) %>%
-        mutate(dpr1 = damage1/rage1)
-execute_dmg2 <- as_tibble(sapply(rage, execute, ac = 10)) %>%
-        rename(damage2 = value) %>%
-        mutate(rage2 = seq(10, 100, length.out = 101)) %>%
-        mutate(dpr2 = damage2/rage2)
-
-exec_comparison <- bind_cols(execute_dmg0, execute_dmg1, execute_dmg2)
+```{r include=FALSE}
+# rage <- seq(0, 100, by = 1)
+# execute_dmg0 <- as_tibble(sapply(rage, execute, ac = 20)) %>%
+#         rename(damage0 = value) %>%
+#         mutate(rage0 = seq(20, 100, length.out = 101)) %>%
+#         mutate(dpr0 = damage0/rage0)
+# 
+# execute_dmg1 <- as_tibble(sapply(rage, execute, ac = 15)) %>%
+#         rename(damage1 = value) %>%
+#         mutate(rage1 = seq(15, 100, length.out = 101)) %>%
+#         mutate(dpr1 = damage1/rage1)
+# execute_dmg2 <- as_tibble(sapply(rage, execute, ac = 10)) %>%
+#         rename(damage2 = value) %>%
+#         mutate(rage2 = seq(10, 100, length.out = 101)) %>%
+#         mutate(dpr2 = damage2/rage2)
+# 
+# exec_comparison <- bind_cols(execute_dmg0, execute_dmg1, execute_dmg2)
 
 ```
 
@@ -467,6 +474,12 @@ exec_comparison <- bind_cols(execute_dmg0, execute_dmg1, execute_dmg2)
 
 1. Intro to Overpower
 2. Should you use OP? If so, when?
+
+## Battle Shout{#battleshout}
+
+1. Intro to battle shout
+2. How much does battle shout add, on average, to our abilities
+3. Improved battle shout, how good is it?
 
 ## Damage per Rage{#dpr}
 
