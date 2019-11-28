@@ -218,9 +218,9 @@ flurry <- function(crit, attks){
 }
 ```
 
-Where $F_{up}$ is the uptime, $P(Crit)$ is the player's crit chance, and $A$ is the number of attacks made in one cycle of Flurry (3 from auto attack swings, and generally one additional from an instant attack; 4 is a reasonable number for a dual wielding player). Flurry is often misunderstood - the main misconception being that 33% crit will translate to 100% flurry uptime. This is wrong, as we can see graphically: 
+Where $F_{up}$ is the uptime, $P(Crit)$ is the player's crit chance, and $A$ is the number of attacks made in one cycle of Flurry (3 from auto attack swings, and generally one additional from an instant attack; 4 is a reasonable number for a dual wielding player). Flurry is often misunderstood - the main misconception being that 33% crit will translate to 100% flurry uptime. This is incorrect, as shown by the following graph: 
 
-```{r Crit Chance vs Flurry Uptime Graph, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Crit Chance vs Flurry Uptime Graph, echo=FALSE, message=FALSE, warning=FALSE, fig.cap = "Increase in critical strike chance increases flurry uptime."}
 dat <- as.data.frame(seq(0, 1, .01))
 flurry_uptime <- as.data.frame(lapply(dat, flurry, attks = 4))
 test <- cbind(dat, flurry_uptime)
