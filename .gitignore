@@ -5,6 +5,7 @@ index.Rmd
 *.bib
 *.log
 *.rproj
-.Rproj.user
+.Rproj.user/
 intro.Rmd
 *.txt
+.Rpro

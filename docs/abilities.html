@@ -52,6 +52,43 @@
 
 
 
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -167,7 +204,7 @@ C\ =\ \left(0.0091107836\ \times\ Lvl^2\right)\ +\ \left(3.225598133\ \times\ Lv
 \end{equation}\]</span>
 <p>What this tells us is that very low damage attacks have an uppber bound on how much they can be averaged up by the hit factor of the Where <span class="math inline">\(Lvl\)</span> is the player’s level. Knowing this, we can calculate the conversion value for various level ranges:</p>
 <table>
-<caption><span id="tab:unnamed-chunk-2">Table 4.1: </span>Rage conversion values.</caption>
+<caption><span id="tab:unnamed-chunk-8">Table 4.1: </span>Rage conversion values.</caption>
 <thead>
 <tr class="header">
 <th align="right">Player Level</th>
@@ -203,7 +240,7 @@ C\ =\ \left(0.0091107836\ \times\ Lvl^2\right)\ +\ \left(3.225598133\ \times\ Lv
 </table>
 <p>Similarly, the hit factor is based on the type of hit you perform against your target:</p>
 <table>
-<caption><span id="tab:unnamed-chunk-3">Table 4.2: </span>Hit factor values.</caption>
+<caption><span id="tab:unnamed-chunk-9">Table 4.2: </span>Hit factor values.</caption>
 <thead>
 <tr class="header">
 <th align="left">Weapon</th>
@@ -248,9 +285,9 @@ DPR\ =\ \frac{Damage}{Rage}
 BT_{dmg}\ =\ AP\ \times\ 0.45
 \tag{4.4}
 \end{equation}\]</span>
-<p>It might not be immediately apparent, but this is one of the main reasons why fury warrior damage scales so well - no other ability in the game benefits from attack power as much as BT. As we will see soon, at 30 rage it has the highest damage per rage of any of our abilities, and as such should be prioritized in most cases. The formula shows a linear increase in damage, which can be displayed graphically:</p>
-<div class="figure"><span id="fig:unnamed-chunk-4"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-4-1.png" alt="Bloodthirst scales linearly with attack power and is completely independent of weapon damage." width="672" />
+<p>It might not be immediately apparent, but this is one of the main reasons why fury warrior damage scales so well - no other ability in the game benefits from attack power as much as BT. As we will soon see, at 30 rage it has the highest damage per rage of any of our abilities against a single target, and as such should be prioritized in most cases. The formula shows a linear increase in damage, which can be displayed graphically:</p>
+<div class="figure"><span id="fig:unnamed-chunk-10"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-10-1.png" alt="Bloodthirst scales linearly with attack power and is completely independent of weapon damage." width="672" />
 <p class="caption">
 Figure 4.1: Bloodthirst scales linearly with attack power and is completely independent of weapon damage.
 </p>
@@ -266,7 +303,7 @@ WW_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right
 \end{equation}\]</span>
 <p>Where <span class="math inline">\(Wep_{swing}\)</span> is the damage caused by your weapon swing, and the right term is the damage added to that swing by your AP. Instantly, we can notice two differences between the damage scaling of WW when compared to BT: it scales with weapon damage, but much more poorly with AP. Another important distinction between the two is that while BT is a single target ability, WW scales off the number of opponents that are hit with it. Knowing that, we can calculate the DPR of both abilities at varying number of targets when wielding different types of weapons. In order to that, we assume the following:</p>
 <table>
-<caption><span id="tab:unnamed-chunk-6">Table 4.3: </span>Variables affecting Whirlwind damage calculations.</caption>
+<caption><span id="tab:unnamed-chunk-12">Table 4.3: </span>Variables affecting Whirlwind damage calculations.</caption>
 <thead>
 <tr class="header">
 <th align="left">Weapon</th>
@@ -277,47 +314,58 @@ WW_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">One Handed Weapon</td>
-<td align="right">2.4</td>
-<td align="right">143</td>
-<td align="right">1750</td>
-</tr>
-<tr class="even">
-<td align="left">Dagger</td>
-<td align="right">1.5</td>
-<td align="right">105</td>
-<td align="right">1750</td>
-</tr>
-<tr class="odd">
 <td align="left">Two Handed Weapon</td>
 <td align="right">3.3</td>
 <td align="right">258</td>
 <td align="right">1750</td>
 </tr>
+<tr class="even">
+<td align="left">One Handed Weapon</td>
+<td align="right">2.4</td>
+<td align="right">143</td>
+<td align="right">1750</td>
+</tr>
+<tr class="odd">
+<td align="left">Dagger</td>
+<td align="right">1.5</td>
+<td align="right">105</td>
+<td align="right">1750</td>
+</tr>
 </tbody>
 </table>
-<div class="figure"><span id="fig:unnamed-chunk-10"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-10-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon." width="672" />
+<p>With this, we can calculate the DPR of one use of Whirlwind when hitting a varying number of targets, and compare it to the DPR of Bloodthirst at the same attack power threshold:</p>
+<div class="figure"><span id="fig:unnamed-chunk-16"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-16-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon." width="672" />
 <p class="caption">
 Figure 4.2: Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-11"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-11-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-17"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-17-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword." width="672" />
 <p class="caption">
 Figure 4.3: Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-12"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-12-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-18"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-18-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger." width="672" />
 <p class="caption">
 Figure 4.4: Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger.
 </p>
 </div>
-<p>The graphs above paint a clear picture: whirlwind damage per rage increases linearly with number of targets being hit, and that together with the weapon type currently being wielded by the player should inform <em>when</em> the skill should take priority over Bloodthirst at differing attack power thresholds.</p>
+<p>The graphs above paint a clear picture: Whirlwind damage per rage increases linearly with number of targets being hit, and that together with the weapon type currently being wielded by the player, should inform <em>when</em> the skill should take priority over Bloodthirst at variable attack power thresholds.</p>
 </div>
 <div id="execute" class="section level2">
 <h2><span class="header-section-number">4.3</span> Execute</h2>
+<p>Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown, variable rage cost, and that can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past it’s activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability at 5 rage per talent point. Therefore, we can calculate its damage as:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">execute &lt;-<span class="st"> </span><span class="cf">function</span>(rage, ac){
+        damage =<span class="st"> </span><span class="dv">600</span> <span class="op">+</span><span class="st"> </span>((rage<span class="op">-</span>ac)<span class="op">*</span><span class="dv">15</span>)
+        <span class="kw">return</span>(damage)
+}</code></pre></div>
+<span class="math display">\[\begin{equation}
+Execute_{dmg}\ =\ 600\ +\ \left(\left(R-Ac\right)\ \times\ 15\right)
+(\#eq:execute_dmg)
+\end{equation}\]</span>
+<p>Where <span class="math inline">\(R\)</span> is the player’s current rage, <span class="math inline">\(Ac\)</span> is the activation cost of the ability (dictated by how many points the player has in improved execute) and 15 is the damage multiplier per point of rage. Knowing this, we can quickly visualize the damage per rage of the ability at 0, 1, and 2 points into the Improved Execute talent:</p>
 <ol style="list-style-type: decimal">
 <li>Intro to Execute (CD, usage, formula, % of overall damage)</li>
 <li>Execute batching</li>
@@ -336,6 +384,7 @@ Figure 4.4: Comparison of the damage per rage efficiency between Bloodthirst and
 <ol style="list-style-type: decimal">
 <li>Introduction (formula)</li>
 <li>Opportunity cost - why damage per ratio is deceptive</li>
+<li>HS doesn’t consume flurry</li>
 </ol>
 <div id="hs-queuinghsq" class="section level3">
 <h3><span class="header-section-number">4.4.1</span> HS Queuing#{hsq}</h3>

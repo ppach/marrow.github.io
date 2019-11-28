@@ -18,6 +18,8 @@ cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
 # The palette with black:
 cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
 wepskill_tbl <- tibble::tribble(
         ~Delta, ~"Glancing Penalty", ~"Miss Probability", ~"Hit Cap",
                      15,    0.35,       0.08,   0.09,
@@ -38,15 +40,15 @@ wepskill_tbl <- tibble::tribble(
                       0,              0.05,       0.05,   0.05
         ) %>%
         mutate(`Weapon Skill` = seq(300, 315, by = 1),
-               `Percent of White Attack` = 1-`Glancing Penalty`,
-               `Glancing Blow Damage Increase` = (`Percent of White Attack` / 0.65)-1) %>%
-        select(`Weapon Skill`, `Percent of White Attack`, `Glancing Blow Damage Increase`, everything(), -c(Delta, `Glancing Penalty`))
+               `% damage dealt by glancing blow` = 1-`Glancing Penalty`,
+               `Glancing Blow Damage Increase` = (`% damage dealt by glancing blow` / 0.65)-1) %>%
+        select(`Weapon Skill`, `% damage dealt by glancing blow`, `Glancing Blow Damage Increase`, everything(), -c(Delta, `Glancing Penalty`))
         
 wepskill_code <- wepskill_tbl %>%
         clean_names()
 
 inherit_miss <- wepskill_code %>%
-        select(weapon_skill, everything(), -c(percent_of_white_attack, glancing_blow_damage_increase)) %>%
+        select(weapon_skill, everything(), -c(percentdmg_dealt_by_glancing, glancing_blow_damage_increase)) %>%
         pivot_longer(-weapon_skill, names_to = "type") %>%
         mutate(value = value * 100)
 ```
@@ -65,7 +67,7 @@ There are two types of melee attacks: white (auto attacks) and yellow (special a
 * Critical Strike
 * Hit
 
-A mob being attacked from behind *cannot* block or parry, and thus these two outcomes are removed from the roll table. This means our white attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize $P(Miss)$, $P(Dodge)$ and $P(Glance)$, and maximize $P(Crit)$. In the subsequent sections, we will take a deeper look into how we can achieve that.
+A mob being attacked from behind *cannot* block or parry, and thus these two outcomes are removed from the roll table. This means our white attacks can only either miss, be dodged, glance, hit, or critically hit. Therefore, in order to maximize our damage we need to minimize $P(Miss)$ and $P(Dodge)$, maximize $P(Crit)$, and increase the damage done by glancing blows, seeing as how $P(Glance)$ is fixed at $.4$. In the subsequent sections, we will take a deeper look into how we can achieve that.
 
 
 ## Miss Chance, Glancing Blows, and Weapon Skill{#miss_glancing_weapon}
@@ -88,7 +90,7 @@ P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\r
 (\#eq:missprob2)
 \end{equation}
 
-Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings. It is important to note, however, that this is the behavior exhibited by wielding one one-handed weapon. If dual wielding, probability of missing an attack is calculated as:
+Where $T_{lvl}$ is the target's level, and $Atk_{skill}$ is the attacker's weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings. It is important to note, however, that this is the behavior exhibited by wielding one weapon. If dual wielding, the probability of missing an attack is calculated as:
 
 \begin{equation}
 P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
@@ -148,7 +150,7 @@ As we can see, weapon skill not only reduces the glancing blow damage penalty, i
 The glancing blow damage penalty reduction is more easily shown graphically:
 
 ```{r echo=FALSE, fig.cap = "Weapon skill greatly reduces the glancing blow damage penalty"}
-wepskillplot1 <- ggplot(wepskill_code, aes(x = weapon_skill, y = percent_of_white_attack)) +
+wepskillplot1 <- ggplot(wepskill_code, aes(x = weapon_skill, y = percentdmg_dealt_by_glancing)) +
         geom_line() +
         geom_point() +
         labs(x = "Weapon Skill", 
