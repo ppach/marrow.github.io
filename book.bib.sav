@@ -1,0 +1,81 @@
+% Encoding: UTF-8
+@Book{xie2015,
+  title = {Dynamic Documents with {R} and knitr},
+  author = {Yihui Xie},
+  publisher = {Chapman and Hall/CRC},
+  address = {Boca Raton, Florida},
+  year = {2015},
+  edition = {2nd},
+  note = {ISBN 978-1498716963},
+  url = {http://yihui.name/knitr/},
+}
+
+@Misc{steppen2019,
+  author = {Steppenwolf},
+  title  = {Steppenwolf's Classic Warrior Spreadsheet},
+  year   = {2019},
+  owner  = {Steppenwolf},
+  url    = {https://drive.google.com/file/d/1Er1CHvFncy_zNLICylZCV0HeDyMTvYxa/view},
+}
+
+@Misc{aurana2019,
+  author = {Aurana},
+  title  = {Classic WoW Fury DPS Simulator},
+  year   = {2019},
+  url    = {https://github.com/wow-aurana/},
+}
+
+@Misc{blizz_atktbl2019,
+  author = {Blizzard},
+  title  = {Attack Table Clarifications},
+  month  = jun,
+  year   = {2019},
+  url    = {https://classic.wowhead.com/news=292085/hit-cap-in-classic-wow-clarifications?webhook},
+}
+
+@Misc{magey_atktbl2019,
+  author = {magey and Vilius and dmzor and Pufffymuffins and Towneh and Scylla and Pyte},
+  title  = {Attack Table in Classic WoW},
+  year   = {2019},
+  url    = {https://github.com/magey/classic-warrior/wiki/Attack-table},
+}
+
+@Article{beaza_miss2006,
+  author = {Beaza},
+  title  = {Miss Chance in World of Warcraft},
+  year   = {2006},
+  month  = nov,
+  url    = {https://wowwiki.fandom.com/wiki/Miss?oldid=347982},
+}
+
+@Misc{blizz_hitcap2019,
+  author = {Blizzard},
+  title  = {Hit Cap Clarification},
+  year   = {2019},
+  url    = {https://us.forums.blizzard.com/en/wow/t/bug-hit-tables/185675/32},
+}
+
+@Misc{beanna_fcdpr2019,
+  author = {Beanna and SAKUJ0 and Skiz and Vilius and DiscreteChi},
+  title  = {Fight Club DPR Spreadsheet},
+  year   = {2019},
+  file   = {:C\:/Users/pedro/Documents/wow/furywar/csvs/Fight Club DPR Sheet (by SAKUJ0 and Beanna).xlsx:Excel 2007+},
+}
+
+@Misc{bornakk_2009,
+  author = {Bornakk},
+  title  = {Re: Newly Discovered Rage Ghost Nerf Unveiled},
+  month  = may,
+  year   = {2009},
+  url    = {http://forums.worldofwarcraft.com/thread.html?topicId=17367760070&pageNo=13#250},
+}
+
+@Misc{vanillawiki_2019,
+  author = {WoW Wiki, Vanilla},
+  title  = {Rage in Vanilla World of Warcraft},
+  month  = nov,
+  year   = {2019},
+  url    = {https://vanilla-wow.fandom.com/wiki/Rage},
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}

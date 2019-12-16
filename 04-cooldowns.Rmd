@@ -9,6 +9,7 @@
 ## Mighty Rage Potion
         1. Intro to MRP
         2. Utilization
+        3. Duration or spike?
 ## Bloodrage
         1. Intro to Bloodrage
         2. Utilization

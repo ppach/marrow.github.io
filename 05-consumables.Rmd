@@ -3,7 +3,7 @@
 ### Mongoose
 ### Juju/Giants
 ### Firewater/Juju
-## R.O.I.D.S and Scorpok
+### R.O.I.D.S and Scorpok
 ## Protection Potions
 ## Assorted
 ### Limited Invulnerability Potions

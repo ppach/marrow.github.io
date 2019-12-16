@@ -23,27 +23,32 @@ ad_dmg <- function(ap, wpn_spd){
         return(added_dmg)
 }
 
-bt <- function(ap){
-        damage = ap * 0.45
+bt <- function(ap, crit = 0.3, dodge = 0.06){
+        multiplier = 1+crit-dodge
+        damage = multiplier * (ap * 0.45)
         return(damage)
 }
 
-execute <- function(rage){
-        damage = 600 + ((rage-10)*15)
+execute <- function(rage, crit = 0.3, dodge = 0.06){
+        damage = multiplier * (600 + ((rage-10)*15))
         return(damage)
 }
 
-ww <- function(wpn_swing_dmg, wpn_spd, ap)
-        {
+ww <- function(wpn_swing_dmg, wpn_spd, ap, crit = 0.3, dodge = 0.06){
+        multiplier = 1+crit-dodge
         additional = ad_dmg(ap, wpn_spd)
         total = wpn_swing_dmg + (additional)
-        return(total)
+        damage = multiplier * total
+        return(damage)
 }
 
-rage_gen <- function(damage, conversion = 230.6, hit_factor, wep_speed){
-        rage <- ((15*damage) / (4 * conversion)) + ((hit_factor * wep_speed)/2)
+slam <- function(wpn_swing_dmg, wpn_spd = 3.3, ap, crit = 0.3, dodge = 0.06){
+        additional = (ad_dmg(ap, wpn_spd)) + 87
+        total = wpn_swing_dmg + (additional)
+        multiplier = 1+crit-dodge
+        damage = multiplier * total
+        return(damage)
 }
-
 
 conversion_values_tbl <- tibble::tribble(
         ~`Player Level`,    ~`Conversion Value`,
@@ -71,7 +76,6 @@ bt_dmg <- bt_dmg %>%
         transmute(AP = `seq(0, 3000, 100)`,
                   Damage = `seq.0..3000..100.`) %>%
         mutate(dpr = Damage/30)
-
 ```
 
 
@@ -83,6 +87,13 @@ A warrior's resource is the finite, yet continuously generated, rage. Rage is ca
 Rage_{gen}\ =\ \left(\frac{D}{C}\right)\ \times\ 15
 (\#eq:ragegen)
 \end{equation}
+
+```{r include=FALSE}
+rage_gen <- function(D){
+        rage_gen <- ((D/230.6) * 15)
+        return(rage_gen)
+}
+```
 
 Where $D$ is the damage dealt, and $C$ is the rage conversion value. The rage conversion value varies by player character level and is dependent on other values such as the mob's hit points and the warrior's expected damage value against that mob. It can be calculated by the following formula:
 
@@ -107,7 +118,9 @@ DPR\ =\ \frac{Damage}{Rage}
 (\#eq:dprformula)
 \end{equation}
 
-Although this is an easy concept to grasp, it'll be an essential part of our discussions throughout this chapter from now on. This is because the DPR of our abilities is **not** constant - Whirlwind's (WW) DPR varies depending on the number of enemies around and the damage and type of our weapon, Execute's varies based on how much rage we consume when activating the ability, and Bloodthirst's depends on our current attack power. Doing as much damage as possible in a fight, thus, is about calculating the DPR of each one of these abilities as the encounter progresses, and utilizing the one with the maximum DPR. We will revisit this concept in more depth in \@ref{dpr}
+Although this is an easy concept to grasp, it'll be an essential part of our discussions throughout this chapter from now on. This is because the DPR of our abilities is **not** constant - Whirlwind's (WW) DPR varies depending on the number of enemies around and the damage and type of our weapon, Execute's varies based on how much rage we consume when activating the ability, and Bloodthirst's depends on our current attack power. Doing as much damage as possible in a fight, thus, is about calculating the DPR of each one of these abilities as the encounter progresses, and utilizing the one with the maximum DPR. We will revisit this concept in more depth in \@ref(dpr)
+
+^[Note: For all of the following damage and DPR calculations, we will assume a $P(Crit) = 0.3$ and $P(Dodge) = 0.6$, as well as 305 weapon skill.]
 
 
 ## Bloodthirst{#bloodthirst}
@@ -120,9 +133,9 @@ BT_{dmg}\ =\ AP\ \times\ 0.45
 (\#eq:btdmg)
 \end{equation}
 
-It might not be immediately apparent, but this is one of the main reasons why fury warrior damage scales so well - no other ability in the game benefits from attack power as much as BT. As we will soon see, at 30 rage it has the highest damage per rage of any of our abilities against a single target, and as such should be prioritized in most cases. The formula shows a linear increase in damage, which can be displayed graphically:
+It might not be immediately apparent, but this is one of the main reasons why fury warrior damage scales so well - no other ability in the game benefits from attack power as much as Bloodthirst. As we will soon see, at 30 rage it has the highest damage per rage of any of our abilities against a single target, and as such should be prioritized in most cases. The formula shows a linear increase in damage, which can be displayed graphically:
 
-```{r echo=FALSE, fig.cap="Bloodthirst scales linearly with attack power and is completely independent of weapon damage."}
+```{r echo = FALSE, fig.cap="Bloodthirst scales linearly with attack power and is completely independent of weapon damage."}
 
 ggplot(data = bt_dmg, aes(AP, Damage)) +
         geom_line() +
@@ -134,7 +147,7 @@ ggplot(data = bt_dmg, aes(AP, Damage)) +
         scale_y_continuous(breaks = seq(0, 2000, 150))
 ```
 
-This complete dependence on AP has another important implication: it means BT damage is completely weapon independent. Two warriors utilizing the same gear except for weapons - with one utilizing a 2 handed weapon and the other a dagger - will deal the same damage with Bloodthirst.
+This complete dependence on AP has another important implication: it means Bloodthirst's damage is completely weapon independent. Two warriors utilizing the same gear except for weapons - with one utilizing a 2 handed weapon and the other a dagger - will deal the same damage with Bloodthirst.
 
 
 ## Whirlwind{#whirlwind}
@@ -143,11 +156,12 @@ Whirlwind is an area of effect ability (AoE) that hits four enemy mobs with your
 
 \begin{equation}
 WW_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right)\right)
-(\#eq:btdmg)
+(\#eq:wwdmg)
 \end{equation}
 
 Where $Wep_{swing}$ is the damage caused by your weapon swing, and the right term is the damage added to that swing by your AP.
-Instantly, we can notice two differences between the damage scaling of WW when compared to BT: it scales with weapon damage, but much more poorly with AP. Another important distinction between the two is that while BT is a single target ability, WW scales off the number of opponents that are hit with it. Knowing that, we can calculate the DPR of both abilities at varying number of targets when wielding different types of weapons. In order to that, we assume the following:
+
+The formula allows us to notice two differences between the damage scaling of Whirlwind when compared to Bloodthirst: while Whirlwind scales with weapon damage, it scales much more poorly with AP. Another important distinction between the two is that while Bloodthirst is a single target ability, Whirlwind scales off the number of opponents that are hit with it. Knowing that, we can calculate the DPR of both abilities at varying number of targets when wielding different types of weapons. In order to that, we assume the following:
 
 
 ```{r include=FALSE}
@@ -164,12 +178,12 @@ scenario1 <- scenario1_tbl %>%
 ```
 
 
-```{r}
+```{r weapons}
 knitr::kable(scenario1_tbl, booktabs = TRUE,
              caption = "Variables affecting Whirlwind damage calculations.")
 ```
 
-With this, we can calculate the DPR of one use of Whirlwind when hitting a varying number of targets, and compare it to the DPR of Bloodthirst at the same attack power threshold:
+Kowing this, we can calculate the DPR of one use of Whirlwind when hitting a varying number of targets, and compare it to the DPR of Bloodthirst at the same attack power threshold:
 
 ```{r include=FALSE}
 
@@ -268,64 +282,9 @@ dagger_comparison_dpr <- as_tibble(cbind(ap_vals, btdmg, n1_dagger)) %>%
 
 ```
 
-```{r}
-# sword_swings <- rnorm(1000, mean = 143, sd = 3)
-# twohander_swings <- rnorm(10000, mean = 258, sd = 3)
-# dagger_swings <- rnorm(10000, mean = 105, sd = 3)
-# 
-# ap_vals <- seq(0, 2500, by = 250)
-# 
-# sword_test <- as_tibble(sapply(ap_vals, ww, wpn_spd = 2.4, wpn_swing_dmg = sword_swings)) %>%
-#         rename(`0` = V1,
-#                `250` = V2,
-#                `500` = V3,
-#                `750` = V4,
-#                `1000` = V5,
-#                `1250` = V6,
-#                `1500` = V7,
-#                `1750` = V8,
-#                `2000` = V9,
-#                `2250` = V10,
-#                `2500` = V11) %>%
-#         pivot_longer(cols = `0`:`2500`, names_to = "ap") %>%
-#         rename(damage = value) %>%
-#         mutate(ap = as.factor(ap))
-# 
-# sword_test %>%
-#         ggplot(aes(x = ap, y = damage)) +
-#         geom_line()
-# # sword_test <- tibble::tribble(
-# #             ~`ap0`,      ~`ap250`,   ~`ap500`, ~`ap750`, ~`ap1000`, ~`ap1250`, ~`ap1500`, ~`ap1750`, ~`ap2000`, ~`ap2250`, ~`ap2500`)
-# #         
-# # sword_test <- sword_test %>%
-# #         mutate(ap0 = sword_swings)
-# 
-#         # pivot_longer(cols = ap0:ap2500, names_to = "group")
-# 
-# btdmg <- as_tibble(sapply(ap_vals, bt)) %>%
-#         rename(damage = value)
-# 
-# sword_test <- sword_test %>%
-#         cbind(btdmg)
-# 
-# ggplot(sword_test, aes(x = ap_vals, colour = group)) + 
-#         geom_density_ridges()
-#         # geom_point() +
-#         # geom_line() +
-#         # scale_colour_manual(values = cbp2,
-#         #         name = "Number of targets",
-#         #         labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
-#         #         scale_y_continuous(breaks = seq(0, 120, by = 15),
-#         #                            limits = c(0, 120)) + 
-#         # labs(x = "Attack Power",
-#         #      y = "Damage per Rage",
-#         #      title = "Whirlwind has higher DPR than BT at n = 3 or more.",
-#         #      subtitle = "Assuming a one hander with 143 mean swing damage and 2.4 weapon speed.")
-# 
 
-```
 
-```{r echo=FALSE, fig.cap="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon."}
+```{r echo=FALSE, fig.cap = "Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon."}
 
 ggplot(twohander_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) + 
         geom_point() +
@@ -333,8 +292,8 @@ ggplot(twohander_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
         scale_colour_manual(values = cbp2,
                 name = "Number of targets",
                 labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
-        scale_y_continuous(breaks = seq(0, 120, by = 15),
-                                   limits = c(0, 120)) +
+        scale_y_continuous(breaks = seq(0, 140, by = 20),
+                                   limits = c(0, 145)) +
         labs(x = "Attack Power",
              y = "Damage per Rage",
              title = "Whirlwind has higher DPR than Bloodthirst at n = 2 or more.",
@@ -343,15 +302,15 @@ ggplot(twohander_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
 ```
 
 
-```{r echo=FALSE, fig.cap="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword."}
+```{r echo=FALSE, fig.cap = "Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword."}
 ggplot(sword_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
         geom_point() +
         geom_line() +
         scale_colour_manual(values = cbp2,
                 name = "Number of targets",
                 labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
-                scale_y_continuous(breaks = seq(0, 120, by = 15),
-                                   limits = c(0, 120)) +
+                scale_y_continuous(breaks = seq(0, 140, by = 20),
+                                   limits = c(0, 145)) +
         labs(x = "Attack Power",
              y = "Damage per Rage",
              title = "Whirlwind has higher DPR than Bloodthirst at n = 3 or more.",
@@ -359,15 +318,15 @@ ggplot(sword_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
         theme_light()
 ```
 
-```{r echo=FALSE, fig.cap="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger."}
+```{r echo=FALSE, fig.cap = "Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger."}
 ggplot(dagger_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) + 
         geom_point() +
         geom_line() +
         scale_colour_manual(values = cbp2,
                 name = "Number of targets",
                 labels = c("Bloodthirst", "n = 1", "n = 2", "n = 3", "n = 4")) +
-                scale_y_continuous(breaks = seq(0, 120, by = 15),
-                                   limits = c(0, 120)) +
+                scale_y_continuous(breaks = seq(0, 140, by = 20),
+                                   limits = c(0, 145)) +
         labs(x = "Attack Power",
              y = "Damage per Rage",
              title = "Whirlwind has higher DPR than Bloodthirst at n = 4 or more.",
@@ -379,11 +338,11 @@ The graphs above paint a clear picture: Whirlwind damage per rage increases line
 
 ## Execute{#execute}
 
-Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown, variable rage cost, and that can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past it's activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability at 5 rage per talent point. Therefore, we can calculate its damage as:
+Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown and variable rage cost, which can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past it's activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability at 5 rage per talent point. Therefore, we can calculate its damage as:
 
 ```{r Execute Damage Formula, message=FALSE, warning=FALSE, include=FALSE}
 
-execute <- function(rage, points = c(0, 1, 2)){
+execute <- function(rage, points = 2){
         if(points == 0){
                 added = rage-20
         } else if (points == 1){
@@ -400,7 +359,7 @@ execute <- function(rage, points = c(0, 1, 2)){
 
 \begin{equation}
 Execute_{dmg}\ =\ 600\ +\ \left(\left(R-Ac\right)\ \times\ 15\right)
-(\#eq:execute_{dmg})
+(\#eq:executedmg)
 \end{equation}
 
 Where $R$ is the player's current rage, $Ac$ is the activation cost of the ability (dictated by how many points the player has in improved execute) and 15 is the damage multiplier per point of rage. Knowing this, we can quickly visualize the damage per rage efficiency of the ability at 0, 1, and 2 points into the Improved Execute talent:
@@ -432,48 +391,735 @@ execute_dmg2 <- as_tibble(sapply(rage, execute, points = 2)) %>%
 exec_comparison <- bind_rows(execute_dmg0, execute_dmg1, execute_dmg2)
 ```
 
-```{r echo=FALSE, fig.cap="Comparison of DPR and damage dealt by different talent point investments into the Improved Execute talent. "}
-ggplot(exec_comparison, aes(x = damage, y = dpr, colour = points)) +
+```{r echo=FALSE, fig.cap = "Comparison of rage consumed and Execute DPR by different talent point investments into the Improved Execute talent. "}
+# ggplot(exec_comparison, aes(x = damage, y = dpr, colour = points)) +
+#         geom_line() +
+#         # geom_point(aes(size = rage, alpha = 1/100)) +
+#                 scale_colour_manual(values = cbp2,
+#                 name = "Improved Execute",
+#                 labels = c("0 points", "1 point", "2 points")) +
+#         labs(x = "Damage",
+#              y = "Damage per Rage",
+#              title = "Damage per rage and Execute damage are inversely proportional.",
+#              subtitle = "Damage per rage efficiency decreases as rage consumed by Execute increases.")
+
+ggplot(exec_comparison, aes(y = dpr, x = rage, colour = points)) +
         geom_line() +
-        # geom_point() +
-                scale_colour_manual(values = cbp2,
-                name = "Improved Execute",
-                labels = c("n = 0", "n = 1", "n = 2")) +
-        labs(x = "Damage",
-             y = "Damage per Rage",
-             title = "Damage per rage and Execute damage are inversely proportional.",
-             subtitle = "Damage per rage efficiency decreases as rage consumed by Execute increases.")
+        # geom_point(aes(size = rage, alpha = 1/100)) +
+        scale_colour_manual(values = cbp2,
+        name = "Improved Execute",
+        labels = c("0 points", "1 point", "2 points")) +
+        scale_x_continuous(breaks = seq(0, 100, by = 10)) +
+        labs(y = "Damage per Rage",
+             x = "Rage",
+             title = "Low rage Executes are more efficient than high rage executes.",
+             subtitle = "DPR and Execute damage are inversely proportional.")
 ```
 
 
-1. Intro to Execute (CD, usage, formula, % of overall damage)
-2. Execute batching
-3. Execute damage per rage
+The graph enables us to visualize a big difference between Execute and our other abilities. While Bloodthirst and Whirlwind have a fixed rage cost, Execute's rage cost is **variable**. Not only that, since damage dealt is calculated by the addition of the base damage and the amount of rage multiplied, this means that **DPR and damage of Execute are inversely proportional**. Practically speaking, this means that an Execute at 10 rage is much more efficient than an execute at 100 rage, despite the latter dealing more damage.  This is because everytime Execute is activated, we gain "free" damage from the baseline ability, which does not scale with rage - meaning two 15 rage Execute activations will do more damage than one 30 rage Execute. Therefore, the most optimal way to spend rage during the Execute phase is to use it *immediately* at the lowest rage possible - resulting in higher DPR.
 
 ### Execute Switch{#execswitch}
 
-1. Why it was effective on private servers
-2. Why it's not effective in Classic
-        a. Batching
-        b. Execute phase duration
+As we now understand the relationship between rage spent and Execute DPR, it becomes clear that activating Execute at it's rage minimum cost will maximize our DPR. Therefore, it stands to reason that weapons that enable us to Execute more *often* while just going over the ability's activation cost are the best candidates for this. Let's compare our three types of weapons again (\@ref(tab:weapons)), assuming the following:
+
+* The player has 305 weapon skill for all weapon types.
+* The player has two points into Improved Execute.
+* For the one hander and dagger comparisons, we assume an offhand generating an average of 5 rage per every 1.6 second swing. 
+
+
+```{r echo=FALSE}
+
+# library(timetk)
+# library(tidyquant)
+# library(tibbletime)
+# library(lubridate)
+#Assume 6% hit with 305 weapon skill
+        
+gcds <- as_tibble(seq(0, 20, by = 1.5))
+phase <- as_tibble(seq(0, 20, by = 0.1)) %>%
+        rename(time = value)
+
+
+oh_swing <- as_tibble((seq(0, 20, by = 1.6))) %>%
+        mutate(weapon = "offhand") %>%
+        rename(time = value) %>%
+        mutate(swing_dmg = rnorm(mean = 82, sd = 3, n = 13)) %>%
+        mutate(rage = rage_gen(swing_dmg)) %>%
+        mutate(hit = 1)
+
+dagger_swing <- as_tibble((seq(0, 20, by = 1.5))) %>%
+        mutate(weapon = "dagger") %>%
+        rename(time = value) %>%
+        mutate(rage = rage_gen(rnorm(mean = 105, sd = 3, n = 14)) + mean(oh_swing$rage)) %>%
+        mutate(hit = 1)
+        # bind_rows(oh_swing)
+
+
+sword_swing <- as_tibble((seq(0, 20, by = 2.4))) %>%
+        mutate(weapon = "sword") %>%
+        rename(time = value) %>%
+        mutate(rage = rage_gen(rnorm(mean = 143, sd = 3, n = 9)) + mean(oh_swing$rage)) %>%
+        mutate(hit = 1)
+        # bind_rows(oh_swing)
+
+
+
+twohander_swing <- as_tibble((seq(0, 20, by = 3.3))) %>%
+        mutate(weapon = "twohander") %>%
+        rename(time = value) %>%
+        mutate(rage = rage_gen(rnorm(mean = 258, sd = 3, n = 7))) %>%
+        mutate(hit = 1)
+
+fight <- bind_rows(twohander_swing, sword_swing, dagger_swing) %>%
+        mutate(damage = execute(rage),
+               dpr = damage/rage)
+
+depd <- round(fight %>% filter(weapon == "dagger") %>% summarize(sum = sum(dpr)))
+sepd <- round(fight %>% filter(weapon == "sword") %>% summarize(sum = sum(dpr)))
+thepd <- round(fight %>% filter(weapon == "twohander") %>% summarize(sum = sum(dpr)))
+
+label_names <- as_labeller(c(`dagger` = paste0(depd, " total DPR"), 
+                             `sword` = paste0(sepd, " total DPR"),
+                             `twohander` = paste0(thepd, " total DPR"))) 
+```
+
+```{r echo=FALSE, fig.cap="Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types."}
+ggplot(fight, aes(x = time, y = dpr, colour = weapon)) +
+        scale_x_continuous(breaks = seq(0, 20, by = 1.5)) +
+        geom_point() + 
+        facet_wrap(~ weapon, nrow = 3, labeller = label_names) +
+        scale_colour_manual(values = cbp2,
+                name = "Weapon",
+                labels = c("Dagger", "One Hander", "Two Hander")) +
+        scale_y_continuous(breaks = seq(40, 55, by = 5)) +
+        labs(y = "Damage per Rage",
+             x = "Execute phase length (s)",
+             title = "Average Execute DPR by weapon type",
+             subtitle = "Executing more often for less rage leads to higher DPR.")
+```
+
+
+The graph is clear: utilizing daggers during the execute phase leads to much higher DPR efficiency than the alternatives. It is important to note, however, that the dagger could be replaced by **any** fast single handed weapon, provided it has high DPS. 
+Knowing this, it stands to reason that switching to a fast weapon with comparable DPS just before the Execute phase would lead to higher overall DPR, and thus damage. This is what is called *execute switching*, and while it was highly effective on private servers, it is not as effective on World of Warcraft Classic for a few reasons.
+
+
+```{r Important Functions Relating to Execute phase DPR, include=FALSE}
+oh_swing <- as_tibble((seq(from = 0 , 20, by = 1.6))) %>%
+        mutate(weapon = "offhand") %>%
+        rename(time = value) %>%
+        mutate(swing_dmg = rnorm(mean = 82, sd = 3, n = 13)) %>%
+        mutate(rage = rage_gen(swing_dmg)) %>%
+        mutate(hit = 1)
+
+execute_dpr <- function(start = 0, end = NULL, speed = NULL, avg_dmg = NULL, weapon_type = NULL, oh = "yes"){
+                
+        swing_tbl <- as_tibble(seq(from = start, to = end, by = speed)) %>%
+                mutate(weapon = weapon_type) %>%
+                rename(time = value) %>%
+                mutate(swing_dmg = rnorm(mean = avg_dmg, sd = 3, n = length(seq_along(time)))) %>%
+                mutate(hit = 1)
+        if(oh == "yes"){
+                swing_tbl <- swing_tbl %>%
+                        mutate(rage = rage_gen(swing_dmg) + mean(oh_swing$rage)) 
+        } else if(oh == "no"){
+                swing_tbl <- swing_tbl %>%
+                        mutate(rage = rage_gen(swing_dmg))
+        }
+        swing_tbl <- swing_tbl %>%
+                mutate(damage = execute(rage),
+                       dpr = damage/rage)
+                
+        # 
+        # dpr_tbl <- tibble::tribble(
+        #     ~`length`,      ~total_dpr,
+        # end,   totaldprval
+        # )
+        return(swing_tbl)
+}
+
+
+total_dpr <- function(swing_tbl = NULL){
+        totaldprval <- swing_tbl %>%
+                select(dpr) %>%
+                summarise(sum(dpr))
+        return(totaldprval)
+}
+
+
+```
+
+```{r include=FALSE}
+
+## Refactor this section for the love of god
+epl <- seq(5, 20, 5)
+
+sword_20 <- execute_dpr(start = 0, end = 20, speed = 2.4, avg_dmg = 143, weapon_type = "sword", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 20,
+               weapon_type = "onehander") %>%
+        rename(totaldpr = `sum(dpr)`)
+sword_15 <- execute_dpr(start = 0, end = 15, speed = 2.4, avg_dmg = 143, weapon_type = "sword", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 15,
+               weapon_type = "onehander") %>%
+        rename(totaldpr = `sum(dpr)`)
+sword_10 <- execute_dpr(start = 0, end = 10, speed = 2.4, avg_dmg = 143, weapon_type = "sword", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 10,
+               weapon_type = "onehander")%>%
+        rename(totaldpr = `sum(dpr)`)
+
+sword_05 <- execute_dpr(start = 0, end = 05, speed = 2.4, avg_dmg = 143, weapon_type = "sword", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 05,
+               weapon_type = "onehander")%>%
+        rename(totaldpr = `sum(dpr)`)
+
+
+
+
+dagger_20 <- execute_dpr(start = 1.5, end = 20, speed = 1.5, avg_dmg = 105, weapon_type = "dagger", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 20,
+               weapon_type = "dagger") %>%
+        rename(totaldpr = `sum(dpr)`)
+
+dagger_15 <- execute_dpr(start = 1.5, end = 15, speed = 1.5, avg_dmg = 105, weapon_type = "dagger", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 15,
+               weapon_type = "dagger") %>%
+        rename(totaldpr = `sum(dpr)`)
+
+dagger_10 <- execute_dpr(start = 1.5, end = 10, speed = 1.5, avg_dmg = 105, weapon_type = "dagger", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 10,
+               weapon_type = "dagger") %>%
+        rename(totaldpr = `sum(dpr)`)
+
+dagger_05 <- execute_dpr(start = 1.5, end = 05, speed = 1.5, avg_dmg = 105, weapon_type = "dagger", oh = "yes") %>%
+        total_dpr() %>%
+        mutate(epl = 05,
+               weapon_type = "dagger") %>%
+        rename(totaldpr = `sum(dpr)`)
+
+
+twohander_20 <- execute_dpr(start = 0, end = 20, speed = 3.3, avg_dmg = 258, weapon_type = "twohander", oh = "no") %>%
+        total_dpr() %>%
+        mutate(epl = 20,
+               weapon_type = "twohander")%>%
+        rename(totaldpr = `sum(dpr)`)
+
+twohander_15 <- execute_dpr(start = 0, end = 15, speed = 3.3, avg_dmg = 258, weapon_type = "twohander", oh = "no") %>%
+        total_dpr() %>%
+        mutate(epl = 15,
+               weapon_type = "twohander")%>%
+        rename(totaldpr = `sum(dpr)`)
+
+twohander_10 <- execute_dpr(start = 0, end = 10, speed = 3.3, avg_dmg = 258, weapon_type = "twohander", oh = "no") %>%
+        total_dpr() %>%
+        mutate(epl = 10,
+               weapon_type = "twohander")%>%
+        rename(totaldpr = `sum(dpr)`)
+
+twohander_05 <- execute_dpr(start = 0, end = 05, speed = 3.3, avg_dmg = 258, weapon_type = "twohander", oh = "no") %>%
+        total_dpr() %>%
+        mutate(epl = 05,
+               weapon_type = "twohander")%>%
+        rename(totaldpr = `sum(dpr)`)
+
+overall_totaldpr <- bind_rows(twohander_20,twohander_15,twohander_10,twohander_05,
+                              sword_20, sword_15, sword_10, sword_05,
+                              dagger_20, dagger_15, dagger_10, dagger_05) %>%
+        mutate(weapon_type = as.factor(weapon_type))
+```
+
+
+The biggest factor determining the viability of Execute switching is the Execute phase length (EPL). While the difference between the Execute DPR of different weapon types and speeds is small in short EPLs, this effect becomes more noticeable as the EPL increases. This is, again, because the longer the duration of the EPL, the more opportunities we have to gain "free" damage from the activation of the Execute ability. This behavior can be observed in the graph below:
+
+```{r echo=FALSE, fig.cap = "Total DPR achieved by utilizing Execute after every weapon swing with different weapons."}
+ggplot(overall_totaldpr, aes(x = epl, y = totaldpr, colour = weapon_type)) +
+        geom_point() +
+        geom_line() +
+         scale_colour_manual(values = cbp2,
+                name = "Weapon Speed and Type",
+                labels = c("1.5 (One Handed)", "2.4 (One Handed)", "3.3 (Two Handed)")) +
+        scale_y_continuous(breaks = seq(100, 700, by = 100)) +
+        labs(y = "Total Damage per Rage",
+             x = "Execute phase length (s)",
+             title = "Short Execute phase lengths make switching less effective.",
+             subtitle = "Calculations account for 1.5 second offset caused by the weapon switch.")
+```
+
         
 ## Heroic Strike and Cleave{#heroic}
 
-1. Introduction (formula)
-2. Opportunity cost - why damage per ratio is deceptive
-3. HS doesn't consume flurry
+Heroic Strike (HS) and Cleave are unique abilities in a warrior's toolkit. While all of the abilities we've looked at so far are instant - meaning they occur immediately upon activation - HS and Cleave instead take place on the player's *next* melee main hand swing. This has two important consequences:
 
-### HS Queuing#{hsq}
+1. Since the player's next melee attack becomes an yellow attack, it also gains the properties of one. This means HS and Cleave *cannot* glance.
+2. Similarly, since the player's next melee swing is now an yellow attack, it *does not* generate rage. Therefore, HS and Cleave are utilized as rage dumps in order to prevent rage capping.
 
-1. Explanation (include macro)
-2. Consequences
-3. When should you queue?
+Because these abilities do not generate rage, their activation cost and damage are deceptive - we need to factor in the opportunity cost of a regular melee attack. Likewise, the damage dealt by these abilities has to account for the $P(Glance)$ reduction they incur. Therefore, from now on when we refer to HS and Cleave's cost and damage, we'll be speaking in terms of **effective cost** and **effective damage**. Beanna and Vilius [@beanna_fcdpr2019] have derived this formulas as:
+
+Effective HS cost:
+
+\begin{equation}
+HS_{cost}\ = 15\ +\ \left(Rage\left(Dmg-Auto\ \right)\right)-HS_{imp}
+(\#eq:hscost)
+\end{equation}
+
+Effective HS damage:
+
+\begin{equation}
+\small HS_{dmg}\ =\ \left(1+P\left(Crit\right)-P\left(Doge\right)\times Damage\ +\ P\left(Glancing\right)\left(Damage_{auto}-Damage_{glance}\right)\right)
+(\#eq:hsdmg)
+\end{equation}
+
+Analogously, we can define Cleave's effective cost as:
+
+\begin{equation}
+Cleave_{cost}\ = 20\ +\ \left(Rage\left(Dmg-Auto\ \right)\right)
+(\#eq:cleavecost)
+\end{equation}
+
+And it's damage as:
+
+\begin{equation}
+\scriptsize Cleave_{dmg}\ =\ \left(1+P\left(Crit\right)-P\left(Dodge\right) \times \left(Dmg_{auto}+\ \left(2\ \times\ Cleave_{bonus}\ \right)\right)+\ \left(P\left(Glance\right)\times\left(Dmg_{auto}\ -\ Dmg_{glance}\right)\right)\right)
+(\#eq:cleavedmg)
+\end{equation}
+
+
+```{r cleave and hs formulas, include=FALSE}
+hs_cost <- function(dmg_auto, imp_hs = 3){
+        cost = (15 + rage_gen(dmg_auto)-imp_hs) 
+        return(cost)
+}
+
+hs_dmg <- function(crit = 0.3, dodge = 0.06, dmg_auto, ap, wpn_spd){
+        apdmg = ad_dmg(ap, wpn_spd) 
+        multiplier = (1+crit-dodge) * (dmg_auto + apdmg) # dodge is hardcoded as 0.06 due to 305 weapon skill
+        glance = 0.4 * (dmg_auto - (0.85 * dmg_auto)) # 0.4 is P(glance) and 0.85 is hardcoded 305 wep skill
+        damage = multiplier + glance + 138 # assuming highest rank hs
+        return(damage)
+        
+        
+}
+
+cleave_cost <- function(dmg_auto){
+        cost = 20 + rage_gen(dmg_auto)
+        return(cost)
+}
+
+cleave_dmg <- function(crit = 0.3, dodge = 0.06, dmg_auto, ap, wpn_spd = 3.3, imp_cleave = 3, n = 2) {
+        cleave_mult = 1 + (imp_cleave * 0.4)
+        apdmg = ad_dmg(ap,wpn_spd)
+        swingdmg = dmg_auto + apdmg
+        bonus = 50 * cleave_mult
+        multiplier = (1+crit-dodge) * (swingdmg + bonus)
+        glance = 0.4 * (dmg_auto - (0.85 * dmg_auto)) # 0.4 is P(glance) and 0.85 is hardcoded 305 wep skill
+        damage = n * (multiplier + glance)
+        return(damage)
+}
+```
+
+```{r hs cost and damage tables, include=FALSE}
+
+
+dagger_hstbl <- tibble(
+        swing = rnorm(mean = 105, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = hs_dmg(dmg_auto = swing, ap = ap, wpn_spd = 1.5),
+        cost = hs_cost(swing),
+        dpr = damage / cost,
+        weapon = "dagger"
+)
+
+onehand_hstbl <- tibble(
+        swing = rnorm(mean = 143, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = hs_dmg(dmg_auto = swing, ap = ap, wpn_spd = 2.4),
+        cost = hs_cost(swing),
+        dpr = damage / cost,
+        weapon = "onehand"
+)
+twohand_hstbl <- tibble(
+        swing = rnorm(mean = 258, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = hs_dmg(dmg_auto = swing, ap = ap, wpn_spd = 3.3),
+        cost = hs_cost(swing),
+        dpr = damage / cost,
+        weapon = "twohand"
+)
+
+hstbl <- bind_rows(dagger_hstbl, onehand_hstbl, twohand_hstbl) %>% 
+        mutate(ability = "Heroic Strike")
+
+
+dagger_clvtbl <- tibble(
+        swing = rnorm(mean = 105, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = (cleave_dmg(dmg_auto = swing, ap = ap, wpn_spd = 1.5)),
+        cost = cleave_cost(swing),
+        dpr = damage / cost,
+        weapon = "dagger"
+)
+
+onehand_clvtbl <- tibble(
+        swing = rnorm(mean = 143, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = (cleave_dmg(dmg_auto = swing, ap = ap, wpn_spd = 2.4)),
+        cost = cleave_cost(swing),
+        dpr = damage / cost,
+        weapon = "onehand"
+)
+twohand_clvtbl <- tibble(
+        swing = rnorm(mean = 258, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = (cleave_dmg(dmg_auto = swing, ap = ap, wpn_spd = 3.3)),
+        cost = cleave_cost(swing),
+        dpr = damage / cost,
+        weapon = "twohand"
+)
+
+clvtbl <- bind_rows(dagger_clvtbl, onehand_clvtbl, twohand_clvtbl) %>% 
+        mutate(ability = "Cleave")
+
+twohand_slamtbl <- tibble(
+        swing = rnorm(mean = 258, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = slam(wpn_swing_dmg = swing, ap = ap, wpn_spd = 3.3),
+        cost = 15,
+        dpr = damage / cost,
+        weapon = "twohand",
+        ability = "Slam"
+)
+
+onehand_slamtbl <- tibble(
+        swing = rnorm(mean = 243, sd = 4, n = 11000),
+        ap = rep(ap_vals, length.out = 11000),
+        damage = slam(wpn_swing_dmg = swing, ap = ap, wpn_spd = 2.3),
+        cost = 15,
+        dpr = damage / cost,
+        weapon = "onehand",
+        ability = "Slam"
+)
+
+```
+
+It's important to note that, due to the player's weapon swing ultimately affecting the effective cost of both abilities, their DPR also changes according to the weapon's average damage. We can visualize this behavior through violin plots:
+
+```{r echo=FALSE, fig.cap="Visualization of the effective HS damage and DPR density for different weapon types."}
+hstbl %>% 
+        filter(ap == 0) %>%
+ggplot(aes(y = damage, x = cost, fill = weapon)) +
+        geom_violin(alpha = 0.5) +
+        scale_fill_manual(values = cbp2,
+        name = "Weapon Type",
+        labels = c("Dagger", "One Handed", "Two Handed")) +
+        scale_x_continuous(breaks = seq(15, 40, by = 5),
+                                limits = c(15, 40)) +
+        labs(y = "Damage",
+             x = "Effective DPR",
+             title = "HS effective DPR increases with average weapon damage",
+             subtitle = "10000 swings with sd = 4")
+```
+
+```{r echo=FALSE, fig.cap="Visualization of the effective Cleave damage and DPR density for different weapon types."}
+clvtbl %>% 
+        filter(ap == 0) %>% 
+ggplot(aes(y = damage, x = cost, fill = weapon)) +
+        geom_violin(alpha = 0.5) +
+        scale_fill_manual(values = cbp2,
+        name = "Weapon Type",
+        labels = c("Dagger", "One Handed", "Two Handed")) +
+        scale_x_continuous(breaks = seq(15, 40, by = 5),
+                                limits = c(15, 40)) +
+        labs(y = "Damage",
+             x = "Effective DPR",
+             title = " Cleave effective DPR increases with average weapon damage",
+             subtitle = "10000 swings with sd = 4, assuming Cleave hits two targets.")
+```
+
+
+
+
+### HS Queuing{#hsq}
+
+In Classic World of Warcraft, the act of queueing a "on next attack" ability such as HS and Cleave introduces another mechanic. When this occurs, *the DW penalty on your OH swing is removed* \@ref(eq:dwmissprob), which essentially makes the player's OH swing as if he only had one one-handed weapon equipped. This introduces another layer of nuance in the warrior's rotation - repeatedly queueing and cancelling your HS queue will lead to an increase in OH hits, and therefore rage and DPS. It is important to note, however, that with world buffs most warriors are already able to HS every swing. Therefore, it is only recommended that one attempts this HS queue weaving when rage starved, as abilities and items such as Windfury Totem and Hand of Justice may result in the HS inadvertently going off - which may render the player unable to BT or WW on cooldown, resulting in a DPS loss.
+
 
 ## Slam{#slam}
 
-1. Intro to Slam
-2. How spell batching affects Slam
-3. Viability of Slam
+Slam is a 1.5 second casted ability that costs 15 rage and deals your weapon plus an additional 87 damage. Its cast time reduced by 0.1 for each point in the Improved Slam talent. Slam has been historically shunned as an ability in the warrior toolkit, largely due to it's cast time: this posed significant usage problems in movement and damage heavy fights, as the player is unable to move and suffers damage pushback when casting. Moreover, even under ideal circumstances Slam had the potential to be actively detrimental - mistiming it after your white swing landed meant that you'd clip your next auto, incurring a DPS loss.
+
+\begin{equation}
+Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right)\right) + 87
+(\#eq:slamdmg)
+\end{equation}
+
+This is not the reality in World of Warcraft Classic. Due to the batching mechanic introduced by Blizzard, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively batches the the autoattack damage, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:
+
+```
+#showtooltip
+/stopattack
+/cast Slam
+/startattack
+```
+
+This has the benefit of *greatly* improving the usability of the ability, as it is now much more forgiving. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a 2 handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
+
+* Tier 1, which includes Spinal Reaper, Hand of Ragnaros, and Bonereaver's Edge
+* Tier 2, which includes Obsidian Edged Blade, Earthshaker, and The Unstoppable Force.
+
+
+```{r include=FALSE}
+# bre <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 258)
+sr <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 261)
+oeb <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 227)
+
+
+# bre_comparison <- as_tibble(cbind(ap_vals,bre)) %>%
+#         pivot_longer(-ap_vals, names_to = "source") %>%
+#         rename(damage = value) %>%
+#         mutate(dpr = damage/15)
+
+oeb_comparison <- as_tibble(cbind(ap_vals, oeb)) %>%
+        pivot_longer(-ap_vals, names_to = "source") %>%
+        rename(damage = value) %>%
+        mutate(dpr = damage/15)
+
+sr_comparison <- as_tibble(cbind(ap_vals, sr)) %>%
+        pivot_longer(-ap_vals, names_to = "source") %>%
+        rename(damage = value) %>%
+        mutate(dpr = damage/15)
+
+
+
+
+slam_comparison <- bind_rows(oeb_comparison, sr_comparison) %>%
+        mutate(dpr = damage/15)
+
+btdmg <- as_tibble(cbind(ap_vals, btdmg)) %>%
+        rename(damage = btdmg) %>%
+        mutate(source = "bloodthirst") %>%
+        mutate(dpr = damage/30)
+
+slam_comparison <- bind_rows(slam_comparison, btdmg)
+
+
+
+```
+
+### Slam vs Bloodthirst
+
+```{r echo=FALSE, fig.cap = "Comparison between Bloodthirst and Slam DPR with two different tiers of weapons."}
+ggplot(slam_comparison, aes(x = ap_vals, y = dpr, color = source )) +
+        geom_point() +
+        geom_line() +
+        scale_colour_manual(values = cbp2,
+                name = "Weapon",
+                labels = c("Bloodthirst", "Tier 2", "Tier 1")) +
+        # scale_y_continuous(breaks = seq(100, 700, by = 100)) +
+        labs(y = "DPR",
+             x = "AP",
+             title = "Slam DPR is much higher than Bloodthirst's.")
+```
+
+As we can see, Slam's DPR is much higher than Bloodthirst's, particularly at lower attack power levels. This means in rage starved situations, the player should prioritize utilizing Slam over Bloodthirst. It is important to note, however, that just because Slam's DPR is higher even at very large attack power levels, that doesn't mean that it's **damage** is also higher than Bloodthirst's. We can visualize this behavior with the following graph:
+
+```{r echo=FALSE, fig.cap = "Comparison between Bloodthirst and Slam damage with two different tiers of weapons."}
+ggplot(slam_comparison, aes(x = ap_vals, y = damage, color = source )) +
+        geom_point() +
+        geom_line() +
+        scale_colour_manual(values = cbp2,
+                name = "Weapon",
+                labels = c("Bloodthirst", "Tier 2", "Tier 1")) +
+        # scale_y_continuous(breaks = seq(100, 700, by = 100)) +
+        labs(y = "Damage",
+             x = "AP",
+             title = "At 1250 AP Bloodthirst will, on average, do more damage than Slam.",
+             subtitle = "At reasonable AP levels.")
+```
+
+The graphs clearly show that while always more cost effective, Slam's damage is lower than Bloodthirst's after 1250 attack power - an easily achievable treshold. What this effectively means is that if the player is in a scenario where their rage generation outpaces their rage usage, they should prioritize Bloodthirst over Slam. If that is not the case, Bloodthirst should only be utilized if the player has enough remaining rage after it's use to still activate Slam.
+
+### Slam vs Execute
+
+Slam's high DPR, combined with Execute's poor DPR while wielding a two-handed weapon, begs the question: which one is more effective? We can visualize and investigat this scenario through the following graph:
+```{r include=FALSE}
+slam_comparison
+
+slam_epl <- as_tibble(seq(0, 20, by = 1.5)) %>%
+        rename(time = value) %>%
+        mutate(ability = "slam",
+               hit = 1,
+                damage = slam(rnorm(14, 261, 3), 3.3, 1500),
+               dpr = damage/15)
+
+exec_epl <- as_tibble(seq(0, 20, by = 3.3)) %>% 
+        rename(time = value) %>% 
+        mutate(ability = "execute",
+                hit = 1,
+                rage = rage_gen(rnorm(mean = 261, sd = 3, n = 7)),
+                damage = execute(rage, points = 2),
+                dpr = damage/rage)
+
+slam_exec_comparison <- bind_rows(slam_epl, exec_epl)
+
+slam_dprtot <- round(slam_exec_comparison %>% filter(ability == "slam") %>% summarize(sum = sum(dpr)))
+exec_dprtot <- round(slam_exec_comparison %>% filter(ability == "execute") %>% summarize(sum = sum(dpr)))
+
+slam_damagetot <- round(slam_exec_comparison %>% filter(ability == "slam") %>% summarize(sum = sum(damage)))
+exec_damagetot <- round(slam_exec_comparison %>% filter(ability == "execute") %>% summarize(sum = sum(damage)))
+
+
+label_names_epl <- as_labeller(c(`execute` = paste0(exec_dprtot, " total DPR", sep = " "), 
+                                 `slam` = paste0(slam_dprtot, " total DPR", sep = " "))) 
+
+label_names_epl_dmgtot <- as_labeller(c(`execute` = paste0(exec_damagetot, " total damage", sep = " "),
+                                        `slam` = paste0(slam_damagetot, " total damage", sep = " "))) 
+
+
+
+# 
+# slam_epl <- as_tibble(seq(0, 2500, by = 250)) %>%
+#         rename(ap = value) %>% 
+#         mutate(ability = "slam",
+#                 damage = slam(rnorm(11, 261, 3), 3.3, ap),
+#                 rage = 15,
+#                 dpr = damage/rage)
+# 
+# exec_epl <- as_tibble(seq(0, 20, by = 1.3)) %>% 
+#         rename(time = value) %>% 
+#         mutate(ability = "execute",
+#                hit = 1,
+#                rage = seq(10, 100, by = 5),
+#                damage = execute(rage, 2),
+#                dpr = damage / rage)
+
+```
+
+```{r echo=FALSE, fig.cap = "Comparison between Slam and Execute DPR during a 20 second long execute phase."}
+ggplot(slam_exec_comparison, aes(x = time, y = dpr, colour = ability)) +
+        scale_x_continuous(breaks = seq(0, 20, by = 1.5)) +
+        geom_point() + 
+        facet_wrap(~ ability, nrow = 2, labeller = label_names_epl) +
+        scale_colour_manual(values = cbp2,
+                name = "Ability",
+                labels = c("Execute", "Slam")) +
+        # scale_y_continuous(breaks = seq(40, 55, by = 5)) +
+        labs(y = "Damage per Rage",
+             x = "Execute phase length (s)",
+             title = "Based on average rage generated per hit, Slam shows higher DPR than Execute.",
+             subtitle = "Assuming 1500 AP and an average weapon swing damage of 261.")
+
+```
+
+The dots represent an ability usage. Immediately, we notice that Slam is utilized much more *frequently* than Execute due to the fact that we can activate it effectively midway through our swing, while we can only Execute immediately after it. Moreover, the large auto attack damage resulting from a two handed weapon swing also results in more rage, which as we've seen further reduces it's DPR. We know, however, that DPR and Damage are not proportional. Therefore, under the same circumstances, let's look at the damage dealt in the same time interval:
+
+```{r echo=FALSE, fig.cap="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase."}
+
+ggplot(slam_exec_comparison, aes(x = time, y = damage, colour = ability)) +
+        scale_x_continuous(breaks = seq(0, 20, by = 1.5)) +
+        geom_point() + 
+        geom_line() +
+        facet_wrap(~ ability, nrow = 2, labeller = label_names_epl_dmgtot) +
+        scale_colour_manual(values = cbp2,
+                name = "Ability",
+                labels = c("Execute", "Slam")) +
+        # scale_y_continuous(breaks = seq(40, 55, by = 5)) +
+        labs(y = "Damage",
+             x = "Execute phase length (s)",
+             title = "Slam doubles the total damage dealt during Execute phase.",
+             subtitle = "Assuming 1500 AP, average weapon swing damage of 258, and optimal Execute DPR.")
+```
+
+The damage dealt by continuously utilizing Slam is almost 2.5 times larger than the total damage dealt by Executing after each swing. To make matters worse, Slam scales with attack power *and*  weapon swing damage - effectively meaning the player should Slam throughout the Execute phase, **unless** the boss is about to die and the player has a large surplus of rage, since the potential damage of Execute is higher than that of Slam in a high rage situation.
+
+```{r cleave vs slam, include= FALSE}
+
+# Use ad_dmg formula to calculate additional damage to cleave at varying levels of ap
+
+cleave_vs_slam <- bind_rows(twohand_slamtbl, clvtbl, onehand_slamtbl, hstbl)
+```
+
+
+### Slam vs Cleave and Heroic Strike
+
+The same damage and DPR comparison can be made between Cleave, Heroic Strike, and Slam. Let's first compare the effective DPR of these abilities:
+
+```{r echo=FALSE, fig.cap = "Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels."}
+cleave_vs_slam %>%
+        filter(weapon == "twohand") %>%
+        group_by(ap,ability) %>%
+        summarise(meandpr = mean(dpr),
+                  meandamage = mean(damage)) %>%
+        ggplot(
+                aes(x = ap, y = meandpr, color = ability)
+        ) +
+        geom_point() +
+        geom_line() +
+        scale_colour_manual(values = cbp2,
+        name = "Ability",
+        labels = c("Cleave", "Heroic Strike", "Slam")) +
+        labs(y = "Mean DPR",
+             x = "Attack Power",
+             title = "Slam has much higher DPR than either ability.",
+             subtitle = "Assuming Cleave hits two targets, and a mean weapon swing of 258.")
+```
+
+It should not be surprising by now that Slam is the clear winner when it comes to DPR. It is important to note, however, that the context under which these abilities are utilized is different: Cleave and Heroic Strike are abilities utilized to dump extra rage with while Slam, due it's low rage cost, is not utilized in the same fashion. Let's instead look at the damage dealt by these abilities, under the same circumstances:
+
+```{r echo = FALSE, fig.cap = "Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels."}
+
+cleave_vs_slam %>%
+        filter(weapon == "twohand") %>%
+        group_by(ap,ability) %>%
+        summarise(meandpr = mean(dpr),
+                  meandamage = mean(damage)) %>%
+        ggplot(
+                aes(x = ap, y = meandamage, color = ability)
+        ) +
+        geom_point() +
+        geom_line() +
+        scale_colour_manual(values = cbp2,
+        name = "Ability",
+        labels = c("Cleave", "Heroic Strike", "Slam")) +
+        labs(y = "Mean Damage",
+             x = "Attack Power",
+             title = "Cleave damage increase outpaces Slam's with larger AP values",
+             subtitle = "Assuming Cleave hits two targets, and a mean weapon swing of 258.")
+```
+
+There's a lot to take away from these two graphs:
+
+1. Slam is, by far, the your highest DPR ability while wielding a two handed weapon. As such, it should be prioritized in low-rage situations.
+2. Although Slam's DPR is higher than that of Cleave's, it's damage is significantly lower in a two-target situation. Therefore, Cleave should be prioritized when the player has sufficient rage and 2 or more targets.
+3. While the damage difference between Heroic Strike and Slam is small, the DPR gap is very high. This means HS should *never* be utilized while wielding a two handed weapon when the player could otherwise Slam.
+
+
+
+```{r echo=FALSE}
+# cleave_vs_slam %>%
+#         filter(weapon == "twohand") %>%
+#         # group_by(ap,ability) %>%
+#         # summarise(meancost = mean(cost),
+#         #           meandamage = mean(damage)) %>%
+#         ggplot(
+#                 aes(y = ability, x = damage)
+#         ) +
+#         geom_density_ridges_gradient()
+#         # scale_fill_manual(values = cbp2,
+#         # name = "Ability",
+#         # labels = c("Cleave", "Heroic Strike", "Slam")) +
+#         # # scale_y_continuous(breaks = seq(40, 55, by = 5)) +
+#         # labs(y = "Mean Damage",
+#         #      x = "Mean Rage Cost",
+#         #      title = "Despite the damage difference between the abilities, Slam has much higher DPR",
+#         #      subtitle = "blabla")
+```
+
 
 ## Hamstring{#hamstring}
 
@@ -493,9 +1139,8 @@ ggplot(exec_comparison, aes(x = damage, y = dpr, colour = points)) +
 
 ## Damage per Rage{#dpr}
 
-1. Damage per Rage comparison between main rotational abilities (BT, WW, Exec)
-2. Execute DPR decreases the more rage you have
-3. The impact of scaling on DPR, and how that affects your rotation
+1. Damage per Rage comparison between main rotational abilities (BT, WW, Exec, Slam)
+2. The impact of scaling on DPR, and how that affects your rotation
 
 ## The Warrior Priority System
 

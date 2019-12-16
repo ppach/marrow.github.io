@@ -41,14 +41,14 @@ wepskill_tbl <- tibble::tribble(
         ) %>%
         mutate(`Weapon Skill` = seq(300, 315, by = 1),
                `% damage dealt by glancing blow` = 1-`Glancing Penalty`,
-               `Glancing Blow Damage Increase` = (`% damage dealt by glancing blow` / 0.65)-1) %>%
+               `Glancing Blow Damage Increase` = signif(x = ((`% damage dealt by glancing blow` / 0.65)-1), digits = 2)) %>%
         select(`Weapon Skill`, `% damage dealt by glancing blow`, `Glancing Blow Damage Increase`, everything(), -c(Delta, `Glancing Penalty`))
         
 wepskill_code <- wepskill_tbl %>%
         clean_names()
 
 inherit_miss <- wepskill_code %>%
-        select(weapon_skill, everything(), -c(percentdmg_dealt_by_glancing, glancing_blow_damage_increase)) %>%
+        select(weapon_skill, everything(), -c(`percent_damage_dealt_by_glancing_blow`, glancing_blow_damage_increase)) %>%
         pivot_longer(-weapon_skill, names_to = "type") %>%
         mutate(value = value * 100)
 ```
@@ -150,7 +150,7 @@ As we can see, weapon skill not only reduces the glancing blow damage penalty, i
 The glancing blow damage penalty reduction is more easily shown graphically:
 
 ```{r echo=FALSE, fig.cap = "Weapon skill greatly reduces the glancing blow damage penalty"}
-wepskillplot1 <- ggplot(wepskill_code, aes(x = weapon_skill, y = percentdmg_dealt_by_glancing)) +
+wepskillplot1 <- ggplot(wepskill_code, aes(x = weapon_skill, y = `percent_damage_dealt_by_glancing_blow`)) +
         geom_line() +
         geom_point() +
         labs(x = "Weapon Skill", 
@@ -203,6 +203,15 @@ This is why any weapon skill bonus of over 5, whether given by a racial (orcs wi
 
 ## The Crit Cap{#crit_cap}
 
+Due to the nature of the two-roll system in World of Warcraft combat, attacks past a certain $P(Crit)$ every non-glancing auto attack will result in a critical strike. This threshold is also known as the **crit cap**, and decreasing $P(Miss)$ and $P(Dodge)$ through an increase in Weapon Skill or increasing $P(Hit)$ will increase the player's crit cap. Since we cannot decrease $P(Glance)$, we can calculate the crit cap as:
+
+\begin{equation}
+\small Crit_{cap}\ =\ 100-P\left(Miss\right)-P\left(Dodge\right)-P\left(Block\right)-P\left(Parry\right)-P\left(Glance\right)+Crit_{\sup}
+(\#eq:critcap)
+\end{equation}
+
+Where $Crit_{sup}$ is the innate crit suppresion against a level 63 mob [@magey_atktbl2019]. It is important to note, however, that due to the HS queing mechanic \@ref(hsq) effectively removing the dual wield attack penalty, the crit cap for auto attacks is not something to be worried about at current gear levels.
+
 ## Flurry{#flurry}
 
 Flurry is a 5 point talent that, when maxed, increases the warrior's attack speed by 30% for the next 3 swings after dealing a critical strike. This represents a very significant damage increase, and as such warrior itemization values crit very highly in order to obtain higher and higher flurry uptimes, which can be calculated as follows: 
@@ -222,7 +231,7 @@ flurry <- function(crit, attks){
 
 Where $F_{up}$ is the uptime, $P(Crit)$ is the player's crit chance, and $A$ is the number of attacks made in one cycle of Flurry (3 from auto attack swings, and generally one additional from an instant attack; 4 is a reasonable number for a dual wielding player). Flurry is often misunderstood - the main misconception being that 33% crit will translate to 100% flurry uptime. This is incorrect, as shown by the following graph: 
 
-```{r Crit Chance vs Flurry Uptime Graph, echo=FALSE, message=FALSE, warning=FALSE, fig.cap = "Increase in critical strike chance increases flurry uptime."}
+```{r echo=FALSE, fig.cap = "Increase in critical strike chance increases flurry uptime."}
 dat <- as.data.frame(seq(0, 1, .01))
 flurry_uptime <- as.data.frame(lapply(dat, flurry, attks = 4))
 test <- cbind(dat, flurry_uptime)
@@ -231,7 +240,8 @@ ggplot(test, aes(x = test$`seq(0, 1, 0.01)`, y = test$seq.0..1..0.01.)) +
         geom_line() +
         labs(x = "Crit chance", 
              y = "Flurry uptime",
-             title = "Crit chance impact on flurry uptime") +
+             title = "Crit chance impact on flurry uptime",
+             subtitle = "With A = 4") +
         scale_x_continuous(breaks = seq(0, 1, .1)) +
         scale_y_continuous(breaks = seq(0, 1, .2)) +
         theme_light()
