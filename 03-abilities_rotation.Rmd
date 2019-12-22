@@ -475,20 +475,28 @@ fight <- bind_rows(twohander_swing, sword_swing, dagger_swing) %>%
         mutate(damage = execute(rage),
                dpr = damage/rage)
 
-depd <- round(fight %>% filter(weapon == "dagger") %>% summarize(sum = sum(dpr)))
-sepd <- round(fight %>% filter(weapon == "sword") %>% summarize(sum = sum(dpr)))
-thepd <- round(fight %>% filter(weapon == "twohander") %>% summarize(sum = sum(dpr)))
+depdpr <- round(fight %>% filter(weapon == "dagger") %>% summarize(sum = sum(dpr)))
+sepdpr <- round(fight %>% filter(weapon == "sword") %>% summarize(sum = sum(dpr)))
+thepdpr <- round(fight %>% filter(weapon == "twohander") %>% summarize(sum = sum(dpr)))
 
-label_names <- as_labeller(c(`dagger` = paste0(depd, " total DPR"), 
-                             `sword` = paste0(sepd, " total DPR"),
-                             `twohander` = paste0(thepd, " total DPR"))) 
+label_names_dpr <- as_labeller(c(`dagger` = paste0(depdpr, " total DPR"), 
+                             `sword` = paste0(sepdpr, " total DPR"),
+                             `twohander` = paste0(thepdpr, " total DPR")))
+
+depdmg <- round(fight %>% filter(weapon == "dagger") %>% summarize(sum = sum(damage)))
+sepdmg <- round(fight %>% filter(weapon == "sword") %>% summarize(sum = sum(damage)))
+thepdmg <- round(fight %>% filter(weapon == "twohander") %>% summarize(sum = sum(damage)))
+
+label_names_dmg <- as_labeller(c(`dagger` = paste0(depdmg, " total damage"), 
+                             `sword` = paste0(sepdmg, " total damage"),
+                             `twohander` = paste0(thepdmg, " total damage"))) 
 ```
 
 ```{r echo=FALSE, fig.cap="Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types."}
 ggplot(fight, aes(x = time, y = dpr, colour = weapon)) +
         scale_x_continuous(breaks = seq(0, 20, by = 1.5)) +
         geom_point() + 
-        facet_wrap(~ weapon, nrow = 3, labeller = label_names) +
+        facet_wrap(~ weapon, nrow = 3, labeller = label_names_dpr) +
         scale_colour_manual(values = cbp2,
                 name = "Weapon",
                 labels = c("Dagger", "One Hander", "Two Hander")) +
@@ -499,6 +507,20 @@ ggplot(fight, aes(x = time, y = dpr, colour = weapon)) +
              subtitle = "Executing more often for less rage leads to higher DPR.")
 ```
 
+```{r echo=FALSE, fig.cap="Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types."}
+ggplot(fight, aes(x = time, y = damage, colour = weapon)) +
+        scale_x_continuous(breaks = seq(0, 20, by = 1.5)) +
+        geom_point() + 
+        facet_wrap(~ weapon, nrow = 3, labeller = label_names_dmg) +
+        scale_colour_manual(values = cbp2,
+                name = "Weapon",
+                labels = c("Dagger", "One Hander", "Two Hander")) +
+        # scale_y_continuous(breaks = seq(40, 55, by = 5)) +
+        labs(y = "Damage",
+             x = "Execute phase length (s)",
+             title = "Average Execute damage by weapon type",
+             subtitle = "Executing more often for less rage leads to higher damage.")
+```
 
 The graph is clear: utilizing daggers during the execute phase leads to much higher DPR efficiency than the alternatives. It is important to note, however, that the dagger could be replaced by **any** fast single handed weapon, provided it has high DPS. 
 Knowing this, it stands to reason that switching to a fast weapon with comparable DPS just before the Execute phase would lead to higher overall DPR, and thus damage. This is what is called *execute switching*, and while it was highly effective on private servers, it is not as effective on World of Warcraft Classic for a few reasons.
@@ -711,7 +733,7 @@ cleave_cost <- function(dmg_auto){
         return(cost)
 }
 
-cleave_dmg <- function(crit = 0.3, dodge = 0.06, dmg_auto, ap, wpn_spd = 3.3, imp_cleave = 3, n = 2) {
+cleave_dmg <- function(crit = 0.3, dodge = 0.06, dmg_auto, ap, wpn_spd = 3.4, imp_cleave = 0, n = 2) {
         cleave_mult = 1 + (imp_cleave * 0.4)
         apdmg = ad_dmg(ap,wpn_spd)
         swingdmg = dmg_auto + apdmg
@@ -746,7 +768,7 @@ onehand_hstbl <- tibble(
 twohand_hstbl <- tibble(
         swing = rnorm(mean = 258, sd = 4, n = 11000),
         ap = rep(ap_vals, length.out = 11000),
-        damage = hs_dmg(dmg_auto = swing, ap = ap, wpn_spd = 3.3),
+        damage = hs_dmg(dmg_auto = swing, ap = ap, wpn_spd = 3.4),
         cost = hs_cost(swing),
         dpr = damage / cost,
         weapon = "twohand"
@@ -776,7 +798,7 @@ onehand_clvtbl <- tibble(
 twohand_clvtbl <- tibble(
         swing = rnorm(mean = 258, sd = 4, n = 11000),
         ap = rep(ap_vals, length.out = 11000),
-        damage = (cleave_dmg(dmg_auto = swing, ap = ap, wpn_spd = 3.3)),
+        damage = (cleave_dmg(dmg_auto = swing, ap = ap, wpn_spd = 3.4)),
         cost = cleave_cost(swing),
         dpr = damage / cost,
         weapon = "twohand"
@@ -788,7 +810,7 @@ clvtbl <- bind_rows(dagger_clvtbl, onehand_clvtbl, twohand_clvtbl) %>%
 twohand_slamtbl <- tibble(
         swing = rnorm(mean = 258, sd = 4, n = 11000),
         ap = rep(ap_vals, length.out = 11000),
-        damage = slam(wpn_swing_dmg = swing, ap = ap, wpn_spd = 3.3),
+        damage = slam(wpn_swing_dmg = swing, ap = ap, wpn_spd = 3.4),
         cost = 15,
         dpr = damage / cost,
         weapon = "twohand",
@@ -851,7 +873,7 @@ In Classic World of Warcraft, the act of queueing a "on next attack" ability suc
 
 ## Slam{#slam}
 
-Slam is a 1.5 second casted ability that costs 15 rage and deals your weapon plus an additional 87 damage. Its cast time reduced by 0.1 for each point in the Improved Slam talent. Slam has been historically shunned as an ability in the warrior toolkit, largely due to it's cast time: this posed significant usage problems in movement and damage heavy fights, as the player is unable to move and suffers damage pushback when casting. Moreover, even under ideal circumstances Slam had the potential to be actively detrimental - mistiming it after your white swing landed meant that you'd clip your next auto, incurring a DPS loss.
+Slam is a 1.5 second casted ability that costs 15 rage and deals your weapon plus an additional 87 damage. Its cast time reduced by 0.1 for each point in the Improved Slam talent, and t is important to note that unlike Whirlwind, Slam is **not** speed normalized - meaning slower weapons will increase the ability's damage. Slam has been historically shunned as an ability in the warrior toolkit, largely due to it's cast time: this posed significant usage problems in movement and damage heavy fights, as the player is unable to move and suffers damage pushback when casting. Moreover, even under ideal circumstances Slam had the potential to be actively detrimental - mistiming it after your white swing landed meant that you'd clip your next auto, incurring a DPS loss.
 
 \begin{equation}
 Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right)\right) + 87
@@ -867,7 +889,7 @@ This is not the reality in World of Warcraft Classic. Due to the batching mechan
 /startattack
 ```
 
-This has the benefit of *greatly* improving the usability of the ability, as it is now much more forgiving. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a 2 handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
+This has the benefit of *greatly* improving the usability of the ability, as it is now much more forgiving ^[It is important to note that the issues that plagued Slam usage before (cast pushback, movement) **still exist**. For that reason, dual wield is very likely to be superior on single target fights even with comparatively worse weapons.]. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a two-handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
 
 * Tier 1, which includes Spinal Reaper, Hand of Ragnaros, and Bonereaver's Edge
 * Tier 2, which includes Obsidian Edged Blade, Earthshaker, and The Unstoppable Force.
@@ -875,8 +897,8 @@ This has the benefit of *greatly* improving the usability of the ability, as it 
 
 ```{r include=FALSE}
 # bre <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 258)
-sr <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 261)
-oeb <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 227)
+tier1_2h <- sapply(ap_vals, slam, wpn_spd = 3.4, wpn_swing_dmg = 261)
+tier2_2h <- sapply(ap_vals, slam, wpn_spd = 3.4, wpn_swing_dmg = 227)
 
 
 # bre_comparison <- as_tibble(cbind(ap_vals,bre)) %>%
@@ -884,12 +906,12 @@ oeb <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 227)
 #         rename(damage = value) %>%
 #         mutate(dpr = damage/15)
 
-oeb_comparison <- as_tibble(cbind(ap_vals, oeb)) %>%
+tier1_2h_comparison <- as_tibble(cbind(ap_vals, tier1_2h)) %>%
         pivot_longer(-ap_vals, names_to = "source") %>%
         rename(damage = value) %>%
         mutate(dpr = damage/15)
 
-sr_comparison <- as_tibble(cbind(ap_vals, sr)) %>%
+tier2_2h_comparison <- as_tibble(cbind(ap_vals, tier2_2h)) %>%
         pivot_longer(-ap_vals, names_to = "source") %>%
         rename(damage = value) %>%
         mutate(dpr = damage/15)
@@ -897,7 +919,7 @@ sr_comparison <- as_tibble(cbind(ap_vals, sr)) %>%
 
 
 
-slam_comparison <- bind_rows(oeb_comparison, sr_comparison) %>%
+slam_comparison <- bind_rows(tier1_2h_comparison, tier2_2h_comparison) %>%
         mutate(dpr = damage/15)
 
 btdmg <- as_tibble(cbind(ap_vals, btdmg)) %>%
@@ -919,7 +941,7 @@ ggplot(slam_comparison, aes(x = ap_vals, y = dpr, color = source )) +
         geom_line() +
         scale_colour_manual(values = cbp2,
                 name = "Weapon",
-                labels = c("Bloodthirst", "Tier 2", "Tier 1")) +
+                labels = c("Bloodthirst", "Tier 1", "Tier 2")) +
         # scale_y_continuous(breaks = seq(100, 700, by = 100)) +
         labs(y = "DPR",
              x = "AP",
@@ -934,7 +956,7 @@ ggplot(slam_comparison, aes(x = ap_vals, y = damage, color = source )) +
         geom_line() +
         scale_colour_manual(values = cbp2,
                 name = "Weapon",
-                labels = c("Bloodthirst", "Tier 2", "Tier 1")) +
+                labels = c("Bloodthirst", "Tier 1", "Tier 2")) +
         # scale_y_continuous(breaks = seq(100, 700, by = 100)) +
         labs(y = "Damage",
              x = "AP",

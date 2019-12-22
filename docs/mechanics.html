@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2019-12-15" />
+<meta name="date" content="2019-12-22" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -180,12 +180,12 @@
 <div id="miss_chance" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Miss Chance</h3>
 <p>Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from magey and others <span class="citation">(magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
-<p>If the target is mob and the difference between it’s defense rating and the attacker’s weapon skill is 11 or more:</p>
+<p>If the target is a mob and the difference between it’s defense rating and the attacker’s weapon skill is 11 or more:</p>
 <span class="math display" id="eq:missprob1">\[\begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 \tag{3.1}
 \end{equation}\]</span>
-<p>If the target is mob and the difference between it’s defense rating and the attacker’s weapon skill is 10 or less:</p>
+<p>If the target is a mob and the difference between it’s defense rating and the attacker’s weapon skill is 10 or less:</p>
 <span class="math display" id="eq:missprob2">\[\begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
 \tag{3.2}
@@ -199,7 +199,7 @@ P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
 </div>
 <div id="glancing_blows" class="section level3">
 <h3><span class="header-section-number">3.2.2</span> Glancing Blows</h3>
-<p>Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, magey et al. have determined the glancing blow probability to be as follows:</p>
+<p>Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher level, and are restricted to white attacks. In accordance with Beaza, magey et al. have determined the glancing blow probability to be as follows:</p>
 <span class="math display" id="eq:glancingprob">\[\begin{equation}
 P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.2
 \tag{3.4}
@@ -241,7 +241,7 @@ P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\
 </div>
 <div id="weapon_skill" class="section level3">
 <h3><span class="header-section-number">3.2.3</span> Weapon Skill</h3>
-<p>magey’s work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza’s formulas (<a href="mechanics.html#eq:glancingprob">(3.4)</a>, <a href="mechanics.html#eq:missprob1">(3.1)</a> and <a href="mechanics.html#eq:missprob2">(3.2)</a>). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.</p>
+<p>magey’s work again corroborates the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza’s formulas (<a href="mechanics.html#eq:glancingprob">(3.4)</a>, <a href="mechanics.html#eq:missprob1">(3.1)</a> and <a href="mechanics.html#eq:missprob2">(3.2)</a>). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.</p>
 <table>
 <caption><span id="tab:unnamed-chunk-3">Table 3.2: </span>Weapon skill impact on glancing blow damage reduction, miss chance, and hit cap. Damage increase is relative to 300 weapon skill.</caption>
 <thead>

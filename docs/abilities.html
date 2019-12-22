@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2019-12-15" />
+<meta name="date" content="2019-12-22" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -319,12 +319,18 @@ Figure 4.5: Comparison of rage consumed and Execute DPR by different talent poin
 Figure 4.6: Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types.
 </p>
 </div>
+<div class="figure"><span id="fig:unnamed-chunk-22"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-22-1.png" alt="Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
+<p class="caption">
+Figure 4.7: Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types.
+</p>
+</div>
 <p>The graph is clear: utilizing daggers during the execute phase leads to much higher DPR efficiency than the alternatives. It is important to note, however, that the dagger could be replaced by <strong>any</strong> fast single handed weapon, provided it has high DPS. Knowing this, it stands to reason that switching to a fast weapon with comparable DPS just before the Execute phase would lead to higher overall DPR, and thus damage. This is what is called <em>execute switching</em>, and while it was highly effective on private servers, it is not as effective on World of Warcraft Classic for a few reasons.</p>
 <p>The biggest factor determining the viability of Execute switching is the Execute phase length (EPL). While the difference between the Execute DPR of different weapon types and speeds is small in short EPLs, this effect becomes more noticeable as the EPL increases. This is, again, because the longer the duration of the EPL, the more opportunities we have to gain “free” damage from the activation of the Execute ability. This behavior can be observed in the graph below:</p>
-<div class="figure"><span id="fig:unnamed-chunk-23"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-23-1.png" alt="Total DPR achieved by utilizing Execute after every weapon swing with different weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-24"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-24-1.png" alt="Total DPR achieved by utilizing Execute after every weapon swing with different weapons." width="672" />
 <p class="caption">
-Figure 4.7: Total DPR achieved by utilizing Execute after every weapon swing with different weapons.
+Figure 4.8: Total DPR achieved by utilizing Execute after every weapon swing with different weapons.
 </p>
 </div>
 </div>
@@ -358,16 +364,16 @@ Cleave_{cost}\ = 20\ +\ \left(Rage\left(Dmg-Auto\ \right)\right)
 \tag{4.10}
 \end{equation}\]</span>
 <p>It’s important to note that, due to the player’s weapon swing ultimately affecting the effective cost of both abilities, their DPR also changes according to the weapon’s average damage. We can visualize this behavior through violin plots:</p>
-<div class="figure"><span id="fig:unnamed-chunk-24"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-24-1.png" alt="Visualization of the effective HS damage and DPR density for different weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-25"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-25-1.png" alt="Visualization of the effective HS damage and DPR density for different weapon types." width="672" />
 <p class="caption">
-Figure 4.8: Visualization of the effective HS damage and DPR density for different weapon types.
+Figure 4.9: Visualization of the effective HS damage and DPR density for different weapon types.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-25"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-25-1.png" alt="Visualization of the effective Cleave damage and DPR density for different weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-26"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-26-1.png" alt="Visualization of the effective Cleave damage and DPR density for different weapon types." width="672" />
 <p class="caption">
-Figure 4.9: Visualization of the effective Cleave damage and DPR density for different weapon types.
+Figure 4.10: Visualization of the effective Cleave damage and DPR density for different weapon types.
 </p>
 </div>
 <div id="hsq" class="section level3">
@@ -377,7 +383,7 @@ Figure 4.9: Visualization of the effective Cleave damage and DPR density for dif
 </div>
 <div id="slam" class="section level2">
 <h2><span class="header-section-number">4.5</span> Slam</h2>
-<p>Slam is a 1.5 second casted ability that costs 15 rage and deals your weapon plus an additional 87 damage. Its cast time reduced by 0.1 for each point in the Improved Slam talent. Slam has been historically shunned as an ability in the warrior toolkit, largely due to it’s cast time: this posed significant usage problems in movement and damage heavy fights, as the player is unable to move and suffers damage pushback when casting. Moreover, even under ideal circumstances Slam had the potential to be actively detrimental - mistiming it after your white swing landed meant that you’d clip your next auto, incurring a DPS loss.</p>
+<p>Slam is a 1.5 second casted ability that costs 15 rage and deals your weapon plus an additional 87 damage. Its cast time reduced by 0.1 for each point in the Improved Slam talent, and t is important to note that unlike Whirlwind, Slam is <strong>not</strong> speed normalized - meaning slower weapons will increase the ability’s damage. Slam has been historically shunned as an ability in the warrior toolkit, largely due to it’s cast time: this posed significant usage problems in movement and damage heavy fights, as the player is unable to move and suffers damage pushback when casting. Moreover, even under ideal circumstances Slam had the potential to be actively detrimental - mistiming it after your white swing landed meant that you’d clip your next auto, incurring a DPS loss.</p>
 <span class="math display" id="eq:slamdmg">\[\begin{equation}
 Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right)\right) + 87
 \tag{4.11}
@@ -387,24 +393,24 @@ Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\rig
 /stopattack
 /cast Slam
 /startattack</code></pre>
-<p>This has the benefit of <em>greatly</em> improving the usability of the ability, as it is now much more forgiving. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a 2 handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let’s first look at its DPR when used with two “tiers” of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:</p>
+<p>This has the benefit of <em>greatly</em> improving the usability of the ability, as it is now much more forgiving.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a two-handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let’s first look at its DPR when used with two “tiers” of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:</p>
 <ul>
 <li>Tier 1, which includes Spinal Reaper, Hand of Ragnaros, and Bonereaver’s Edge</li>
 <li>Tier 2, which includes Obsidian Edged Blade, Earthshaker, and The Unstoppable Force.</li>
 </ul>
 <div id="slam-vs-bloodthirst" class="section level3">
 <h3><span class="header-section-number">4.5.1</span> Slam vs Bloodthirst</h3>
-<div class="figure"><span id="fig:unnamed-chunk-27"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-27-1.png" alt="Comparison between Bloodthirst and Slam DPR with two different tiers of weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-28"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-28-1.png" alt="Comparison between Bloodthirst and Slam DPR with two different tiers of weapons." width="672" />
 <p class="caption">
-Figure 4.10: Comparison between Bloodthirst and Slam DPR with two different tiers of weapons.
+Figure 4.11: Comparison between Bloodthirst and Slam DPR with two different tiers of weapons.
 </p>
 </div>
 <p>As we can see, Slam’s DPR is much higher than Bloodthirst’s, particularly at lower attack power levels. This means in rage starved situations, the player should prioritize utilizing Slam over Bloodthirst. It is important to note, however, that just because Slam’s DPR is higher even at very large attack power levels, that doesn’t mean that it’s <strong>damage</strong> is also higher than Bloodthirst’s. We can visualize this behavior with the following graph:</p>
-<div class="figure"><span id="fig:unnamed-chunk-28"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-28-1.png" alt="Comparison between Bloodthirst and Slam damage with two different tiers of weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-29"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-29-1.png" alt="Comparison between Bloodthirst and Slam damage with two different tiers of weapons." width="672" />
 <p class="caption">
-Figure 4.11: Comparison between Bloodthirst and Slam damage with two different tiers of weapons.
+Figure 4.12: Comparison between Bloodthirst and Slam damage with two different tiers of weapons.
 </p>
 </div>
 <p>The graphs clearly show that while always more cost effective, Slam’s damage is lower than Bloodthirst’s after 1250 attack power - an easily achievable treshold. What this effectively means is that if the player is in a scenario where their rage generation outpaces their rage usage, they should prioritize Bloodthirst over Slam. If that is not the case, Bloodthirst should only be utilized if the player has enough remaining rage after it’s use to still activate Slam.</p>
@@ -412,17 +418,17 @@ Figure 4.11: Comparison between Bloodthirst and Slam damage with two different t
 <div id="slam-vs-execute" class="section level3">
 <h3><span class="header-section-number">4.5.2</span> Slam vs Execute</h3>
 <p>Slam’s high DPR, combined with Execute’s poor DPR while wielding a two-handed weapon, begs the question: which one is more effective? We can visualize and investigat this scenario through the following graph:</p>
-<div class="figure"><span id="fig:unnamed-chunk-30"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-30-1.png" alt="Comparison between Slam and Execute DPR during a 20 second long execute phase." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-31"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-31-1.png" alt="Comparison between Slam and Execute DPR during a 20 second long execute phase." width="672" />
 <p class="caption">
-Figure 4.12: Comparison between Slam and Execute DPR during a 20 second long execute phase.
+Figure 4.13: Comparison between Slam and Execute DPR during a 20 second long execute phase.
 </p>
 </div>
 <p>The dots represent an ability usage. Immediately, we notice that Slam is utilized much more <em>frequently</em> than Execute due to the fact that we can activate it effectively midway through our swing, while we can only Execute immediately after it. Moreover, the large auto attack damage resulting from a two handed weapon swing also results in more rage, which as we’ve seen further reduces it’s DPR. We know, however, that DPR and Damage are not proportional. Therefore, under the same circumstances, let’s look at the damage dealt in the same time interval:</p>
-<div class="figure"><span id="fig:unnamed-chunk-31"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-31-1.png" alt="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-32"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-32-1.png" alt="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase." width="672" />
 <p class="caption">
-Figure 4.13: Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase.
+Figure 4.14: Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase.
 </p>
 </div>
 <p>The damage dealt by continuously utilizing Slam is almost 2.5 times larger than the total damage dealt by Executing after each swing. To make matters worse, Slam scales with attack power <em>and</em> weapon swing damage - effectively meaning the player should Slam throughout the Execute phase, <strong>unless</strong> the boss is about to die and the player has a large surplus of rage, since the potential damage of Execute is higher than that of Slam in a high rage situation.</p>
@@ -430,17 +436,17 @@ Figure 4.13: Comparison between the total damage dealt by Slam and Execute while
 <div id="slam-vs-cleave-and-heroic-strike" class="section level3">
 <h3><span class="header-section-number">4.5.3</span> Slam vs Cleave and Heroic Strike</h3>
 <p>The same damage and DPR comparison can be made between Cleave, Heroic Strike, and Slam. Let’s first compare the effective DPR of these abilities:</p>
-<div class="figure"><span id="fig:unnamed-chunk-32"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-32-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-33"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-33-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels." width="672" />
 <p class="caption">
-Figure 4.14: Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels.
+Figure 4.15: Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels.
 </p>
 </div>
 <p>It should not be surprising by now that Slam is the clear winner when it comes to DPR. It is important to note, however, that the context under which these abilities are utilized is different: Cleave and Heroic Strike are abilities utilized to dump extra rage with while Slam, due it’s low rage cost, is not utilized in the same fashion. Let’s instead look at the damage dealt by these abilities, under the same circumstances:</p>
-<div class="figure"><span id="fig:unnamed-chunk-33"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-33-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-34"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-34-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels." width="672" />
 <p class="caption">
-Figure 4.15: Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels.
+Figure 4.16: Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels.
 </p>
 </div>
 <p>There’s a lot to take away from these two graphs:</p>
@@ -501,6 +507,7 @@ Figure 4.15: Comparison between Cleave, Heroic Strike, and Slam mean damage at v
 <hr />
 <ol start="1">
 <li id="fn1"><p>Note: For all of the following damage and DPR calculations, we will assume a <span class="math inline">\(P(Crit) = 0.3\)</span> and <span class="math inline">\(P(Dodge) = 0.6\)</span>, as well as 305 weapon skill.<a href="abilities.html#fnref1">↩</a></p></li>
+<li id="fn2"><p>It is important to note that the issues that plagued Slam usage before (cast pushback, movement) <strong>still exist</strong>. For that reason, dual wield is very likely to be superior on single target fights even with comparatively worse weapons.<a href="abilities.html#fnref2">↩</a></p></li>
 </ol>
 </div>
             </section>

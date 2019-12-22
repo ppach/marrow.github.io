@@ -76,14 +76,14 @@ A mob being attacked from behind *cannot* block or parry, and thus these two out
 
 Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
 
-If the target is mob and the difference between it's defense rating and the attacker's weapon skill is 11 or more:
+If the target is a mob and the difference between it's defense rating and the attacker's weapon skill is 11 or more:
 
 \begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 (\#eq:missprob1)
 \end{equation}
 
-If the target is mob and the difference between it's defense rating and the attacker's weapon skill is 10 or less:
+If the target is a mob and the difference between it's defense rating and the attacker's weapon skill is 10 or less:
 
 \begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
@@ -101,7 +101,7 @@ As a disclaimer, magey notes that further testing is still required to assert th
 
 ### Glancing Blows{#glancing_blows}
 
-Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher value, and are restricted to white attacks. In accordance with Beaza, magey et al. have determined the glancing blow probability to be as follows:
+Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher level, and are restricted to white attacks. In accordance with Beaza, magey et al. have determined the glancing blow probability to be as follows:
 
 
 \begin{equation}
@@ -135,7 +135,7 @@ This means that against a level 63 enemy mob (all raid bosses) and with 300 weap
 
 ### Weapon Skill{#weapon_skill}
 
-magey's work again corroborate the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza's formulas (\@ref(eq:glancingprob), \@ref(eq:missprob1)  and \@ref(eq:missprob2)). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
+magey's work again corroborates the impact of weapon skill on glancing blow probability, damage, and miss probability according to Beaza's formulas (\@ref(eq:glancingprob), \@ref(eq:missprob1)  and \@ref(eq:missprob2)). The table below summarizes that impact, but it is important to note that not all values have been experimentally confirmed due to the difficulty in acquiring specific weapon skill values that inherently comes from WoW itemization.
 
 ```{r echo=FALSE}
 
