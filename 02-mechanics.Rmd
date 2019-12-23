@@ -76,14 +76,14 @@ A mob being attacked from behind *cannot* block or parry, and thus these two out
 
 Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
 
-If the target is a mob and the difference between it's defense rating and the attacker's weapon skill is 11 or more:
+If the target is a mob and the difference between its defense rating and the attacker's weapon skill is 11 or more:
 
 \begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 (\#eq:missprob1)
 \end{equation}
 
-If the target is a mob and the difference between it's defense rating and the attacker's weapon skill is 10 or less:
+If the target is a mob and the difference between its defense rating and the attacker's weapon skill is 10 or less:
 
 \begin{equation}
 P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
