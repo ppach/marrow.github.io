@@ -879,7 +879,7 @@ Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\rig
 (\#eq:slamdmg)
 \end{equation}
 
-This is not the reality in World of Warcraft Classic. Due to how Slam was coded in WoW Classic, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively batches the autoattack damage, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:
+This is not the reality in World of Warcraft Classic. Due to how Slam was coded in WoW Classic, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively lets the player bypass anything that would reset his swingtimer, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:
 
 ```
 #showtooltip
@@ -898,15 +898,9 @@ This has the benefit of *greatly* improving the usability of the ability, as it 
 
 
 ```{r include=FALSE}
-# bre <- sapply(ap_vals, slam, wpn_spd = 2.4, wpn_swing_dmg = 258)
 tier1_2h <- sapply(ap_vals, slam, wpn_spd = 3.4, wpn_swing_dmg = 261)
 tier2_2h <- sapply(ap_vals, slam, wpn_spd = 3.4, wpn_swing_dmg = 227)
 
-
-# bre_comparison <- as_tibble(cbind(ap_vals,bre)) %>%
-#         pivot_longer(-ap_vals, names_to = "source") %>%
-#         rename(damage = value) %>%
-#         mutate(dpr = damage/15)
 
 tier1_2h_comparison <- as_tibble(cbind(ap_vals, tier1_2h)) %>%
         pivot_longer(-ap_vals, names_to = "source") %>%
