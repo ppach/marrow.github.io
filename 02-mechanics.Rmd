@@ -74,19 +74,19 @@ A mob being attacked from behind *cannot* block or parry, and thus these two out
 
 ### Miss Chance{#miss_chance}
 
-Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
+Blizzard has confirmed that players have an 8% chance ^[Note that, due to the inherent hit suppression against level 63 mobs, the hit cap and the $P(Miss)$ are different until 305 weapon skill. This behavior is further explained in \@ref(weapon_skill)] to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
 
 If the target is a mob and the difference between it's defense rating and the attacker's weapon skill is 11 or more:
 
 \begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
+P\left(Miss\right)\ =\ 5\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 (\#eq:missprob1)
 \end{equation}
 
 If the target is a mob and the difference between it's defense rating and the attacker's weapon skill is 10 or less:
 
 \begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
+P\left(Miss\right)\ =\ 5\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
 (\#eq:missprob2)
 \end{equation}
 
@@ -195,11 +195,11 @@ inherit_miss %>%
         
 ```
 
-As we can see, the player's hit cap starts 1% higher than $P(Miss)$ at 300 weapon skill. This is because vanilla WoW code explicitly suppresses the  **first 1%** of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player's weapon skill [@blizz_hitcap2019], in accordance with \@ref(eq:missprob1). This hit suppression is **not** applied, however, if the difference between the attacker's weapon skill and the enemy mob's defense skill is less than 10 \@ref(eq:missprob2). Not that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.
+As we can see, the player's hit cap starts 1% higher than $P(Miss)$ at 300 weapon skill. This is because vanilla WoW code explicitly suppresses the  **first 1%** of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player's weapon skill [@blizz_hitcap2019], in accordance with \@ref(eq:missprob1). This hit suppression is **not** applied, however, if the difference between the attacker's weapon skill and the enemy mob's defense skill is less than 10 \@ref(eq:missprob2). Note that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.
 
 This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit suppresion, and significantly reduces $P(Miss)$ until 305. This is also why a weapon skill of at least 305 and at most 308 is **highly** recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill's value in respect to hit chance is *vastly* diminished after 305 clearly indicates that 305 weapon skill is the **most** optimal weapon skill value for Fury Warriors in Classic WoW. 
 
-This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your $P(Miss)$ by 2%, and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as [Edgemaster's Handguards](https://classic.wowhead.com/item=14551/edgemasters-handguards), since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats *in addition* to weapon skill, such as [Aged Core Leather Gloves](https://classic.wowhead.com/item=18823/aged-core-leather-gloves) (ACLG), are incredibly good.
+This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your $P(Miss)$ by 2%, and glancing blow damage penalty reduction. This is a massive advantage, especially compared to the alternative which is gearing for weapon skill through items such as [Edgemaster's Handguards](https://classic.wowhead.com/item=14551/edgemasters-handguards), since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats *in addition* to weapon skill, such as [Aged Core Leather Gloves](https://classic.wowhead.com/item=18823/aged-core-leather-gloves) (ACLG), are incredibly good.
 
 ## The Crit Cap{#crit_cap}
 

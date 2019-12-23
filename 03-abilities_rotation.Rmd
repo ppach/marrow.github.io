@@ -118,9 +118,9 @@ DPR\ =\ \frac{Damage}{Rage}
 (\#eq:dprformula)
 \end{equation}
 
-Although this is an easy concept to grasp, it'll be an essential part of our discussions throughout this chapter from now on. This is because the DPR of our abilities is **not** constant - Whirlwind's (WW) DPR varies depending on the number of enemies around and the damage and type of our weapon, Execute's varies based on how much rage we consume when activating the ability, and Bloodthirst's depends on our current attack power. Doing as much damage as possible in a fight, thus, is about calculating the DPR of each one of these abilities as the encounter progresses, and utilizing the one with the maximum DPR. We will revisit this concept in more depth in \@ref(dpr)
+Although this is an easy concept to grasp, it'll be an essential part of our discussions throughout this chapter from now on. This is because the DPR of our abilities is **not** constant - Whirlwind's (WW) DPR varies depending on the number of enemies around and the damage and type of our weapon, Execute's varies based on how much rage we consume when activating the ability, and Bloodthirst's depends on our current attack power. Doing as much damage as possible in a fight, thus, is about calculating the DPR of each one of these abilities as the encounter progresses, and utilizing the one with the maximum DPR. We will revisit this concept in more depth in \@ref(dpr).
 
-^[Note: For all of the following damage and DPR calculations, we will assume a $P(Crit) = 0.3$ and $P(Dodge) = 0.6$, as well as 305 weapon skill.]
+Note: For all of the following damage and DPR calculations, we will assume $P(Crit) = 0.3$, $P(Dodge) = 0.6$, and 305 weapon skill.
 
 
 ## Bloodthirst{#bloodthirst}
