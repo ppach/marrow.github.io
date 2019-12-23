@@ -312,7 +312,7 @@ ggplot(sword_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
                                    limits = c(0, 145)) +
         labs(x = "Attack Power",
              y = "Damage per Rage",
-             title = "Whirlwind has higher DPR than Bloodthirst at n = 3 or more.",
+             title = "Whirlwind has higher DPR than Bloodthirst at n = 2 or more.",
              subtitle = "Assuming a one hander with 143 mean swing damage and 2.4 weapon speed.") + 
         theme_light()
 ```
@@ -328,7 +328,7 @@ ggplot(dagger_comparison_dpr, aes(x = ap_vals, y = dpr, colour = source)) +
                                    limits = c(0, 145)) +
         labs(x = "Attack Power",
              y = "Damage per Rage",
-             title = "Whirlwind has higher DPR than Bloodthirst at n = 4 or more.",
+             title = "Whirlwind has higher DPR than Bloodthirst at n = 3 or more.",
              subtitle = "Assuming a dagger with 105 mean swing damage and 1.5 weapon speed.") + 
         theme_light()
 ```
