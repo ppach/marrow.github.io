@@ -880,7 +880,7 @@ Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\rig
 (\#eq:slamdmg)
 \end{equation}
 
-This is not the reality in World of Warcraft Classic. Due to the batching mechanic introduced by Blizzard, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively batches the the autoattack damage, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:
+This is not the reality in World of Warcraft Classic. Due to how Slam was coded in WoW Classic, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively batches the autoattack damage, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:
 
 ```
 #showtooltip
@@ -888,6 +888,9 @@ This is not the reality in World of Warcraft Classic. Due to the batching mechan
 /cast Slam
 /startattack
 ```
+This behavior can be evidenced here:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/yQsx5z9OLzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 This has the benefit of *greatly* improving the usability of the ability, as it is now much more forgiving ^[It is important to note that the issues that plagued Slam usage before (cast pushback, movement) **still exist**. For that reason, dual wield is very likely to be superior on single target fights even with comparatively worse weapons.]. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a two-handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
 
@@ -960,7 +963,7 @@ ggplot(slam_comparison, aes(x = ap_vals, y = damage, color = source )) +
         # scale_y_continuous(breaks = seq(100, 700, by = 100)) +
         labs(y = "Damage",
              x = "AP",
-             title = "At 1250 AP Bloodthirst will, on average, do more damage than Slam.",
+             title = "At 1500 AP Bloodthirst will, on average, do more damage than Slam.",
              subtitle = "At reasonable AP levels.")
 ```
 

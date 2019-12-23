@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2019-12-22" />
+<meta name="date" content="2019-12-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -172,7 +172,7 @@ C\ =\ \left(0.0091107836\ \times\ Lvl^2\right)\ +\ \left(3.225598133\ \times\ Lv
 \end{equation}\]</span>
 <p>What this tells us is that very low damage attacks have an uppber bound on how much they can be averaged up by the hit factor of the Where <span class="math inline">\(Lvl\)</span> is the player’s level. Knowing this, we can calculate the conversion value for various level ranges:</p>
 <table>
-<caption><span id="tab:unnamed-chunk-10">Table 4.1: </span>Rage conversion values.</caption>
+<caption><span id="tab:unnamed-chunk-3">Table 4.1: </span>Rage conversion values.</caption>
 <thead>
 <tr class="header">
 <th align="right">Player Level</th>
@@ -221,8 +221,8 @@ BT_{dmg}\ =\ AP\ \times\ 0.45
 \tag{4.4}
 \end{equation}\]</span>
 <p>It might not be immediately apparent, but this is one of the main reasons why fury warrior damage scales so well - no other ability in the game benefits from attack power as much as Bloodthirst. As we will soon see, at 30 rage it has the highest damage per rage of any of our abilities against a single target, and as such should be prioritized in most cases. The formula shows a linear increase in damage, which can be displayed graphically:</p>
-<div class="figure"><span id="fig:unnamed-chunk-11"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-11-1.png" alt="Bloodthirst scales linearly with attack power and is completely independent of weapon damage." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-4"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-4-1.png" alt="Bloodthirst scales linearly with attack power and is completely independent of weapon damage." width="672" />
 <p class="caption">
 Figure 4.1: Bloodthirst scales linearly with attack power and is completely independent of weapon damage.
 </p>
@@ -270,20 +270,20 @@ WW_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right
 </tbody>
 </table>
 <p>Kowing this, we can calculate the DPR of one use of Whirlwind when hitting a varying number of targets, and compare it to the DPR of Bloodthirst at the same attack power threshold:</p>
-<div class="figure"><span id="fig:unnamed-chunk-15"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-15-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-8"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-8-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon." width="672" />
 <p class="caption">
 Figure 4.2: Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic two handed weapon.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-16"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-16-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-9"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-9-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword." width="672" />
 <p class="caption">
 Figure 4.3: Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic one handed sword.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-17"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-17-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-10"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-10-1.png" alt="Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger." width="672" />
 <p class="caption">
 Figure 4.4: Comparison of the damage per rage efficiency between Bloodthirst and Whirlwind with a generic dagger.
 </p>
@@ -298,8 +298,8 @@ Execute_{dmg}\ =\ 600\ +\ \left(\left(R-Ac\right)\ \times\ 15\right)
 \tag{4.6}
 \end{equation}\]</span>
 <p>Where <span class="math inline">\(R\)</span> is the player’s current rage, <span class="math inline">\(Ac\)</span> is the activation cost of the ability (dictated by how many points the player has in improved execute) and 15 is the damage multiplier per point of rage. Knowing this, we can quickly visualize the damage per rage efficiency of the ability at 0, 1, and 2 points into the Improved Execute talent:</p>
-<div class="figure"><span id="fig:unnamed-chunk-19"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-19-1.png" alt="Comparison of rage consumed and Execute DPR by different talent point investments into the Improved Execute talent. " width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-12"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-12-1.png" alt="Comparison of rage consumed and Execute DPR by different talent point investments into the Improved Execute talent. " width="672" />
 <p class="caption">
 Figure 4.5: Comparison of rage consumed and Execute DPR by different talent point investments into the Improved Execute talent.
 </p>
@@ -313,22 +313,22 @@ Figure 4.5: Comparison of rage consumed and Execute DPR by different talent poin
 <li>The player has two points into Improved Execute.</li>
 <li>For the one hander and dagger comparisons, we assume an offhand generating an average of 5 rage per every 1.6 second swing.</li>
 </ul>
-<div class="figure"><span id="fig:unnamed-chunk-21"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-21-1.png" alt="Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-14"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-14-1.png" alt="Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
 <p class="caption">
 Figure 4.6: Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-22"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-22-1.png" alt="Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-15"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-15-1.png" alt="Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
 <p class="caption">
 Figure 4.7: Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types.
 </p>
 </div>
 <p>The graph is clear: utilizing daggers during the execute phase leads to much higher DPR efficiency than the alternatives. It is important to note, however, that the dagger could be replaced by <strong>any</strong> fast single handed weapon, provided it has high DPS. Knowing this, it stands to reason that switching to a fast weapon with comparable DPS just before the Execute phase would lead to higher overall DPR, and thus damage. This is what is called <em>execute switching</em>, and while it was highly effective on private servers, it is not as effective on World of Warcraft Classic for a few reasons.</p>
 <p>The biggest factor determining the viability of Execute switching is the Execute phase length (EPL). While the difference between the Execute DPR of different weapon types and speeds is small in short EPLs, this effect becomes more noticeable as the EPL increases. This is, again, because the longer the duration of the EPL, the more opportunities we have to gain “free” damage from the activation of the Execute ability. This behavior can be observed in the graph below:</p>
-<div class="figure"><span id="fig:unnamed-chunk-24"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-24-1.png" alt="Total DPR achieved by utilizing Execute after every weapon swing with different weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-17"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-17-1.png" alt="Total DPR achieved by utilizing Execute after every weapon swing with different weapons." width="672" />
 <p class="caption">
 Figure 4.8: Total DPR achieved by utilizing Execute after every weapon swing with different weapons.
 </p>
@@ -364,21 +364,21 @@ Cleave_{cost}\ = 20\ +\ \left(Rage\left(Dmg-Auto\ \right)\right)
 \tag{4.10}
 \end{equation}\]</span>
 <p>It’s important to note that, due to the player’s weapon swing ultimately affecting the effective cost of both abilities, their DPR also changes according to the weapon’s average damage. We can visualize this behavior through violin plots:</p>
-<div class="figure"><span id="fig:unnamed-chunk-25"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-25-1.png" alt="Visualization of the effective HS damage and DPR density for different weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-18"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-18-1.png" alt="Visualization of the effective HS damage and DPR density for different weapon types." width="672" />
 <p class="caption">
 Figure 4.9: Visualization of the effective HS damage and DPR density for different weapon types.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-26"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-26-1.png" alt="Visualization of the effective Cleave damage and DPR density for different weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-19"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-19-1.png" alt="Visualization of the effective Cleave damage and DPR density for different weapon types." width="672" />
 <p class="caption">
 Figure 4.10: Visualization of the effective Cleave damage and DPR density for different weapon types.
 </p>
 </div>
 <div id="hsq" class="section level3">
 <h3><span class="header-section-number">4.4.1</span> HS Queuing</h3>
-<p>In Classic World of Warcraft, the act of queueing a “on next attack” ability such as HS and Cleave introduces another mechanic. When this occurs, <em>the DW penalty on your OH swing is removed</em> <a href="mechanics.html#eq:dwmissprob">(3.3)</a>, which essentially makes the player’s OH swing as if he only had one one-handed weapon equipped. This introduces another layer of nuance in the warrior’s rotation - repeatedly queueing and cancelling your HS queue will lead to an increase in OH hits, and therefore rage and DPS. It is important to note, however, that with world buffs most warriors are already able to HS every swing. Therefore, it is only recommended that one attempts this HS queue weaving when rage starved, as abilities and items such as Windfury Totem and Hand of Justice may result in the HS inadvertently going off - which may render the player unable to BT or WW on cooldown, resulting in a DPS loss.</p>
+<p>In Classic World of Warcraft, the act of queueing a “on next attack” ability such as HS and Cleave introduces another mechanic. When this occurs, <em>the DW penalty on your OH swing is removed</em> <a href="#eq:dwmissprob">(<strong>??</strong>)</a>, which essentially makes the player’s OH swing as if he only had one one-handed weapon equipped. This introduces another layer of nuance in the warrior’s rotation - repeatedly queueing and cancelling your HS queue will lead to an increase in OH hits, and therefore rage and DPS. It is important to note, however, that with world buffs most warriors are already able to HS every swing. Therefore, it is only recommended that one attempts this HS queue weaving when rage starved, as abilities and items such as Windfury Totem and Hand of Justice may result in the HS inadvertently going off - which may render the player unable to BT or WW on cooldown, resulting in a DPS loss.</p>
 </div>
 </div>
 <div id="slam" class="section level2">
@@ -388,11 +388,14 @@ Figure 4.10: Visualization of the effective Cleave damage and DPR density for di
 Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right)\right) + 87
 \tag{4.11}
 \end{equation}\]</span>
-<p>This is not the reality in World of Warcraft Classic. Due to the batching mechanic introduced by Blizzard, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively batches the the autoattack damage, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:</p>
+<p>This is not the reality in World of Warcraft Classic. Due to how Slam was coded in WoW Classic, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively batches the autoattack damage, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:</p>
 <pre><code>#showtooltip
 /stopattack
 /cast Slam
 /startattack</code></pre>
+<p>This behavior can be evidenced here:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/yQsx5z9OLzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
 <p>This has the benefit of <em>greatly</em> improving the usability of the ability, as it is now much more forgiving.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a two-handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let’s first look at its DPR when used with two “tiers” of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:</p>
 <ul>
 <li>Tier 1, which includes Spinal Reaper, Hand of Ragnaros, and Bonereaver’s Edge</li>
@@ -400,15 +403,15 @@ Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\rig
 </ul>
 <div id="slam-vs-bloodthirst" class="section level3">
 <h3><span class="header-section-number">4.5.1</span> Slam vs Bloodthirst</h3>
-<div class="figure"><span id="fig:unnamed-chunk-28"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-28-1.png" alt="Comparison between Bloodthirst and Slam DPR with two different tiers of weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-21"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-21-1.png" alt="Comparison between Bloodthirst and Slam DPR with two different tiers of weapons." width="672" />
 <p class="caption">
 Figure 4.11: Comparison between Bloodthirst and Slam DPR with two different tiers of weapons.
 </p>
 </div>
 <p>As we can see, Slam’s DPR is much higher than Bloodthirst’s, particularly at lower attack power levels. This means in rage starved situations, the player should prioritize utilizing Slam over Bloodthirst. It is important to note, however, that just because Slam’s DPR is higher even at very large attack power levels, that doesn’t mean that it’s <strong>damage</strong> is also higher than Bloodthirst’s. We can visualize this behavior with the following graph:</p>
-<div class="figure"><span id="fig:unnamed-chunk-29"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-29-1.png" alt="Comparison between Bloodthirst and Slam damage with two different tiers of weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-22"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-22-1.png" alt="Comparison between Bloodthirst and Slam damage with two different tiers of weapons." width="672" />
 <p class="caption">
 Figure 4.12: Comparison between Bloodthirst and Slam damage with two different tiers of weapons.
 </p>
@@ -418,15 +421,15 @@ Figure 4.12: Comparison between Bloodthirst and Slam damage with two different t
 <div id="slam-vs-execute" class="section level3">
 <h3><span class="header-section-number">4.5.2</span> Slam vs Execute</h3>
 <p>Slam’s high DPR, combined with Execute’s poor DPR while wielding a two-handed weapon, begs the question: which one is more effective? We can visualize and investigat this scenario through the following graph:</p>
-<div class="figure"><span id="fig:unnamed-chunk-31"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-31-1.png" alt="Comparison between Slam and Execute DPR during a 20 second long execute phase." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-24"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-24-1.png" alt="Comparison between Slam and Execute DPR during a 20 second long execute phase." width="672" />
 <p class="caption">
 Figure 4.13: Comparison between Slam and Execute DPR during a 20 second long execute phase.
 </p>
 </div>
 <p>The dots represent an ability usage. Immediately, we notice that Slam is utilized much more <em>frequently</em> than Execute due to the fact that we can activate it effectively midway through our swing, while we can only Execute immediately after it. Moreover, the large auto attack damage resulting from a two handed weapon swing also results in more rage, which as we’ve seen further reduces it’s DPR. We know, however, that DPR and Damage are not proportional. Therefore, under the same circumstances, let’s look at the damage dealt in the same time interval:</p>
-<div class="figure"><span id="fig:unnamed-chunk-32"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-32-1.png" alt="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-25"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-25-1.png" alt="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase." width="672" />
 <p class="caption">
 Figure 4.14: Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase.
 </p>
@@ -436,15 +439,15 @@ Figure 4.14: Comparison between the total damage dealt by Slam and Execute while
 <div id="slam-vs-cleave-and-heroic-strike" class="section level3">
 <h3><span class="header-section-number">4.5.3</span> Slam vs Cleave and Heroic Strike</h3>
 <p>The same damage and DPR comparison can be made between Cleave, Heroic Strike, and Slam. Let’s first compare the effective DPR of these abilities:</p>
-<div class="figure"><span id="fig:unnamed-chunk-33"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-33-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-26"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-26-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels." width="672" />
 <p class="caption">
 Figure 4.15: Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels.
 </p>
 </div>
 <p>It should not be surprising by now that Slam is the clear winner when it comes to DPR. It is important to note, however, that the context under which these abilities are utilized is different: Cleave and Heroic Strike are abilities utilized to dump extra rage with while Slam, due it’s low rage cost, is not utilized in the same fashion. Let’s instead look at the damage dealt by these abilities, under the same circumstances:</p>
-<div class="figure"><span id="fig:unnamed-chunk-34"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-34-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-27"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-27-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels." width="672" />
 <p class="caption">
 Figure 4.16: Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels.
 </p>

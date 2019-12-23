@@ -22,6 +22,7 @@
         2. Formula
         3. Scaling (AP/Str)
         4. Utilization
+                Calculate whether it's better to use BF with 2 Crusader up vs Using it at Exec phase
 ### Berserking
         1. Intro
         2. Utilization
