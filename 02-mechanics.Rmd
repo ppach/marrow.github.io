@@ -175,7 +175,7 @@ ggplot(wepskill_code, aes(x = weapon_skill, y = glancing_blow_damage_increase)) 
 ```
 
 
-As we can see, our glancing blows increase in damage linearly with weapon skill until 307 weapon skill. This is incredibly important, as it indicates 308 weapon skill to being the soft cap for glancing blow damage penalty reduction - meaning the player gains no benefits in this aspect if their weapon skill is higher than 307 when facing a raid boss.
+As we can see, our glancing blows increase in damage linearly with weapon skill until 307 weapon skill. This is incredibly important, as it indicates 308 weapon skill to being the soft cap for glancing blow damage penalty reduction - meaning the player gains no benefits in this aspect if their weapon skill is higher than 308 when facing a raid boss.
 
 Similarly, the impact of weapon skill on the $P(Miss)$ and hit cap is clearer when shown graphically:
 
