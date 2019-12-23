@@ -203,7 +203,7 @@ This is why any weapon skill bonus of over 5, whether given by a racial (orcs wi
 
 ## The Crit Cap{#crit_cap}
 
-Due to the nature of the two-roll system in World of Warcraft combat, attacks past a certain $P(Crit)$ every non-glancing auto attack will result in a critical strike. This threshold is also known as the **crit cap**, and decreasing $P(Miss)$ and $P(Dodge)$ through an increase in Weapon Skill or increasing $P(Hit)$ will increase the player's crit cap. Since we cannot decrease $P(Glance)$, we can calculate the crit cap as:
+Due to the nature of the two-roll system in World of Warcraft combat, attacks past a certain $P(Crit)$ dictate every non-glancing auto attack will result in a critical strike. This threshold is also known as the **crit cap**, and decreasing $P(Miss)$ and $P(Dodge)$ through an increase in Weapon Skill or increasing $P(Hit)$ will increase the player's crit cap. Since we cannot decrease $P(Glance)$, we can calculate the crit cap as:
 
 \begin{equation}
 \small Crit_{cap}\ =\ 100-P\left(Miss\right)-P\left(Dodge\right)-P\left(Block\right)-P\left(Parry\right)-P\left(Glance\right)+Crit_{\sup}

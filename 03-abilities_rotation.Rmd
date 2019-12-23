@@ -975,18 +975,18 @@ Slam's high DPR, combined with Execute's poor DPR while wielding a two-handed we
 ```{r include=FALSE}
 slam_comparison
 
-slam_epl <- as_tibble(seq(0, 20, by = 1.5)) %>%
+slam_epl <- as_tibble(seq(0, 20, by = 3.4)) %>%
         rename(time = value) %>%
         mutate(ability = "slam",
                hit = 1,
-                damage = slam(rnorm(14, 261, 3), 3.3, 1500),
+                damage = slam(rnorm(6, 261, 3), 3.4, 1500),
                dpr = damage/15)
 
-exec_epl <- as_tibble(seq(0, 20, by = 3.3)) %>% 
+exec_epl <- as_tibble(seq(0, 20, by = 3.4)) %>% 
         rename(time = value) %>% 
         mutate(ability = "execute",
                 hit = 1,
-                rage = rage_gen(rnorm(mean = 261, sd = 3, n = 7)),
+                rage = rage_gen(rnorm(mean = 261, sd = 3, n = 6)),
                 damage = execute(rage, points = 2),
                 dpr = damage/rage)
 
@@ -1041,7 +1041,7 @@ ggplot(slam_exec_comparison, aes(x = time, y = dpr, colour = ability)) +
 
 ```
 
-The dots represent an ability usage. Immediately, we notice that Slam is utilized much more *frequently* than Execute due to the fact that we can activate it effectively midway through our swing, while we can only Execute immediately after it. Moreover, the large auto attack damage resulting from a two handed weapon swing also results in more rage, which as we've seen further reduces it's DPR. We know, however, that DPR and Damage are not proportional. Therefore, under the same circumstances, let's look at the damage dealt in the same time interval:
+The dots represent an ability usage. The large auto attack damage resulting from a two handed weapon swing also results in more rage, reducing the overall DPR in the time period. We know, however, that DPR and Damage are not strictly proportional. Therefore, under the same circumstances, let's look at the damage dealt in the same time interval:
 
 ```{r echo=FALSE, fig.cap="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase."}
 
@@ -1060,7 +1060,7 @@ ggplot(slam_exec_comparison, aes(x = time, y = damage, colour = ability)) +
              subtitle = "Assuming 1500 AP, average weapon swing damage of 258, and optimal Execute DPR.")
 ```
 
-The damage dealt by continuously utilizing Slam is almost 2.5 times larger than the total damage dealt by Executing after each swing. To make matters worse, Slam scales with attack power *and*  weapon swing damage - effectively meaning the player should Slam throughout the Execute phase, **unless** the boss is about to die and the player has a large surplus of rage, since the potential damage of Execute is higher than that of Slam in a high rage situation.
+The damage dealt by continuously utilizing Slam is 25% higher the total damage dealt by Executing after each swing. To make matters worse, Slam scales with attack power *and*  weapon swing damage *and* the graph does not account for possible Bloodthirsts that could be weaved in, given enough rage.This effectively means the player should Slam throughout the Execute phase, **unless** the boss is about to die and the player has a large surplus of rage, since the potential damage of Execute is higher than that of Slam in a high rage situation.
 
 ```{r cleave vs slam, include= FALSE}
 
