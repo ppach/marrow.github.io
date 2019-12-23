@@ -678,7 +678,7 @@ ggplot(overall_totaldpr, aes(x = epl, y = totaldpr, colour = weapon_type)) +
 Heroic Strike (HS) and Cleave are unique abilities in a warrior's toolkit. While all of the abilities we've looked at so far are instant - meaning they occur immediately upon activation - HS and Cleave instead take place on the player's *next* melee main hand swing. This has two important consequences:
 
 1. Since the player's next melee attack becomes a yellow attack, it also gains the properties of one. This means HS and Cleave *cannot* glance.
-2. Similarly, since the player's next melee swing is now an yellow attack, it *does not* generate rage. Therefore, HS and Cleave are utilized as rage dumps in order to prevent rage capping.
+2. Similarly, since the player's next melee swing is now a yellow attack, it *does not* generate rage. Therefore, HS and Cleave are utilized as rage dumps in order to prevent rage capping.
 
 Because these abilities do not generate rage, their activation cost and damage are deceptive - we need to factor in the opportunity cost of a regular melee attack. Likewise, the damage dealt by these abilities has to account for the $P(Glance)$ reduction they incur. Therefore, from now on when we refer to HS and Cleave's cost and damage, we'll be speaking in terms of **effective cost** and **effective damage**. Beanna and Vilius [@beanna_fcdpr2019] have derived this formulas as:
 
@@ -966,7 +966,7 @@ ggplot(slam_comparison, aes(x = ap_vals, y = damage, color = source )) +
              subtitle = "At reasonable AP levels.")
 ```
 
-The graphs clearly show that while always more cost effective, Slam's damage is lower than Bloodthirst's after 1250 attack power - an easily achievable threshold. What this effectively means is that if the player is in a scenario where their rage generation outpaces their rage usage, they should prioritize Bloodthirst over Slam. If that is not the case, Bloodthirst should only be utilized if the player has enough remaining rage after its use to still activate Slam.
+The graphs clearly show that while always more cost effective, Slam's damage is lower than Bloodthirst's past 1500 attack power when wielding a Tier 2 weapon, and and past 1700 when wielding a Tier 1 weapon - both easily achievable thresholds. What this effectively means is that if the player is in a scenario where their rage generation outpaces their rage usage, they should prioritize Bloodthirst over Slam. If that is not the case, Bloodthirst should only be utilized if the player has enough remaining rage after its use to still activate Slam.
 
 ### Slam vs Execute
 
