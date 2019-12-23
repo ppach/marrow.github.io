@@ -102,8 +102,7 @@ C\ =\ \left(0.0091107836\ \times\ Lvl^2\right)\ +\ \left(3.225598133\ \times\ Lv
 (\#eq:convvalue)
 \end{equation}
 
-What this tells us is that very low damage attacks have an uppber bound on how much they can be averaged up by the hit factor of the 
-Where $Lvl$ is the player's level. Knowing this, we can calculate the conversion value for various level ranges:
+What this tells us is that very low damage attacks have an upper bound on how much they can be averaged up by the hit factor of the. Knowing this, we can calculate the conversion value for various level ranges:
 
 ```{r echo=FALSE}
 knitr::kable(conversion_values_tbl, booktabs = TRUE,
@@ -126,7 +125,7 @@ Note: For all of the following damage and DPR calculations, we will assume $P(Cr
 ## Bloodthirst{#bloodthirst}
 
 
-Bloodthirst (BT) is an instant ability on a 6 second cooldown that costs 30 rage and hits the enemy target for 45% of our attack power (AP). Mathematically, we can represent it's damage as:
+Bloodthirst (BT) is an instant ability on a 6 second cooldown that costs 30 rage and hits the enemy target for 45% of our attack power (AP). Mathematically, we can represent its damage as:
 
 \begin{equation}
 BT_{dmg}\ =\ AP\ \times\ 0.45
@@ -338,7 +337,7 @@ The graphs above paint a clear picture: Whirlwind damage per rage increases line
 
 ## Execute{#execute}
 
-Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown and variable rage cost, which can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past it's activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability at 5 rage per talent point. Therefore, we can calculate its damage as:
+Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown and variable rage cost, which can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past its activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability at 5 rage per talent point. Therefore, we can calculate its damage as:
 
 ```{r Execute Damage Formula, message=FALSE, warning=FALSE, include=FALSE}
 
@@ -421,7 +420,7 @@ The graph enables us to visualize a big difference between Execute and our other
 
 ### Execute Switch{#execswitch}
 
-As we now understand the relationship between rage spent and Execute DPR, it becomes clear that activating Execute at it's rage minimum cost will maximize our DPR. Therefore, it stands to reason that weapons that enable us to Execute more *often* while just going over the ability's activation cost are the best candidates for this. Let's compare our three types of weapons again (\@ref(tab:weapons)), assuming the following:
+As we now understand the relationship between rage spent and Execute DPR, it becomes clear that activating Execute at its rage minimum cost will maximize our DPR. Therefore, it stands to reason that weapons that enable us to Execute more *often* while just going over the ability's activation cost are the best candidates for this. Let's compare our three types of weapons again (\@ref(tab:weapons)), assuming the following:
 
 * The player has 305 weapon skill for all weapon types.
 * The player has two points into Improved Execute.
@@ -678,7 +677,7 @@ ggplot(overall_totaldpr, aes(x = epl, y = totaldpr, colour = weapon_type)) +
 
 Heroic Strike (HS) and Cleave are unique abilities in a warrior's toolkit. While all of the abilities we've looked at so far are instant - meaning they occur immediately upon activation - HS and Cleave instead take place on the player's *next* melee main hand swing. This has two important consequences:
 
-1. Since the player's next melee attack becomes an yellow attack, it also gains the properties of one. This means HS and Cleave *cannot* glance.
+1. Since the player's next melee attack becomes a yellow attack, it also gains the properties of one. This means HS and Cleave *cannot* glance.
 2. Similarly, since the player's next melee swing is now an yellow attack, it *does not* generate rage. Therefore, HS and Cleave are utilized as rage dumps in order to prevent rage capping.
 
 Because these abilities do not generate rage, their activation cost and damage are deceptive - we need to factor in the opportunity cost of a regular melee attack. Likewise, the damage dealt by these abilities has to account for the $P(Glance)$ reduction they incur. Therefore, from now on when we refer to HS and Cleave's cost and damage, we'll be speaking in terms of **effective cost** and **effective damage**. Beanna and Vilius [@beanna_fcdpr2019] have derived this formulas as:
@@ -704,7 +703,7 @@ Cleave_{cost}\ = 20\ +\ \left(Rage\left(Dmg-Auto\ \right)\right)
 (\#eq:cleavecost)
 \end{equation}
 
-And it's damage as:
+And its damage as:
 
 \begin{equation}
 \scriptsize Cleave_{dmg}\ =\ \left(1+P\left(Crit\right)-P\left(Dodge\right) \times \left(Dmg_{auto}+\ \left(2\ \times\ Cleave_{bonus}\ \right)\right)+\ \left(P\left(Glance\right)\times\left(Dmg_{auto}\ -\ Dmg_{glance}\right)\right)\right)
@@ -873,7 +872,7 @@ In Classic World of Warcraft, the act of queueing a "on next attack" ability suc
 
 ## Slam{#slam}
 
-Slam is a 1.5 second casted ability that costs 15 rage and deals your weapon plus an additional 87 damage. Its cast time reduced by 0.1 for each point in the Improved Slam talent, and t is important to note that unlike Whirlwind, Slam is **not** speed normalized - meaning slower weapons will increase the ability's damage. Slam has been historically shunned as an ability in the warrior toolkit, largely due to it's cast time: this posed significant usage problems in movement and damage heavy fights, as the player is unable to move and suffers damage pushback when casting. Moreover, even under ideal circumstances Slam had the potential to be actively detrimental - mistiming it after your white swing landed meant that you'd clip your next auto, incurring a DPS loss.
+Slam is a 1.5 second cast time ability that costs 15 rage and deals your weapon damage plus an additional 87 damage. Its cast time reduced by 0.1 for each point in the Improved Slam talent, and it is important to note that unlike Whirlwind, Slam is **not** speed normalized - meaning slower weapons will increase the ability's damage. Slam has been historically shunned as an ability in the warrior toolkit, largely due to its cast time: this posed significant usage problems in movement and damage heavy fights, as the player is unable to move and suffers damage pushback when casting. Moreover, even under ideal circumstances, Slam had the potential to be actively detrimental - mistiming it after your white swing landed meant that you'd clip your next auto, incurring a DPS loss.
 
 \begin{equation}
 Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right)\right) + 87
@@ -892,7 +891,7 @@ This behavior can be evidenced here:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/yQsx5z9OLzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-This has the benefit of *greatly* improving the usability of the ability, as it is now much more forgiving ^[It is important to note that the issues that plagued Slam usage before (cast pushback, movement) **still exist**. For that reason, dual wield is very likely to be superior on single target fights even with comparatively worse weapons.]. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a two-handed weapon makes Slam an attractive alternative to longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
+This has the benefit of *greatly* improving the usability of the ability, as it is now much more forgiving ^[It is important to note that the issues that plagued Slam usage before (cast pushback, movement) **still exist**. For that reason, dual wield is very likely to be superior on single target fights even with comparatively worse weapons.]. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a two-handed weapon, Slam becomes an attractive alternative to a longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
 
 * Tier 1, which includes Spinal Reaper, Hand of Ragnaros, and Bonereaver's Edge
 * Tier 2, which includes Obsidian Edged Blade, Earthshaker, and The Unstoppable Force.
@@ -948,10 +947,10 @@ ggplot(slam_comparison, aes(x = ap_vals, y = dpr, color = source )) +
         # scale_y_continuous(breaks = seq(100, 700, by = 100)) +
         labs(y = "DPR",
              x = "AP",
-             title = "Slam DPR is much higher than Bloodthirst's.")
+             title = "Slam's DPR is much higher than Bloodthirst's.")
 ```
 
-As we can see, Slam's DPR is much higher than Bloodthirst's, particularly at lower attack power levels. This means in rage starved situations, the player should prioritize utilizing Slam over Bloodthirst. It is important to note, however, that just because Slam's DPR is higher even at very large attack power levels, that doesn't mean that it's **damage** is also higher than Bloodthirst's. We can visualize this behavior with the following graph:
+As we can see, Slam's DPR is much higher than Bloodthirst's, particularly at lower attack power levels. This means in rage starved situations, the player should prioritize utilizing Slam over Bloodthirst. It is important to note, however, that just because Slam's DPR is higher even at very large attack power levels, that doesn't mean that its **damage** is also higher than Bloodthirst's. We can visualize this behavior with the following graph:
 
 ```{r echo=FALSE, fig.cap = "Comparison between Bloodthirst and Slam damage with two different tiers of weapons."}
 ggplot(slam_comparison, aes(x = ap_vals, y = damage, color = source )) +
@@ -967,7 +966,7 @@ ggplot(slam_comparison, aes(x = ap_vals, y = damage, color = source )) +
              subtitle = "At reasonable AP levels.")
 ```
 
-The graphs clearly show that while always more cost effective, Slam's damage is lower than Bloodthirst's after 1250 attack power - an easily achievable treshold. What this effectively means is that if the player is in a scenario where their rage generation outpaces their rage usage, they should prioritize Bloodthirst over Slam. If that is not the case, Bloodthirst should only be utilized if the player has enough remaining rage after it's use to still activate Slam.
+The graphs clearly show that while always more cost effective, Slam's damage is lower than Bloodthirst's after 1250 attack power - an easily achievable threshold. What this effectively means is that if the player is in a scenario where their rage generation outpaces their rage usage, they should prioritize Bloodthirst over Slam. If that is not the case, Bloodthirst should only be utilized if the player has enough remaining rage after its use to still activate Slam.
 
 ### Slam vs Execute
 
@@ -1041,6 +1040,7 @@ ggplot(slam_exec_comparison, aes(x = time, y = dpr, colour = ability)) +
 
 ```
 
+
 The dots represent an ability usage. The large auto attack damage resulting from a two handed weapon swing also results in more rage, reducing the overall DPR in the time period. We know, however, that DPR and Damage are not strictly proportional. Therefore, under the same circumstances, let's look at the damage dealt in the same time interval:
 
 ```{r echo=FALSE, fig.cap="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase."}
@@ -1094,7 +1094,7 @@ cleave_vs_slam %>%
              subtitle = "Assuming Cleave hits two targets, and a mean weapon swing of 258.")
 ```
 
-It should not be surprising by now that Slam is the clear winner when it comes to DPR. It is important to note, however, that the context under which these abilities are utilized is different: Cleave and Heroic Strike are abilities utilized to dump extra rage with while Slam, due it's low rage cost, is not utilized in the same fashion. Let's instead look at the damage dealt by these abilities, under the same circumstances:
+It should not be surprising by now that Slam is the clear winner when it comes to DPR. It is important to note, however, that the context under which these abilities are utilized is different: Cleave and Heroic Strike are abilities utilized to dump extra rage with while Slam, due to its low rage cost, is not utilized in the same fashion. Let's instead look at the damage dealt by these abilities, under the same circumstances:
 
 ```{r echo = FALSE, fig.cap = "Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels."}
 
@@ -1120,7 +1120,7 @@ cleave_vs_slam %>%
 There's a lot to take away from these two graphs:
 
 1. Slam is, by far, the your highest DPR ability while wielding a two handed weapon. As such, it should be prioritized in low-rage situations.
-2. Although Slam's DPR is higher than that of Cleave's, it's damage is significantly lower in a two-target situation. Therefore, Cleave should be prioritized when the player has sufficient rage and 2 or more targets.
+2. Although Slam's DPR is higher than that of Cleave's, its damage is significantly lower in a two-target situation. Therefore, Cleave should be prioritized when the player has sufficient rage and 2 or more targets.
 3. While the damage difference between Heroic Strike and Slam is small, the DPR gap is very high. This means HS should *never* be utilized while wielding a two handed weapon when the player could otherwise Slam.
 
 

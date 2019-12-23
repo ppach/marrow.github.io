@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2019-12-22" />
+<meta name="date" content="2019-12-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -179,15 +179,15 @@
 <h2><span class="header-section-number">3.2</span> Miss Chance, Glancing Blows, and Weapon Skill</h2>
 <div id="miss_chance" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Miss Chance</h3>
-<p>Blizzard has confirmed that players have an 8% chance to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from magey and others <span class="citation">(magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
+<p>Blizzard has confirmed that players have an 8% chance<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from magey and others <span class="citation">(magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
 <p>If the target is a mob and the difference between it’s defense rating and the attacker’s weapon skill is 11 or more:</p>
 <span class="math display" id="eq:missprob1">\[\begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
+P\left(Miss\right)\ =\ 5\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 \tag{3.1}
 \end{equation}\]</span>
 <p>If the target is a mob and the difference between it’s defense rating and the attacker’s weapon skill is 10 or less:</p>
 <span class="math display" id="eq:missprob2">\[\begin{equation}
-P\left(Miss\right)\ =\ 0.05\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
+P\left(Miss\right)\ =\ 5\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
 \tag{3.2}
 \end{equation}\]</span>
 <p>Where <span class="math inline">\(T_{lvl}\)</span> is the target’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the attacker’s weapon skill rating. While simple, this formula carries immense significance - it means that that by having 305 weapon skill, a player only has a 6% chance to miss an enemy mob 3 levels higher, which includes raid bosses. Conversely, a player with only 300 weapon skill will have an 8% chance to miss. This is a huge difference, especially in conjunction with the other benefits that weapon skill brings. It is important to note, however, that this is the behavior exhibited by wielding one weapon. If dual wielding, the probability of missing an attack is calculated as:</p>
@@ -390,14 +390,14 @@ Figure 3.2: Weapon skill increases damage on glancing, relative to 300 weapon sk
 Figure 3.3: Weapon skill contributes to overcome the 1% hit suppression and the miss probability, but suffers steep diminishing returns after 305.
 </p>
 </div>
-<p>As we can see, the player’s hit cap starts 1% higher than <span class="math inline">\(P(Miss)\)</span> at 300 weapon skill. This is because vanilla WoW code explicitly suppresses the <strong>first 1%</strong> of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player’s weapon skill <span class="citation">(Blizzard <a href="#ref-blizz_hitcap2019">2019</a><a href="#ref-blizz_hitcap2019">a</a>)</span>, in accordance with <a href="mechanics.html#eq:missprob1">(3.1)</a>. This hit suppression is <strong>not</strong> applied, however, if the difference between the attacker’s weapon skill and the enemy mob’s defense skill is less than 10 <a href="mechanics.html#eq:missprob2">(3.2)</a>. Not that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.</p>
+<p>As we can see, the player’s hit cap starts 1% higher than <span class="math inline">\(P(Miss)\)</span> at 300 weapon skill. This is because vanilla WoW code explicitly suppresses the <strong>first 1%</strong> of +hit gained from talents or gear against enemy mobs with more than 10 defense skill above the player’s weapon skill <span class="citation">(Blizzard <a href="#ref-blizz_hitcap2019">2019</a><a href="#ref-blizz_hitcap2019">a</a>)</span>, in accordance with <a href="mechanics.html#eq:missprob1">(3.1)</a>. This hit suppression is <strong>not</strong> applied, however, if the difference between the attacker’s weapon skill and the enemy mob’s defense skill is less than 10 <a href="mechanics.html#eq:missprob2">(3.2)</a>. Note that values past 305 weapon skill suffer from steep diminishing returns, where an increase of 10 points past that only translates to a hit cap decrease of 1%.</p>
 <p>This is why weapon skill is so important: not only does it reduce the glancing blow damage penalty, it removes the inherit 1% hit suppresion, and significantly reduces <span class="math inline">\(P(Miss)\)</span> until 305. This is also why a weapon skill of at least 305 and at most 308 is <strong>highly</strong> recommended. The first 5 points are crucial to overcome the 1% hit deficit, and the 8 points enables us to reach the maximum glancing blow damage. This is a complicated threshold to reach, however, as there are very few items in World of Warcraft that add small amounts of Weapon Skill that would enable you to get to 308. Furthermore, the fact that weapon skill’s value in respect to hit chance is <em>vastly</em> diminished after 305 clearly indicates that 305 weapon skill is the <strong>most</strong> optimal weapon skill value for Fury Warriors in Classic WoW.</p>
-<p>This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your <span class="math inline">\(P(Miss)\)</span> by 2%, and glancing blow damage penalty reduction. This is an incredible advantage, especially compared to the alternative which is gearing for weapon skill through items such as <a href="https://classic.wowhead.com/item=14551/edgemasters-handguards">Edgemaster’s Handguards</a>, since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats <em>in addition</em> to weapon skill, such as <a href="https://classic.wowhead.com/item=18823/aged-core-leather-gloves">Aged Core Leather Gloves</a> (ACLG), are incredibly good.</p>
+<p>This is why any weapon skill bonus of over 5, whether given by a racial (orcs with axes, humans with maces and swords) or an item is so good - it means that single piece of gear is enough to overcome the hit suppresion versus raid bosses, as well as reducing your <span class="math inline">\(P(Miss)\)</span> by 2%, and glancing blow damage penalty reduction. This is a massive advantage, especially compared to the alternative which is gearing for weapon skill through items such as <a href="https://classic.wowhead.com/item=14551/edgemasters-handguards">Edgemaster’s Handguards</a>, since the player with the built in weapon skill essentially has one extra item slot over a non-human, non-orc player. This is also why items that give good stats <em>in addition</em> to weapon skill, such as <a href="https://classic.wowhead.com/item=18823/aged-core-leather-gloves">Aged Core Leather Gloves</a> (ACLG), are incredibly good.</p>
 </div>
 </div>
 <div id="crit_cap" class="section level2">
 <h2><span class="header-section-number">3.3</span> The Crit Cap</h2>
-<p>Due to the nature of the two-roll system in World of Warcraft combat, attacks past a certain <span class="math inline">\(P(Crit)\)</span> every non-glancing auto attack will result in a critical strike. This threshold is also known as the <strong>crit cap</strong>, and decreasing <span class="math inline">\(P(Miss)\)</span> and <span class="math inline">\(P(Dodge)\)</span> through an increase in Weapon Skill or increasing <span class="math inline">\(P(Hit)\)</span> will increase the player’s crit cap. Since we cannot decrease <span class="math inline">\(P(Glance)\)</span>, we can calculate the crit cap as:</p>
+<p>Due to the nature of the two-roll system in World of Warcraft combat, attacks past a certain <span class="math inline">\(P(Crit)\)</span> dictate every non-glancing auto attack will result in a critical strike. This threshold is also known as the <strong>crit cap</strong>, and decreasing <span class="math inline">\(P(Miss)\)</span> and <span class="math inline">\(P(Dodge)\)</span> through an increase in Weapon Skill or increasing <span class="math inline">\(P(Hit)\)</span> will increase the player’s crit cap. Since we cannot decrease <span class="math inline">\(P(Glance)\)</span>, we can calculate the crit cap as:</p>
 <span class="math display" id="eq:critcap">\[\begin{equation}
 \small Crit_{cap}\ =\ 100-P\left(Miss\right)-P\left(Dodge\right)-P\left(Block\right)-P\left(Parry\right)-P\left(Glance\right)+Crit_{\sup}
 \tag{3.5}
@@ -436,6 +436,12 @@ Figure 3.4: Increase in critical strike chance increases flurry uptime.
 <div id="ref-magey_atktbl2019">
 <p>magey, Vilius, dmzor, Pufffymuffins, Towneh, Scylla, and Pyte. 2019. “Attack Table in Classic Wow.” <a href="https://github.com/magey/classic-warrior/wiki/Attack-table" class="uri">https://github.com/magey/classic-warrior/wiki/Attack-table</a>.</p>
 </div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="1">
+<li id="fn1"><p>Note that, due to the inherent hit suppression against level 63 mobs, the hit cap and the <span class="math inline">\(P(Miss)\)</span> are different until 305 weapon skill. This behavior is further explained in @ref(weapon_skill)<a href="mechanics.html#fnref1">↩</a></p></li>
+</ol>
 </div>
             </section>
 
