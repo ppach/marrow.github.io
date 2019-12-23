@@ -1060,7 +1060,7 @@ ggplot(slam_exec_comparison, aes(x = time, y = damage, colour = ability)) +
              subtitle = "Assuming 1500 AP, average weapon swing damage of 258, and optimal Execute DPR.")
 ```
 
-The damage dealt by continuously utilizing Slam is 25% higher the total damage dealt by Executing after each swing. To make matters worse, Slam scales with attack power *and*  weapon swing damage *and* the graph does not account for possible Bloodthirsts that could be weaved in, given enough rage.This effectively means the player should Slam throughout the Execute phase, **unless** the boss is about to die and the player has a large surplus of rage, since the potential damage of Execute is higher than that of Slam in a high rage situation.
+The damage dealt by utilizing Slam once per autoattack cycle is 25% higher the total damage dealt by Executing after each swing. To make matters worse, Slam scales with attack power *and*  weapon swing damage *and* the graph does not account for possible Bloodthirsts that could be weaved in, given enough rage.This effectively means the player should Slam throughout the Execute phase, **unless** the boss is about to die and the player has a large surplus of rage, since the potential damage of Execute is higher than that of Slam in a high rage situation.
 
 ```{r cleave vs slam, include= FALSE}
 
