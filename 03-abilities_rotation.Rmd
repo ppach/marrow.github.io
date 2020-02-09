@@ -119,7 +119,7 @@ DPR\ =\ \frac{Damage}{Rage}
 
 Although this is an easy concept to grasp, it'll be an essential part of our discussions throughout this chapter from now on. This is because the DPR of our abilities is **not** constant - Whirlwind's (WW) DPR varies depending on the number of enemies around and the damage and type of our weapon, Execute's varies based on how much rage we consume when activating the ability, and Bloodthirst's depends on our current attack power. Doing as much damage as possible in a fight, thus, is about calculating the DPR of each one of these abilities as the encounter progresses, and utilizing the one with the maximum DPR. We will revisit this concept in more depth in \@ref(dpr).
 
-Note: For all of the following damage and DPR calculations, we will assume $P(Crit) = 0.3$, $P(Dodge) = 0.6$, and 305 weapon skill.
+Note: For all of the following damage and DPR calculations, we will assume $P(Crit) = 0.3$, $P(Dodge) = 0.06$, and 305 weapon skill. This hidden multiplier will be applied to all subsequent damage and graph calculations.
 
 
 ## Bloodthirst{#bloodthirst}
@@ -685,7 +685,7 @@ Because these abilities do not generate rage, their activation cost and damage a
 Effective HS cost:
 
 \begin{equation}
-HS_{cost}\ = 15\ +\ \left(Rage\left(Dmg-Auto\ \right)\right)-HS_{imp}
+HS_{cost}\ = 15\ +\ \left(Rage\left(Dmg_{auto}\ \right)\right)-HS_{imp}
 (\#eq:hscost)
 \end{equation}
 
@@ -699,7 +699,7 @@ Effective HS damage:
 Analogously, we can define Cleave's effective cost as:
 
 \begin{equation}
-Cleave_{cost}\ = 20\ +\ \left(Rage\left(Dmg-Auto\ \right)\right)
+Cleave_{cost}\ = 20\ +\ \left(Rage\left(Dmg_{auto}\ \right)\right)
 (\#eq:cleavecost)
 \end{equation}
 
@@ -879,7 +879,7 @@ Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\rig
 (\#eq:slamdmg)
 \end{equation}
 
-This is not the reality in World of Warcraft Classic. Due to how Slam was coded in WoW Classic, activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively lets the player bypass anything that would reset his swingtimer, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. In order to achieve this, however, the player must use the following macro:
+At the release of Classic, there was a bug that caused activating Slam when its cast time is equal to or less than the remaining time on your autoattack effectively lets the player bypass anything that would reset his swingtimer, resulting in the enemy being struck by both the auto attack and Slam upon a finished cast. This was achieved through the following macro:
 
 ```
 #showtooltip
@@ -887,11 +887,9 @@ This is not the reality in World of Warcraft Classic. Due to how Slam was coded 
 /cast Slam
 /startattack
 ```
-This behavior can be evidenced here:
+This bug was fixed [@blizz_2020autoslam], and Slam now works like it did on most private servers - meaning it is best utilized immediately after landing a white hit. Keep in mind that while the calculations below assume **perfect** Slam usage - i.e no auto attack clipping as a result of the activation of the ability - this is unrealistic. As such, Slam is significantly worse than it's pre-fix state, but still a better alternative than Hamstring spam if utilized correctly.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/yQsx5z9OLzg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-This has the benefit of *greatly* improving the usability of the ability, as it is now much more forgiving ^[It is important to note that the issues that plagued Slam usage before (cast pushback, movement) **still exist**. For that reason, dual wield is very likely to be superior on single target fights even with comparatively worse weapons.]. Moreover, given the poor single target DPR of abilities such as Whirlwind and Execute when wielding a two-handed weapon, Slam becomes an attractive alternative to a longstanding warrior rotation. In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
+In order to assert the ability priority when utilizing Slam, let's first look at its DPR when used with two "tiers" of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:
 
 * Tier 1, which includes Spinal Reaper, Hand of Ragnaros, and Bonereaver's Edge
 * Tier 2, which includes Obsidian Edged Blade, Earthshaker, and The Unstoppable Force.

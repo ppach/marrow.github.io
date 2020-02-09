@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2019-12-23" />
+<meta name="date" content="2020-02-09" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -180,12 +180,12 @@
 <div id="miss_chance" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Miss Chance</h3>
 <p>Blizzard has confirmed that players have an 8% chance<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from magey and others <span class="citation">(magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
-<p>If the target is a mob and the difference between it’s defense rating and the attacker’s weapon skill is 11 or more:</p>
+<p>If the target is a mob and the difference between its defense rating and the attacker’s weapon skill is 11 or more:</p>
 <span class="math display" id="eq:missprob1">\[\begin{equation}
 P\left(Miss\right)\ =\ 5\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
 \tag{3.1}
 \end{equation}\]</span>
-<p>If the target is a mob and the difference between it’s defense rating and the attacker’s weapon skill is 10 or less:</p>
+<p>If the target is a mob and the difference between its defense rating and the attacker’s weapon skill is 10 or less:</p>
 <span class="math display" id="eq:missprob2">\[\begin{equation}
 P\left(Miss\right)\ =\ 5\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.1
 \tag{3.2}
@@ -201,7 +201,7 @@ P\left(DW_{miss}\right)\ =\ \left(P\left(Miss\right)\ \times\ 0.8\right)\ +\ 0.2
 <h3><span class="header-section-number">3.2.2</span> Glancing Blows</h3>
 <p>Glancing blows are a type of attack that can only occur when fighting an enemy of equal or higher level, and are restricted to white attacks. In accordance with Beaza, magey et al. have determined the glancing blow probability to be as follows:</p>
 <span class="math display" id="eq:glancingprob">\[\begin{equation}
-P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.2
+P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.02
 \tag{3.4}
 \end{equation}\]</span>
 <p>Where <span class="math inline">\(Atk_{lvl}\)</span> is the player’s level, and <span class="math inline">\(Atk_{skill}\)</span> is the player’s weapon skill value. Knowing that, we can compute the probability that our white attacks will glance, and the damage penalty that that glancing blow carries against enemies of different levels:</p>
@@ -382,7 +382,7 @@ Figure 3.1: Weapon skill greatly reduces the glancing blow damage penalty
 Figure 3.2: Weapon skill increases damage on glancing, relative to 300 weapon skill.
 </p>
 </div>
-<p>As we can see, our glancing blows increase in damage linearly with weapon skill until 307 weapon skill. This is incredibly important, as it indicates 308 weapon skill to being the soft cap for glancing blow damage penalty reduction - meaning the player gains no benefits in this aspect if their weapon skill is higher than 307 when facing a raid boss.</p>
+<p>As we can see, our glancing blows increase in damage linearly with weapon skill until 307 weapon skill. This is incredibly important, as it indicates 308 weapon skill to being the soft cap for glancing blow damage penalty reduction - meaning the player gains no benefits in this aspect if their weapon skill is higher than 308 when facing a raid boss.</p>
 <p>Similarly, the impact of weapon skill on the <span class="math inline">\(P(Miss)\)</span> and hit cap is clearer when shown graphically:</p>
 <div class="figure"><span id="fig:unnamed-chunk-6"></span>
 <img src="marrow_compendium_files/figure-html/unnamed-chunk-6-1.png" alt="Weapon skill contributes to overcome the 1% hit suppression and the miss probability, but suffers steep diminishing returns after 305." width="672" />

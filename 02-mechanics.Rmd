@@ -74,7 +74,7 @@ A mob being attacked from behind *cannot* block or parry, and thus these two out
 
 ### Miss Chance{#miss_chance}
 
-Blizzard has confirmed that players have an 8% chance ^[Note that, due to the inherent hit suppression against level 63 mobs, the hit cap and the $P(Miss)$ are different until 305 weapon skill. This behavior is further explained in \@ref(weapon_skill)] to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
+Blizzard has confirmed that players have an 8% chance ^[Note that, due to the inherent hit suppression against level 63 mobs, the hit cap and the $P(Miss)$ are different until 305 weapon skill. This behavior is further explained in \@ref(weapon_skill) to miss a creature that is 3 levels above them [@blizz_atktbl2019]. Empirical work from magey and others [@magey_atktbl2019] further corroborates a formula originally proposed by Beaza during vanilla [@beaza_miss2006], which can be summarized as:
 
 If the target is a mob and the difference between its defense rating and the attacker's weapon skill is 11 or more:
 
@@ -105,7 +105,7 @@ Glancing blows are a type of attack that can only occur when fighting an enemy o
 
 
 \begin{equation}
-P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.2
+P\left(Glancing\right)\ =\ 0.1\ +\ \left(T_{lvl}\times5\ -\ \min\left(Atk_{lvl}\times 5,\ Atk_{skill}\right)\right)\times 0.02
 (\#eq:glancingprob)
 \end{equation}
 
