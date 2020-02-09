@@ -88,7 +88,8 @@
 <li class="chapter" data-level="4.1" data-path="abilities.html"><a href="abilities.html#bloodthirst"><i class="fa fa-check"></i><b>4.1</b> Bloodthirst</a></li>
 <li class="chapter" data-level="4.2" data-path="abilities.html"><a href="abilities.html#whirlwind"><i class="fa fa-check"></i><b>4.2</b> Whirlwind</a></li>
 <li class="chapter" data-level="4.3" data-path="abilities.html"><a href="abilities.html#execute"><i class="fa fa-check"></i><b>4.3</b> Execute</a><ul>
-<li class="chapter" data-level="4.3.1" data-path="abilities.html"><a href="abilities.html#execswitch"><i class="fa fa-check"></i><b>4.3.1</b> Execute Switch</a></li>
+<li class="chapter" data-level="4.3.1" data-path="abilities.html"><a href="abilities.html#execvsbt"><i class="fa fa-check"></i><b>4.3.1</b> Execute vs Bloodthirst</a></li>
+<li class="chapter" data-level="4.3.2" data-path="abilities.html"><a href="abilities.html#execswitch"><i class="fa fa-check"></i><b>4.3.2</b> Execute Switch</a></li>
 </ul></li>
 <li class="chapter" data-level="4.4" data-path="abilities.html"><a href="abilities.html#heroic"><i class="fa fa-check"></i><b>4.4</b> Heroic Strike and Cleave</a><ul>
 <li class="chapter" data-level="4.4.1" data-path="abilities.html"><a href="abilities.html#hsq"><i class="fa fa-check"></i><b>4.4.1</b> HS Queuing</a></li>
@@ -179,7 +180,7 @@
 <h2><span class="header-section-number">3.2</span> Miss Chance, Glancing Blows, and Weapon Skill</h2>
 <div id="miss_chance" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Miss Chance</h3>
-<p>Blizzard has confirmed that players have an 8% chance<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from magey and others <span class="citation">(magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
+<p>Blizzard has confirmed that players have an 8% chance ^[Note that, due to the inherent hit suppression against level 63 mobs, the hit cap and the <span class="math inline">\(P(Miss)\)</span> are different until 305 weapon skill. This behavior is further explained in @ref(weapon_skill) to miss a creature that is 3 levels above them <span class="citation">(Blizzard <a href="#ref-blizz_atktbl2019">2019</a><a href="#ref-blizz_atktbl2019">b</a>)</span>. Empirical work from magey and others <span class="citation">(magey et al. <a href="#ref-magey_atktbl2019">2019</a>)</span> further corroborates a formula originally proposed by Beaza during vanilla <span class="citation">(Beaza <a href="#ref-beaza_miss2006">2006</a>)</span>, which can be summarized as:</p>
 <p>If the target is a mob and the difference between its defense rating and the attacker’s weapon skill is 11 or more:</p>
 <span class="math display" id="eq:missprob1">\[\begin{equation}
 P\left(Miss\right)\ =\ 5\ +\ \left(\left(T_{lvl}\times 5\right)-Atk_{skill}\right)\times 0.2
@@ -436,12 +437,6 @@ Figure 3.4: Increase in critical strike chance increases flurry uptime.
 <div id="ref-magey_atktbl2019">
 <p>magey, Vilius, dmzor, Pufffymuffins, Towneh, Scylla, and Pyte. 2019. “Attack Table in Classic Wow.” <a href="https://github.com/magey/classic-warrior/wiki/Attack-table" class="uri">https://github.com/magey/classic-warrior/wiki/Attack-table</a>.</p>
 </div>
-</div>
-<div class="footnotes">
-<hr />
-<ol start="1">
-<li id="fn1"><p>Note that, due to the inherent hit suppression against level 63 mobs, the hit cap and the <span class="math inline">\(P(Miss)\)</span> are different until 305 weapon skill. This behavior is further explained in @ref(weapon_skill)<a href="mechanics.html#fnref1">↩</a></p></li>
-</ol>
 </div>
             </section>
 

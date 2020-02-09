@@ -88,7 +88,8 @@
 <li class="chapter" data-level="4.1" data-path="abilities.html"><a href="abilities.html#bloodthirst"><i class="fa fa-check"></i><b>4.1</b> Bloodthirst</a></li>
 <li class="chapter" data-level="4.2" data-path="abilities.html"><a href="abilities.html#whirlwind"><i class="fa fa-check"></i><b>4.2</b> Whirlwind</a></li>
 <li class="chapter" data-level="4.3" data-path="abilities.html"><a href="abilities.html#execute"><i class="fa fa-check"></i><b>4.3</b> Execute</a><ul>
-<li class="chapter" data-level="4.3.1" data-path="abilities.html"><a href="abilities.html#execswitch"><i class="fa fa-check"></i><b>4.3.1</b> Execute Switch</a></li>
+<li class="chapter" data-level="4.3.1" data-path="abilities.html"><a href="abilities.html#execvsbt"><i class="fa fa-check"></i><b>4.3.1</b> Execute vs Bloodthirst</a></li>
+<li class="chapter" data-level="4.3.2" data-path="abilities.html"><a href="abilities.html#execswitch"><i class="fa fa-check"></i><b>4.3.2</b> Execute Switch</a></li>
 </ul></li>
 <li class="chapter" data-level="4.4" data-path="abilities.html"><a href="abilities.html#heroic"><i class="fa fa-check"></i><b>4.4</b> Heroic Strike and Cleave</a><ul>
 <li class="chapter" data-level="4.4.1" data-path="abilities.html"><a href="abilities.html#hsq"><i class="fa fa-check"></i><b>4.4.1</b> HS Queuing</a></li>
@@ -292,7 +293,7 @@ Figure 4.4: Comparison of the damage per rage efficiency between Bloodthirst and
 </div>
 <div id="execute" class="section level2">
 <h2><span class="header-section-number">4.3</span> Execute</h2>
-<p>Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown and variable rage cost, which can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past its activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability at 5 rage per talent point. Therefore, we can calculate its damage as:</p>
+<p>Different from Whirlwind and Bloodthirst, Execute is an ability with no cooldown and variable rage cost, which can only be activated when the enemy is at 20% HP or lower. Each additional point of rage used in the activation of the ability past its activation cost adds 15 damage to the total damage dealt by the ability, and points into the Improved Execute talent decrease the activation cost of the ability per talent point. Therefore, we can calculate its damage as:</p>
 <span class="math display" id="eq:executedmg">\[\begin{equation}
 Execute_{dmg}\ =\ 600\ +\ \left(\left(R-Ac\right)\ \times\ 15\right)
 \tag{4.6}
@@ -305,30 +306,49 @@ Figure 4.5: Comparison of rage consumed and Execute DPR by different talent poin
 </p>
 </div>
 <p>The graph enables us to visualize a big difference between Execute and our other abilities. While Bloodthirst and Whirlwind have a fixed rage cost, Execute’s rage cost is <strong>variable</strong>. Not only that, since damage dealt is calculated by the addition of the base damage and the amount of rage multiplied, this means that <strong>DPR and damage of Execute are inversely proportional</strong>. Practically speaking, this means that an Execute at 10 rage is much more efficient than an execute at 100 rage, despite the latter dealing more damage. This is because everytime Execute is activated, we gain “free” damage from the baseline ability, which does not scale with rage - meaning two 15 rage Execute activations will do more damage than one 30 rage Execute. Therefore, the most optimal way to spend rage during the Execute phase is to use it <em>immediately</em> at the lowest rage possible - resulting in higher DPR.</p>
+<div id="execvsbt" class="section level3">
+<h3><span class="header-section-number">4.3.1</span> Execute vs Bloodthirst</h3>
+<p>We have now seen how both abilities work, and there is a distinct difference between them - while Execute does not scale (and in fact gets worse the more rage is spent to activate it), Bloodthirst is our best scaling ability. Therefore, it stands to reason that there might exist a point where Bloodthirst outscales Execute, both in terms of DPR and damage. Let’s investigate this.</p>
+<p>The lowest activation cost possible for Bloodthirst is 30 rage. Therefore, to find out at which point Bloodthirst has higher DPR than Execute, all we need to do is find out:</p>
+<ol style="list-style-type: decimal">
+<li>What the Execute damage at 30 rage is:</li>
+</ol>
+<p><span class="math display">\[Execute_{dmg}\ =\ 600\ +\ \left(\left(30-10\right)\ \times\ 15\right)\]</span> <span class="math display">\[Execute_{dmg}\ =\ 900\]</span></p>
+<ol start="2" style="list-style-type: decimal">
+<li>What Bloodthirst AP level we require to achieve that damage:</li>
+</ol>
+<p><span class="math display">\[\frac{900}{0.45}\ =\ AP\ \]</span></p>
+<p><span class="math display">\[AP\ =\ 2000\]</span></p>
+<p>This means that, if the player has over 2000 AP <strong>and</strong> 30 or more rage, he or she should prioritize Bloodthirst <em>over</em> Execute, as it’ll result in higher DPR.</p>
+</div>
 <div id="execswitch" class="section level3">
-<h3><span class="header-section-number">4.3.1</span> Execute Switch</h3>
+<h3><span class="header-section-number">4.3.2</span> Execute Switch</h3>
 <p>As we now understand the relationship between rage spent and Execute DPR, it becomes clear that activating Execute at its rage minimum cost will maximize our DPR. Therefore, it stands to reason that weapons that enable us to Execute more <em>often</em> while just going over the ability’s activation cost are the best candidates for this. Let’s compare our three types of weapons again (<a href="abilities.html#tab:weapons">4.2</a>), assuming the following:</p>
 <ul>
 <li>The player has 305 weapon skill for all weapon types.</li>
 <li>The player has two points into Improved Execute.</li>
 <li>For the one hander and dagger comparisons, we assume an offhand generating an average of 5 rage per every 1.6 second swing.</li>
 </ul>
-<div class="figure"><span id="fig:unnamed-chunk-21"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-21-1.png" alt="Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-22"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-22-1.png" alt="Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
 <p class="caption">
 Figure 4.6: Comparison between the total DPR achieved by utilizing Execute after each attack, with varying weapon types.
 </p>
 </div>
-<div class="figure"><span id="fig:unnamed-chunk-22"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-22-1.png" alt="Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-23"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-23-1.png" alt="Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types." width="672" />
 <p class="caption">
 Figure 4.7: Comparison between the total damage achieved by utilizing Execute after each attack, with varying weapon types.
 </p>
 </div>
-<p>The graph is clear: utilizing daggers during the execute phase leads to much higher DPR efficiency than the alternatives. It is important to note, however, that the dagger could be replaced by <strong>any</strong> fast single handed weapon, provided it has high DPS. Knowing this, it stands to reason that switching to a fast weapon with comparable DPS just before the Execute phase would lead to higher overall DPR, and thus damage. This is what is called <em>execute switching</em>, and while it was highly effective on private servers, it is not as effective on World of Warcraft Classic for a few reasons.</p>
+<p>The graph is clear: utilizing daggers during the execute phase leads to much higher DPR efficiency than the alternatives. It is important to note, however, that the dagger could be replaced by <strong>any</strong> fast single handed weapon, provided it has high DPS. Knowing this, it stands to reason that switching to a fast weapon with comparable DPS just before the Execute phase would lead to higher overall DPR, and thus damage. This is what is called <em>execute switching</em>, and while it was highly effective on private servers, it is not as effective on World of Warcraft Classic for a few reasons:</p>
+<ul>
+<li>Execute phase lengths were much longer on private servers due to higher boss armor and HP pool. This increased the effectiveness of execute switching, as we can see in <a href="abilities.html#fig:epl-exec">4.8</a>.</li>
+<li>Execute in Classic is batched. This means that the game calculates how much rage you have upon the ability activation (and thus damage), but the damage is only dealt 400ms after that calculation. This means any rage generated in that window will <strong>not</strong> be taken into account when damage is dealt, but <strong>will</strong> be lost as if it did.</li>
+</ul>
 <p>The biggest factor determining the viability of Execute switching is the Execute phase length (EPL). While the difference between the Execute DPR of different weapon types and speeds is small in short EPLs, this effect becomes more noticeable as the EPL increases. This is, again, because the longer the duration of the EPL, the more opportunities we have to gain “free” damage from the activation of the Execute ability. This behavior can be observed in the graph below:</p>
-<div class="figure"><span id="fig:unnamed-chunk-24"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-24-1.png" alt="Total DPR achieved by utilizing Execute after every weapon swing with different weapons." width="672" />
+<div class="figure"><span id="fig:epl-exec"></span>
+<img src="marrow_compendium_files/figure-html/epl-exec-1.png" alt="Total DPR achieved by utilizing Execute after every weapon swing with different weapons." width="672" />
 <p class="caption">
 Figure 4.8: Total DPR achieved by utilizing Execute after every weapon swing with different weapons.
 </p>
@@ -393,8 +413,7 @@ Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\rig
 /stopattack
 /cast Slam
 /startattack</code></pre>
-<p>And this behavior could be seen here:</p>
-<p>This bug was fixed<span class="citation">(Blizzard <a href="#ref-blizz_2020autoslam">2020</a>)</span>, and Slam now works like it did on most private servers - meaning it is best utilized immediately after landing a white hit. Keep in mind that while the calculations below assume <strong>perfect</strong> Slam usage - i.e no auto attack clipping as a result of the activation of the ability - that is unrealistic. As such, Slam is significantly worse than it’s pre-fix state, but still a better alternative than Hamstring spam if utilized correctly.</p>
+<p>This bug was fixed <span class="citation">(Blizzard <a href="#ref-blizz_2020autoslam">2020</a>)</span>, and Slam now works like it did on most private servers - meaning it is best utilized immediately after landing a white hit. Keep in mind that while the calculations below assume <strong>perfect</strong> Slam usage - i.e no auto attack clipping as a result of the activation of the ability - this is unrealistic. As such, Slam is significantly worse than it’s pre-fix state, but still a better alternative than Hamstring spam if utilized correctly.</p>
 <p>In order to assert the ability priority when utilizing Slam, let’s first look at its DPR when used with two “tiers” of two handed weapons available to us in Phase 1 and 2 of World of Warcraft Classic:</p>
 <ul>
 <li>Tier 1, which includes Spinal Reaper, Hand of Ragnaros, and Bonereaver’s Edge</li>
@@ -402,51 +421,51 @@ Slam_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\rig
 </ul>
 <div id="slam-vs-bloodthirst" class="section level3">
 <h3><span class="header-section-number">4.5.1</span> Slam vs Bloodthirst</h3>
-<div class="figure"><span id="fig:unnamed-chunk-29"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-29-1.png" alt="Comparison between Bloodthirst and Slam DPR with two different tiers of weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-28"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-28-1.png" alt="Comparison between Bloodthirst and Slam DPR with two different tiers of weapons." width="672" />
 <p class="caption">
 Figure 4.11: Comparison between Bloodthirst and Slam DPR with two different tiers of weapons.
 </p>
 </div>
 <p>As we can see, Slam’s DPR is much higher than Bloodthirst’s, particularly at lower attack power levels. This means in rage starved situations, the player should prioritize utilizing Slam over Bloodthirst. It is important to note, however, that just because Slam’s DPR is higher even at very large attack power levels, that doesn’t mean that its <strong>damage</strong> is also higher than Bloodthirst’s. We can visualize this behavior with the following graph:</p>
-<div class="figure"><span id="fig:unnamed-chunk-30"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-30-1.png" alt="Comparison between Bloodthirst and Slam damage with two different tiers of weapons." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-29"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-29-1.png" alt="Comparison between Bloodthirst and Slam damage with two different tiers of weapons." width="672" />
 <p class="caption">
 Figure 4.12: Comparison between Bloodthirst and Slam damage with two different tiers of weapons.
 </p>
 </div>
-<p>The graphs clearly show that while always more cost effective, Slam’s damage is lower than Bloodthirst’s past 1500 attack power when wielding a Tier 2 weapon, and and past 1700 when wielding a Tier 1 weapon - both easily achievable thresholds. What this effectively means is that if the player is in a scenario where their rage generation outpaces their rage usage, they should prioritize Bloodthirst over Slam. If that is not the case, Bloodthirst should only be utilized if the player has enough remaining rage after its use to still activate Slam.</p>
+<p>The graphs clearly show that while always more cost effective, Slam’s damage is lower than Bloodthirst’s past 1500 attack power when wielding a Tier 2 weapon, and and past 1700 when wielding a Tier 1 weapon - both easily achievable thresholds. What this effectively means is that Bloodthirst should be utilized as a priority if the player has over 1500 AP, keeping the previously understood ability priority. If the player is rage starved, however, Slam should be utilized as the more cost effective choice.</p>
 </div>
 <div id="slam-vs-execute" class="section level3">
 <h3><span class="header-section-number">4.5.2</span> Slam vs Execute</h3>
 <p>Slam’s high DPR, combined with Execute’s poor DPR while wielding a two-handed weapon, begs the question: which one is more effective? We can visualize and investigat this scenario through the following graph:</p>
-<div class="figure"><span id="fig:unnamed-chunk-32"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-32-1.png" alt="Comparison between Slam and Execute DPR during a 20 second long execute phase." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-31"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-31-1.png" alt="Comparison between Slam and Execute DPR during a 20 second long execute phase." width="672" />
 <p class="caption">
 Figure 4.13: Comparison between Slam and Execute DPR during a 20 second long execute phase.
 </p>
 </div>
 <p>The dots represent an ability usage. The large auto attack damage resulting from a two handed weapon swing also results in more rage, reducing the overall DPR in the time period. We know, however, that DPR and Damage are not strictly proportional. Therefore, under the same circumstances, let’s look at the damage dealt in the same time interval:</p>
-<div class="figure"><span id="fig:unnamed-chunk-33"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-33-1.png" alt="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-32"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-32-1.png" alt="Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase." width="672" />
 <p class="caption">
 Figure 4.14: Comparison between the total damage dealt by Slam and Execute while wielding a two handed weapon during a 20 second long execute phase.
 </p>
 </div>
-<p>The damage dealt by utilizing Slam once per autoattack cycle is 25% higher the total damage dealt by Executing after each swing. To make matters worse, Slam scales with attack power <em>and</em> weapon swing damage <em>and</em> the graph does not account for possible Bloodthirsts that could be weaved in, given enough rage.This effectively means the player should Slam throughout the Execute phase, <strong>unless</strong> the boss is about to die and the player has a large surplus of rage, since the potential damage of Execute is higher than that of Slam in a high rage situation.</p>
+<p>The graph shows Slam and Execute dealing virtually the same damage. However, it is important to note that Slam scales with attack power and weapon swing damage, <em>and</em> the graph does not account for possible Bloodthirsts that could be weaved in given enough rage. This effectively means the at lower gear levels, the player should still Slam over Execute throughout the execute phase - even if the difference between the two abilities is now much smaller. An important note is that if the boss is about to die and the player has a large surplus of rage, the potential damage of Execute is much higher than that of Slam and it should therefore be the ability of choice.</p>
 </div>
 <div id="slam-vs-cleave-and-heroic-strike" class="section level3">
 <h3><span class="header-section-number">4.5.3</span> Slam vs Cleave and Heroic Strike</h3>
 <p>The same damage and DPR comparison can be made between Cleave, Heroic Strike, and Slam. Let’s first compare the effective DPR of these abilities:</p>
-<div class="figure"><span id="fig:unnamed-chunk-34"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-34-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-33"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-33-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels." width="672" />
 <p class="caption">
 Figure 4.15: Comparison between Cleave, Heroic Strike, and Slam mean DPR at varying attack power levels.
 </p>
 </div>
 <p>It should not be surprising by now that Slam is the clear winner when it comes to DPR. It is important to note, however, that the context under which these abilities are utilized is different: Cleave and Heroic Strike are abilities utilized to dump extra rage with while Slam, due to its low rage cost, is not utilized in the same fashion. Let’s instead look at the damage dealt by these abilities, under the same circumstances:</p>
-<div class="figure"><span id="fig:unnamed-chunk-35"></span>
-<img src="marrow_compendium_files/figure-html/unnamed-chunk-35-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels." width="672" />
+<div class="figure"><span id="fig:unnamed-chunk-34"></span>
+<img src="marrow_compendium_files/figure-html/unnamed-chunk-34-1.png" alt="Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels." width="672" />
 <p class="caption">
 Figure 4.16: Comparison between Cleave, Heroic Strike, and Slam mean damage at varying attack power levels.
 </p>
