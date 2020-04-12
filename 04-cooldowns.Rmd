@@ -282,7 +282,7 @@ sce2_mh <- tibble(
 sce2_exe <- tibble(
         ap = 2000,
         skill = "Execute",
-        rage = 40,
+        rage = c(40, 12, 40, 12),
         damage = execute(rage = rnorm(4, mean = rage, sd = 3)),
         time = seq(from = 0, to = 5, by = 1.5)
         
@@ -306,7 +306,7 @@ sce2_mrp_mh <- tibble(
 sce2_mrp_exe <- tibble(
         ap = 2120,
         skill = "Execute",
-        rage = c(40, 100, 40, 40),
+        rage = c(40, 60, 40, 12),
         damage = execute(rage = rnorm(4, mean = rage, sd = 3)),
         time = seq(from = 0, to = 5, by = 1.5)
         
