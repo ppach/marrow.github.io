@@ -198,6 +198,7 @@ scenario1_tot <- round(scenario1 %>% summarize(sum = sum(damage)))
 ```
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
+set.seed(1234)
 # Scenario 1 with MRP
 
 sce1mrp_bt <- tibble(
@@ -267,6 +268,7 @@ ggplot(sce1_comparison, aes(x = time, y = damage, colour = skill)) +
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
+set.seed(1234)
 
 # Scenario 2 no MRP
 
