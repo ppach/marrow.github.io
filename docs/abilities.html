@@ -24,7 +24,7 @@
 <meta name="author" content="Marrow , Heartseeker-US" />
 
 
-<meta name="date" content="2020-02-09" />
+<meta name="date" content="2020-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -52,6 +52,43 @@
 
 
 
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -108,14 +145,12 @@
 <li class="chapter" data-level="5" data-path="cds.html"><a href="cds.html"><i class="fa fa-check"></i><b>5</b> Cooldowns</a><ul>
 <li class="chapter" data-level="5.1" data-path="cds.html"><a href="cds.html#death-wish"><i class="fa fa-check"></i><b>5.1</b> Death Wish</a></li>
 <li class="chapter" data-level="5.2" data-path="cds.html"><a href="cds.html#recklessness"><i class="fa fa-check"></i><b>5.2</b> Recklessness</a></li>
-<li class="chapter" data-level="5.3" data-path="cds.html"><a href="cds.html#trinkets"><i class="fa fa-check"></i><b>5.3</b> Trinkets</a></li>
+<li class="chapter" data-level="5.3" data-path="cds.html"><a href="cds.html#trinkets"><i class="fa fa-check"></i><b>5.3</b> Trinkets</a><ul>
+<li class="chapter" data-level="5.3.1" data-path="cds.html"><a href="cds.html#diamond-flask"><i class="fa fa-check"></i><b>5.3.1</b> Diamond Flask</a></li>
+</ul></li>
 <li class="chapter" data-level="5.4" data-path="cds.html"><a href="cds.html#mighty-rage-potion"><i class="fa fa-check"></i><b>5.4</b> Mighty Rage Potion</a></li>
 <li class="chapter" data-level="5.5" data-path="cds.html"><a href="cds.html#bloodrage"><i class="fa fa-check"></i><b>5.5</b> Bloodrage</a></li>
 <li class="chapter" data-level="5.6" data-path="cds.html"><a href="cds.html#berserker-rage"><i class="fa fa-check"></i><b>5.6</b> Berserker Rage</a></li>
-<li class="chapter" data-level="5.7" data-path="cds.html"><a href="cds.html#racials"><i class="fa fa-check"></i><b>5.7</b> Racials</a><ul>
-<li class="chapter" data-level="5.7.1" data-path="cds.html"><a href="cds.html#blood-fury"><i class="fa fa-check"></i><b>5.7.1</b> Blood Fury</a></li>
-<li class="chapter" data-level="5.7.2" data-path="cds.html"><a href="cds.html#berserking"><i class="fa fa-check"></i><b>5.7.2</b> Berserking</a></li>
-</ul></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="consums.html"><a href="consums.html"><i class="fa fa-check"></i><b>6</b> Consumables</a><ul>
 <li class="chapter" data-level="6.1" data-path="consums.html"><a href="consums.html#required"><i class="fa fa-check"></i><b>6.1</b> Required</a><ul>
@@ -239,6 +274,8 @@ WW_{dmg}\ = Wep_{swing}\ +\ \left(AP\ \times\ \left(\frac{Wep_{speed}}{14}\right
 \end{equation}\]</span>
 <p>Where <span class="math inline">\(Wep_{swing}\)</span> is the damage caused by your weapon swing, and the right term is the damage added to that swing by your AP.</p>
 <p>The formula allows us to notice two differences between the damage scaling of Whirlwind when compared to Bloodthirst: while Whirlwind scales with weapon damage, it scales much more poorly with AP. Another important distinction between the two is that while Bloodthirst is a single target ability, Whirlwind scales off the number of opponents that are hit with it. Knowing that, we can calculate the DPR of both abilities at varying number of targets when wielding different types of weapons. In order to that, we assume the following:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span><span class="kw">kable</span>(scenario1_tbl, <span class="dt">booktabs =</span> <span class="ot">TRUE</span>,
+             <span class="dt">caption =</span> <span class="st">&quot;Variables affecting Whirlwind damage calculations.&quot;</span>)</code></pre></div>
 <table>
 <caption><span id="tab:weapons">Table 4.2: </span>Variables affecting Whirlwind damage calculations.</caption>
 <thead>
@@ -320,6 +357,31 @@ Figure 4.5: Comparison of rage consumed and Execute DPR by different talent poin
 <p><span class="math display">\[\frac{900}{0.45}\ =\ AP\ \]</span></p>
 <p><span class="math display">\[AP\ =\ 2000\]</span></p>
 <p>This means that, if the player has over 2000 AP <strong>and</strong> 30 or more rage, he or she should prioritize Bloodthirst <em>over</em> Execute, as it’ll result in higher DPR.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># bt_dmg &lt;- bt_dmg %&gt;%</span>
+<span class="co">#         mutate(source = &quot;Bloodthirst&quot;) %&gt;%</span>
+<span class="co">#         mutate(ragecost = &quot;30&quot;) %&gt;%</span>
+<span class="co">#         mutate(ability = source)</span>
+<span class="co"># exec_dmg &lt;- tibble(</span>
+<span class="co">#         ragecost = seq(10, 100, by = 1),</span>
+<span class="co">#         damage = execute(ragecost),</span>
+<span class="co">#         dpr = damage/ragecost,</span>
+<span class="co">#         ability = &quot;Execute&quot;</span>
+<span class="co"># )</span>
+<span class="co"># </span>
+<span class="co"># ggplot() +</span>
+<span class="co">#         geom_point(data = bt_dmg, aes(x = Damage, y = dpr, color = ability)) +</span>
+<span class="co">#         geom_point(data = exec_dmg, aes(x = damage, y = dpr, color = ability)) +</span>
+<span class="co">#         gghighlight(damage == 900, label_key = damage, use_direct_label = FALSE) +</span>
+<span class="co">#         scale_x_continuous(breaks = seq(0, 2000, by = 200)) +</span>
+<span class="co">#         scale_colour_manual(values = cbp2,</span>
+<span class="co">#                 name = &quot;Ability&quot;,</span>
+<span class="co">#                 labels = c(&quot;Bloodthirst&quot;, &quot;Execute&quot;)) +</span>
+<span class="co">#         # scale_y_continuous(breaks = seq(40, 55, by = 5)) +</span>
+<span class="co">#         labs(y = &quot;Damage per Rage&quot;,</span>
+<span class="co">#              x = &quot;Damage&quot;,</span>
+<span class="co">#              title = &quot;bla&quot;,</span>
+<span class="co">#              subtitle = &quot;bla&quot;)</span>
+<span class="co">#         </span></code></pre></div>
 </div>
 <div id="execswitch" class="section level3">
 <h3><span class="header-section-number">4.3.2</span> Execute Switch</h3>

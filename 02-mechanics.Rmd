@@ -203,14 +203,15 @@ This is why any weapon skill bonus of over 5, whether given by a racial (orcs wi
 
 ## The Crit Cap{#crit_cap}
 
-Due to the nature of the two-roll system in World of Warcraft combat, attacks past a certain $P(Crit)$ dictate every non-glancing auto attack will result in a critical strike. This threshold is also known as the **crit cap**, and decreasing $P(Miss)$ and $P(Dodge)$ through an increase in Weapon Skill or increasing $P(Hit)$ will increase the player's crit cap. Since we cannot decrease $P(Glance)$, we can calculate the crit cap as:
+Due to the nature of the two-roll system in World of Warcraft combat, attacks past a certain $P(Crit)$ dictate every non-glancing auto attack will result in a critical strike. This threshold is also known as the **crit cap**, and decreasing $P(Miss)$ and $P(Dodge)$ through an increase in Weapon Skill or increasing $P(Hit)$ will increase it. Since we cannot decrease $P(Glance)$, we can calculate the crit cap as:
 
 \begin{equation}
 \small Crit_{cap}\ =\ 100-P\left(Miss\right)-P\left(Dodge\right)-P\left(Block\right)-P\left(Parry\right)-P\left(Glance\right)+Crit_{\sup}
 (\#eq:critcap)
 \end{equation}
 
-Where $Crit_{sup}$ is the innate crit suppresion against a level 63 mob [@magey_atktbl2019]. It is important to note, however, that due to the HS queing mechanic \@ref(hsq) effectively removing the dual wield attack penalty, the crit cap for auto attacks is not something to be worried about at current gear levels.
+Where $Crit_{sup}$ is the innate crit suppresion against a level 63 mob [@magey_atktbl2019]. As the player's gear level increases through phases, so does their $P(Crit)$ - which when taken into account with world buffs makes reaching the crit cap a real possibility, regardless of the interaction it may have with HS queueing \ref(hsq). This is because even when simulating fights with perfect HS queueing/unqueueing a very large proportion of main hand swings are still white, and as such result the relative value of hit increases throughout phases. 
+
 
 ## Flurry{#flurry}
 

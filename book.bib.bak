@@ -78,4 +78,27 @@
   url    = {https://vanilla-wow.fandom.com/wiki/Rage},
 }
 
+@Misc{blizz_2020autoslam,
+  author = {Blizzard},
+  title  = {Autoslam Hotfix},
+  month  = jan,
+  year   = {2020},
+  url    = {https://us.forums.blizzard.com/en/wow/t/wow-classic-hotfixes-updated-jan-7/361448/108},
+}
+
+@Misc{guybrush_2019,
+  author = {Guybrush-Golemagg},
+  title  = {Guybrush's WarriorSim},
+  month  = jul,
+  year   = {2019},
+  url    = {https://guybrushgit.github.io/WarriorSim/},
+}
+
+@Misc{pimpa_2019,
+  author = {Rafael Pimpa},
+  title  = {FurySim},
+  month  = dec,
+  year   = {2019},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}

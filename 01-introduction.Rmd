@@ -6,6 +6,6 @@ This guide aims to help the reader from the ground up: from the foundational mec
 
 ## What is NOT the aim of this guide
 
-DPS simulations will not be covered. There are several reasons for this, but the most important being that there are incredible, well maintained resources currently available for that exact purpose. Notable mentions include Steppenwolf's Classic Warrior Spreadsheet [@steppen2019] and Aurana's Classic Warrior Fury DPS Simulator [@aurana2019].
+DPS simulations will not be covered. There are several reasons for this, but the most important being that there are incredible, well maintained resources currently available for that exact purpose. Notable mentions include Steppenwolf's Classic Warrior Spreadsheet [@steppen2019], Aurana's Classic Warrior Fury DPS Simulator [@aurana2019], Rafael Pimpa's Furysim [@pimpa_2019] and Guybrush's WarriorSim [@guybrush_2019].
 
 In the same vein, questions on how to (specifically) gear will not be covered in this guide. This is because gearing is *highly* contextual - answering questions such as "What is better, Black Dragonscale 3set or Devilsaur Set with Truestrike Shoulders?" is impossible without knowing the rest of your gear and race. Therefore, when this guide makes recommendations, please be aware that exceptions *do exist*, but are rare. By the end, I hope the reader is knowledgeable enough about the base mechanics to critically assess and reason any gearing questions that he or she may have. 

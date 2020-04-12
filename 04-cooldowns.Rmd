@@ -1,28 +1,353 @@
+
+```{r include=FALSE}
+
+library(janitor)
+library(tidyverse)
+library(ggplot2)
+library(ggridges)
+library(gghighlight)
+theme_set(theme_light())
+
+# The palette with grey:
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+# The palette with black:
+cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+ad_dmg <- function(ap, wpn_spd){
+        added_dmg = ap * (wpn_spd/14)
+        return(added_dmg)
+}
+
+bt <- function(ap, crit = 0.3, dodge = 0.06){
+        multiplier = 1+crit-dodge
+        damage = multiplier * (ap * 0.45)
+        return(damage)
+}
+
+# execute <- function(rage, crit = 0.3, dodge = 0.06){
+#         damage = multiplier * (600 + ((rage-10)*15))
+#         return(damage)
+# }
+
+ap_vals <- seq(0, 2500, by = 250)
+
+execute <- function(rage, points = 2, crit = 0.3, dodge = 0.06, multiplier = TRUE){
+        if (rage > 100){rage = 100}
+        if(points == 0){
+                added = rage-15
+        } else if (points == 1){
+                added = rage-13
+        } else if (points == 2){
+                added = rage-10
+        }
+        
+        if(multiplier == TRUE){
+                
+                multiplier = 1+crit-dodge
+                damage = (600 + (added*15)) * multiplier
+                
+        } else if (multiplier == FALSE){
+                
+                damage = (600 + (added*15))
+        }
+        return(damage)
+}
+
+
+ww <- function(wpn_swing_dmg, wpn_spd, ap, crit = 0.3, dodge = 0.06){
+        multiplier = 1+crit-dodge
+        additional = ad_dmg(ap, wpn_spd)
+        total = wpn_swing_dmg + (additional)
+        damage = multiplier * total
+        return(damage)
+}
+
+slam <- function(wpn_swing_dmg, wpn_spd = 3.3, ap, crit = 0.3, dodge = 0.06){
+        additional = (ad_dmg(ap, wpn_spd)) + 87
+        total = wpn_swing_dmg + (additional)
+        multiplier = 1+crit-dodge
+        damage = multiplier * total
+        return(damage)
+}
+
+conversion_values_tbl <- tibble::tribble(
+        ~`Player Level`,    ~`Conversion Value`,
+                   10,  37.4,
+                   20,  72.4,
+                   30, 109.3,
+                   40, 147.9,
+                   50, 188.3,
+                   60, 230.6
+        )
+
+hit_factor_tbl <- tibble::tribble(
+            ~`Weapon`,      ~`Hit Type`,   ~`Hit factor`,
+        "Main Hand",   "Normal Hit",  3.5,
+        "Main Hand", "Critical Hit",    7,
+         "Off Hand",   "Normal Hit", 1.75,
+         "Off Hand", "Critical Hit",  3.5
+        )
+
+ap_thresh <- as.data.frame(seq(0, 3000, 100))
+bt_dmg <- as.data.frame(lapply(ap_thresh, bt))
+bt_dmg <- bind_cols(ap_thresh, bt_dmg)
+bt_dmg <- bt_dmg %>%
+        unnest() %>%
+        transmute(AP = `seq(0, 3000, 100)`,
+                  Damage = `seq.0..3000..100.`) %>%
+        mutate(dpr = Damage/30)
+
+# bt_dmg_exec <- as_tibble(cbind(ap_vals, btdmg)) %>%
+#         rename(damage = btdmg) %>%
+#         mutate(source = "bloodthirst") %>%
+#         mutate(dpr = damage/30)
+btdmg <- sapply(ap_vals, bt)
+btdmg_slam <- as_tibble(cbind(ap_vals, btdmg)) %>%
+        rename(damage = btdmg) %>%
+        mutate(source = "bloodthirst") %>%
+        mutate(dpr = damage/30)
+
+rage_gen <- function(D){
+        rage_gen <- ((D/230.6) * 15)
+        return(rage_gen)
+}
+
+
+```
+
 # Cooldowns{#cds}
+
+Much of DPSing in WoW Classic is about timing your offensive cooldowns. In order to utilize these most efficiently, we need to have a good grasp of two main factors:
+
+1. What the kill time for the boss is.
+2. The highest DPS phase in any given fight.
+
+The most efficient way to utilize cooldowns is to ensure they are up throughout the entire fight, which can be achieved by having the kill time for the boss be equal to or lower than the duration of your cooldowns. While this is can be done for Recklessness, it is much more likely to happen for Death Wish (which lasts twice as long). Failing that, the player must identify what the highest DPS phase of the fight is, which while straightforward for single target fights (Execute phase), is not **always** the case for cleave fights. We'll recall that the DPR (and thus DPS) potential of Whirlwind is very high in cleave situations, especially depending on your weapon. Therefore, it's up to the player - based on his current gear setup - to identify whether utilizing cooldowns for the cleave portion of the fight is better than saving it for the Execute phase if these two do not overlap.
+
+Another important factor is that cooldowns are synergistic. This means that utilizing Death Wish in conjunction with Recklessness results in a much greater DPS increase than staggering both. Moreover, as a rule of thumb, it is better to utilize your cooldowns too early rather than too late - seconds left on your buffs after the boss dies do not add to your damage.
+
 ## Death Wish
-        1. Intro to DW
-        2. Utilization
+
+Death Wish (DW) is a 3 minute cooldown which costs 10 rage, lasts 30 seconds, and increases the player's physical damage by 20% while also granting Fear immunity, but reducing armor and all resistances by 20%. In a pure single target fight, DW should expire *just* as the boss dies for maximum efficiency. Like all cooldowns other cooldowns, it is particularly effective when coupled with others cooldowns.
+
 ## Recklessness
-        1. Intro to Reck
-        2. Utilization
+
+Recklessness (Reck) causes most (all) attacks the player makes to be critical for the next 15 seconds, but all damage taken is increased by 20%. It follows the same general cooldown rules outlined above, with the caveat that this will highly increase the threat done by the applier. As such, it is recommended that the player either coordinates with the main tank in its usage, or be sure that they will not surpass the tank in threat.
+
 ## Trinkets
+### Diamond Flask
+
+Diamond Flask (DF) is a warrior class quest reward which increases your strength by 75 for one minute while also giving the player 9 health every 5 seconds, on a 6 minute cooldown. This is an exceptionally strong cooldown which should be utilized in all fights lasting one minute or less, as the strength buff translates to an AP increase of 150. Since this AP increase is static throughout the duration of the buff, we can simply average it over the fight duration to find its relative AP increase for any given fight length. Knowing this, we can calculate whether we should utilize DF on a fight over other trinkets if we know their equivalent attack power value.
+
 ## Mighty Rage Potion
-        1. Intro to MRP
-        2. Utilization
-        3. Duration or spike?
+
+Mighty Rage Potion (MRP) is a potion on a 2 minute cooldown, which when utilized increases the player's rage by 45 to 75 and their strength by 60 for 20 seconds. This rage increasing effect makes MRP utilization a bit more nuanced than our other cooldowns: while its AP increasing effect would result in increased BT damage, its rage increasing effect would result in increased Execute damage. Therefore, a commonly asked question is: should the player utilize MRP for its AP increase over the duration of the effect, or should he utilize it for the rage spike during Execute phase? Let's compare the following scenarios: 
+
+1. A player with 305 weapon skill, a Chromatically Tempered Sword, 30% $P(Crit)$, and 2000 AP utilizes MRP at $t = 0$, outside of Execute phase.
+2. The same player utilizes MRP immediately after his first Execute when his rage is zero, and the Execute phase lasts for 5 more seconds.
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# Scenario 1 no MRP
+
+sce1_bt <- tibble(
+        ap = 2000,
+        skill = "Bloodthirst",
+        damage = bt(ap = ap),
+        time = c(0, 6, 18)
+)
+
+sce1_mh <- tibble(
+        ap = 2000,
+        skill = "MH Swing",
+        damage = (rnorm(9, mean = 152, sd = 3) + ad_dmg(ap = ap, wpn_spd = 2.4)) * 1.24,
+        time = seq(from = 0, to = 20, by = 2.4)
+)
+
+sce1_ww <- tibble(
+        ap = 2000,
+        skill = "Whirlwind",
+        damage = rnorm(2, mean = ww(wpn_swing_dmg = 152, ap = ap, wpn_spd = 2.4)),
+        time = seq(from = 1.5, to = 20, by = 10)
+)
+
+scenario1 <- bind_rows(sce1_bt, sce1_mh, sce1_ww) %>% 
+        mutate(MRP = "Without MRP")
+
+# scenario1 %>% 
+#         ggplot(aes(x = time, y = damage, colour = skill)) +
+#         geom_point() +
+#         geom_line() +
+#         scale_colour_manual(values = cbp2,
+#                 name = "Damage Source", 
+#                 labels = c("Bloodthirst", "MH Swing", "Whirlwind")) +
+#         labs(x = "Time",
+#              y = "Damage",
+#              title = "Cool title",
+#              subtitle = "Something")
+
+scenario1_tot <- round(scenario1 %>% summarize(sum = sum(damage)))
+
+
+
+ 
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Scenario 1 with MRP
+
+sce1mrp_bt <- tibble(
+        ap = 2120,
+        skill = "Bloodthirst",
+        damage = bt(ap = ap),
+        time = c(0, 6, 18)
+)
+
+sce1mrp_mh <- tibble(
+        ap = 2120,
+        skill = "MH Swing",
+        damage = (rnorm(9, mean = 152, sd = 3) + ad_dmg(ap = ap, wpn_spd = 2.4)) * 1.24,
+        time = seq(from = 0, to = 20, by = 2.4)
+)
+
+sce1mrp_ww <- tibble(
+        ap = 2120,
+        skill = "Whirlwind",
+        damage = rnorm(2, mean = ww(wpn_swing_dmg = 152, ap = ap, wpn_spd = 2.4)),
+        time = seq(from = 1.5, to = 20, by = 10)
+)
+
+scenario1mrp <- bind_rows(sce1mrp_bt, sce1mrp_mh, sce1mrp_ww) %>% 
+        mutate(MRP = "With MRP")
+
+
+# scenario1mrp %>% 
+#         ggplot(aes(x = time, y = damage, colour = skill)) +
+#         geom_point() +
+#         geom_line() +
+#         scale_colour_manual(values = cbp2,
+#                 name = "Damage Source", 
+#                 labels = c("Bloodthirst", "MH Swing", "Whirlwind")) +
+#         labs(x = "Time",
+#              y = "Damage",
+#              title = "Cool title",
+#              subtitle = "Something")
+
+scenario1mrp_tot <- round(scenario1mrp %>% summarize(sum = sum(damage)))
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Plotting
+# 
+# label_names_scenarios <- as_labeller(c
+#                                         (`scenario1` = paste0(scenario1_tot, " total Damage"),
+#                                         `scenario1mrp` = paste0(scenario1mrp_tot, " total Damage")))
+
+sce1_comparison <- bind_rows(scenario1mrp, scenario1)
+
+ggplot(sce1_comparison, aes(x = time, y = damage, colour = skill)) +
+        scale_x_continuous(breaks = seq(0, 20, by = 1.5)) +
+        geom_point() +
+        # geom_line() +
+        facet_wrap(~ MRP, nrow = 2) +
+        scale_colour_manual(values = cbp2,
+                name = "Damage Source", 
+                labels = c("Bloodthirst", "MH Swing", "Whirlwind")) +
+        # scale_y_continuous(breaks = seq(40, 55, by = 5)) +
+        labs(y = "Damage",
+             x = "Time (s)",
+             title = paste0("Utilizing MRP for it's length increases damage by ", (scenario1mrp_tot - scenario1_tot), " on average."),
+             subtitle = paste0("This is equivalent to a ", (scenario1mrp_tot - scenario1_tot)/20, " DPS increase."))
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# Scenario 2 no MRP
+
+
+sce2_mh <- tibble(
+        ap = 2000,
+        skill = "MH Swing",
+        damage = (rnorm(3, mean = 152, sd = 3) + ad_dmg(ap = ap, wpn_spd = 2.4)) * 1.24,
+        time = seq(from = 0, to = 5, by = 2.4),
+        rage = rage_gen(D = damage)
+)
+
+sce2_exe <- tibble(
+        ap = 2000,
+        skill = "Execute",
+        rage = 40,
+        damage = execute(rage = rnorm(4, mean = rage, sd = 3)),
+        time = seq(from = 0, to = 5, by = 1.5)
+        
+)
+
+scenario2 <- bind_rows(sce2_mh, sce2_exe) %>% 
+        mutate(MRP = "Without MRP")
+scenario2_tot <- round(scenario2 %>% summarize(sum = sum(damage)))
+
+
+## Scenario 2 with MRp
+
+sce2_mrp_mh <- tibble(
+        ap = 2120,
+        skill = "MH Swing",
+        damage = (rnorm(3, mean = 152, sd = 3) + ad_dmg(ap = ap, wpn_spd = 2.4)) * 1.24,
+        time = seq(from = 0, to = 5, by = 2.4),
+        rage = rage_gen(D = damage)
+)
+
+sce2_mrp_exe <- tibble(
+        ap = 2120,
+        skill = "Execute",
+        rage = c(40, 100, 40, 40),
+        damage = execute(rage = rnorm(4, mean = rage, sd = 3)),
+        time = seq(from = 0, to = 5, by = 1.5)
+        
+)
+
+scenario2_mrp <- bind_rows(sce2_mrp_mh, sce2_mrp_exe) %>% 
+        mutate(MRP = "With MRP")
+scenario2_mrp_tot <- round(scenario2_mrp %>% summarize(sum = sum(damage)))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+sce2_comparison <- bind_rows(scenario2_mrp, scenario2)
+
+ggplot(sce2_comparison, aes(x = time, y = damage, colour = skill)) +
+        scale_x_continuous(breaks = seq(0, 20, by = 1.5)) +
+        geom_point() +
+        # geom_line() +
+        facet_wrap(~ MRP, nrow = 2) +
+        scale_colour_manual(values = cbp2,
+                name = "Damage Source", 
+                labels = c("Execute", "MH Swing")) +
+        # scale_y_continuous(breaks = seq(40, 55, by = 5)) +
+        labs(y = "Damage",
+             x = "Time (s)",
+             title = paste0("Utilizing MRP for its rage spike increase damage by ", (scenario2_mrp_tot - scenario2_tot), " on average."),
+             subtitle = paste0("This is equivalent to a ", (scenario2_mrp_tot - scenario2_tot)/20, " DPS increase."))
+```
+
+As we can see, utilizing MRP to increase the damage of a single Execute will result in higher damage on average. It is important to note, however, that this method is subject to a lot more variance: missing one or more Executes will result in a much bigger DPS loss than if the player had utilized MRP for its length. Therefore, this is a situation where the player has to weigh risk versus reward. Moreover, if we extrapolate these results, we can clearly see that utilizing MRP for rage *while* getting the full length benefit of it's AP increase is the most optimal method of utilization.
+
 ## Bloodrage
-        1. Intro to Bloodrage
-        2. Utilization
+
+Bloodrage is an ability that instantly generates 10 rage, and another 10 over 10 seconds. It has a one minute cooldown and puts the player in combat upon activation. There are a few main uses for Bloodrage:
+
+1. Activating Battle Shout before combat starts if not already buffed by it.
+2. Mitigating unlucky dodge streaks that might interfere with BT usage.
+3. As a "mini MRP" to increase Execute damage.
+4. If out of rage and knocked back, to get back in rage with Intercept.
+
+This ability gives free rage, and thus should be utilized multiple times during fights which accomodate its usage.
+
 ## Berserker Rage
-        1. Intro
-        2. Utilization
-## Racials
-### Blood Fury
-        1. Intro
-        2. Formula
-        3. Scaling (AP/Str)
-        4. Utilization
-                Calculate whether it's better to use BF with 2 Crusader up vs Using it at Exec phase
-### Berserking
-        1. Intro
-        2. Utilization
+
+Berserker Rage is an instant ability on a 30 second cooldown which causes the player to become immune to Fear and Incapacitate effects, while also generating extra rage when taking damage. It is important to note that since it lasts 10 seconds, activating the spell pre-emptively during "empty" GCDs will often enable the player to circumvent every Fear on a boss fight (such as Nefarian) depending on the timer, whereas activating it *after* being feared would cause the player to sometimes lose precious seconds being unable to attack. Many fights also contain predictable raid-wide damage, which are prime opportunities for the activation of Berserker Rage and thus increased rage generation.
