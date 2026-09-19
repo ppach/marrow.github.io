@@ -1,1 +1,1 @@
-The guide can be read at https://bookdown.org/marrowwar/marrow_compendium/
+The guide can be read at https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/

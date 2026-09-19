@@ -35,7 +35,7 @@ bt <- function(ap, crit = 0.3, dodge = 0.06){
 ap_vals <- seq(0, 2500, by = 250)
 
 execute <- function(rage, points = 2, crit = 0.3, dodge = 0.06, multiplier = TRUE){
-        if (rage > 100){rage = 100}
+        rage = pmin(rage, 100)
         if(points == 0){
                 added = rage-15
         } else if (points == 1){

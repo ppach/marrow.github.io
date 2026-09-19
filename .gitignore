@@ -10,3 +10,5 @@ intro.Rmd
 *.txt
 .Rpro
 .Rproj.user
+
+rsconnect/
