@@ -1,0 +1,13 @@
+---
+title: "Marrow's Eternal Compendium of Dragonslaying"
+author: "Marrow"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+link-citations: yes
+description: "A Warrior guide for World of Warcraft: Forever."
+---
+
+# Preamble
+
+This is a guide on how to play Warrior in World of Warcraft: Forever

@@ -1,0 +1,3 @@
+book_filename: "marrow_compendium"
+rmd_files: ["index.Rmd", "01-introduction.Rmd", "02-mechanics.Rmd", "03-abilities_rotation.Rmd", "04-cooldowns.Rmd", "05-consumables.Rmd", "06-parses.Rmd", "09-references.Rmd"]
+output_dir: "../docs"

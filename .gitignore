@@ -12,3 +12,15 @@ intro.Rmd
 .Rproj.user
 
 rsconnect/
+
+# Allow the book config files and entry points that the patterns above would otherwise ignore
+!classic/_bookdown.yml
+!classic/index.Rmd
+!eternal/_bookdown.yml
+!eternal/_output.yml
+!eternal/index.Rmd
+
+# Eternal build output
+eternal/_book/
+eternal/marrow_eternal_compendium.Rmd
+eternal/*_files/

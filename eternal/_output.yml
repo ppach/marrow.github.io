@@ -1,0 +1,5 @@
+bookdown::gitbook:
+  config:
+    toc:
+      before: |
+        <li><a href="./">Marrow's Eternal Compendium of Dragonslaying</a></li>

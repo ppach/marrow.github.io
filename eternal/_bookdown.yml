@@ -1,0 +1,3 @@
+book_filename: "marrow_eternal_compendium"
+rmd_files: ["index.Rmd"]
+output_dir: "_book"
