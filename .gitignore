@@ -26,3 +26,7 @@ eternal/_book/
 eternal/marrow_eternal_compendium.Rmd
 eternal/*_files/
 .Rhistory
+!eternal/data/logs/*.txt
+eternal/data/__pycache__/
+!eternal/eternal.Rproj
+eternal/data/logs/incoming/

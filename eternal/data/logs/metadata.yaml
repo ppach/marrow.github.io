@@ -1,0 +1,68 @@
+# Metadata as posted with each log in https://github.com/magey/forever-warrior/discussions
+# (format follows discussion #7). Weapon order is main hand, then off hand.
+# Level is not in the posts; it is read from the log itself.
+
+- file: siax_uw_dw_092326.txt
+  source: https://github.com/magey/forever-warrior/discussions/6
+  attachment: https://github.com/user-attachments/files/32576055/WoWCombatLog-092326_104826.txt
+  date_collected: "2026-09-23"
+  character_name: Siax
+  player_guid: Player-4613-0060FCEF
+  beta_build: "1.60.1.69977"
+  setup: dual_wield
+  equipped_weapons:
+    - name: Tail Spike
+      slot: main_hand
+      type: dagger
+      speed: 1.8
+      weapon_skill: 99
+    - name: Poniard
+      slot: off_hand
+      type: dagger
+      speed: 1.3
+      weapon_skill: 99
+  character_sheet:
+    hit_chance_percent: 14.1
+    crit_chance_percent: 0   # as posted ("14.1 / 0"); the log shows crits, so likely a typo
+  notes: Weapon skill posted as "Dagger 99/100".
+
+- file: ryqenz_zomdaya_uw_dw_092326.txt
+  source: https://github.com/magey/forever-warrior/discussions/8
+  attachment: https://github.com/user-attachments/files/32577385/WoWCombatLog-092326_200524.txt
+  date_collected: "2026-09-23"
+  character_name: Zomd Aya
+  player_guid: Player-4620-0098894B
+  beta_build: "1.60.1.69977"
+  setup: dual_wield
+  equipped_weapons:
+    - name: Vileblood Scimitar
+      slot: main_hand
+      type: sword   # scimitar; subtype not posted
+      speed: 2.6
+      weapon_skill: 100
+    - name: Tail Spike
+      slot: off_hand
+      type: dagger
+      speed: 1.8
+      weapon_skill: 100
+  character_sheet:
+    hit_chance_percent: 0
+    crit_chance_percent: 12.3
+
+- file: ryqenz_zomdaya_uw_2h_092326.txt
+  source: https://github.com/magey/forever-warrior/discussions/9
+  attachment: https://github.com/user-attachments/files/32577419/WoWCombatLog-092326_190414.txt
+  date_collected: "2026-09-23"
+  character_name: Zomd Aya
+  player_guid: Player-4620-0098894B
+  beta_build: "1.60.1.69977"
+  setup: two_hand
+  equipped_weapons:
+    - name: Battle Axe
+      slot: main_hand
+      type: two_hand_axe
+      speed: 3.8
+      weapon_skill: 100
+  character_sheet:
+    hit_chance_percent: 0
+    crit_chance_percent: 12.3

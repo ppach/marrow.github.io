@@ -1,0 +1,1566 @@
+file,character,setup,t,level,damage,crit,glancing,ap,gain,capped
+siax_uw_dw_092326.txt,Siax,dual_wield,38948.889,15,13,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38949.24,15,44,False,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38951.044,15,94,True,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38952.114,15,48,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38952.815,15,30,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38953.916,15,48,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38954.116,15,30,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38966.732,15,43,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38966.965,15,13,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38968.167,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38968.584,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38969.568,15,13,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38971.371,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38972.668,15,12,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38973.969,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38981.241,15,50,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38981.374,15,27,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38982.709,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38984.06,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38985.362,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38986.296,15,42,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38986.663,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38987.964,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,38990.55,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39007.322,15,50,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39007.473,15,27,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39008.758,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39010.927,15,51,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39011.378,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39011.944,15,45,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39012.696,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39015.298,15,31,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39024.351,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39025.168,15,45,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39025.669,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39026.97,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39026.971,15,92,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39028.237,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39029.505,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39030.873,15,13,False,False,483,142,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39032.157,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39033.394,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39065.098,15,50,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39068.718,15,44,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39069.235,15,28,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39070.304,15,50,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39070.521,15,31,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39071.771,15,26,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39073.973,15,42,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39088.188,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39088.522,15,51,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39089.49,15,26,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39090.343,15,44,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39090.742,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39092.083,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39093.352,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39095.754,15,45,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39096.005,15,30,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39113.017,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39114.636,15,50,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39114.753,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39116.137,15,28,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39117.439,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39118.658,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39120.041,15,31,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39120.042,15,45,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39121.325,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39128.281,15,86,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39129.282,15,25,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39131.239,15,48,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39133.0,15,41,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39134.472,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39135.824,15,28,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39136.675,15,52,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39187.104,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39188.485,15,28,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39189.869,15,27,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39190.637,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39192.491,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39193.724,15,13,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39195.042,15,29,True,False,483,143,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39204.478,15,96,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39204.728,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39207.247,15,31,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39208.6,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39211.251,15,28,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39212.236,15,103,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39212.519,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39213.837,15,12,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39253.305,15,42,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39254.707,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39256.058,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39256.876,15,45,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39257.359,15,27,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39258.661,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39260.48,15,90,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39261.28,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39262.498,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39268.106,15,100,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39269.607,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39270.847,15,12,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39272.198,15,14,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39273.467,15,13,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39274.801,15,14,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39275.318,15,78,True,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39283.046,15,13,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39283.297,15,50,False,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39284.331,15,13,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39285.634,15,12,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39288.788,15,45,False,False,460,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39290.606,15,41,False,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39290.872,15,13,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39294.239,15,40,False,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39296.004,15,49,False,False,460,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39298.623,15,12,False,False,460,142,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39305.68,15,78,True,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39305.83,15,11,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39307.098,15,12,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39308.432,15,15,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39311.036,15,13,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39311.037,15,39,False,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39312.32,15,13,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39320.174,15,11,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39321.492,15,14,False,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39322.727,15,26,True,False,460,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39323.678,15,41,False,False,460,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39324.111,15,12,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39325.431,15,12,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39325.432,15,43,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39326.716,15,27,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39327.3,15,47,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39328.368,15,42,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39329.286,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39330.592,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39331.942,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39336.492,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39337.743,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39338.661,15,41,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39339.078,15,31,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39340.347,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39340.449,15,89,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39341.715,15,13,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39344.535,15,46,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39345.552,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39356.0,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39357.286,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39358.571,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39360.773,15,98,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39361.208,15,13,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39362.493,15,29,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39381.905,15,103,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39382.025,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39383.374,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39383.774,15,41,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39384.658,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39385.592,15,105,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39386.026,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39387.365,15,51,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39388.585,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39389.102,15,48,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39398.034,15,17,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39399.403,15,17,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39400.688,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39402.006,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39410.787,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39412.105,15,17,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39412.39,15,91,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39413.356,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39414.674,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39416.009,15,32,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39420.193,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39420.359,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39421.561,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39422.945,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39423.765,15,47,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39425.565,15,87,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39426.816,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39440.932,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39442.3,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39442.667,15,86,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39443.552,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39444.369,15,54,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39446.237,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39446.238,15,52,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39447.455,15,13,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39448.056,15,46,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39466.399,15,84,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39466.916,15,30,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39468.217,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39468.218,15,85,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39470.035,15,53,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39470.803,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39471.787,15,49,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39476.095,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39477.446,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39477.731,15,44,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39480.016,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39480.116,15,42,False,False,483,7,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39481.35,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39481.917,15,50,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39482.584,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39485.507,15,47,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39548.248,15,45,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39548.414,15,31,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39549.716,15,32,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39550.049,15,46,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39551.868,15,54,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39552.269,15,29,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39553.636,15,32,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39553.637,15,48,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39756.608,15,105,True,False,460,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39756.808,15,14,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39758.109,15,15,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39758.46,15,51,False,False,460,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39759.327,15,15,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39760.195,15,102,True,False,460,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39760.696,15,28,True,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39782.738,15,51,False,False,460,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39782.94,15,14,False,False,460,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39800.921,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39801.939,15,29,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39803.257,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39803.891,15,52,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39804.558,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39805.693,15,103,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39805.843,15,17,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39807.395,15,45,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39812.066,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39818.303,15,17,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39819.604,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39822.741,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39823.575,15,47,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39824.042,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39826.828,15,102,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39828.671,15,43,False,False,483,4,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39829.171,15,17,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39829.838,15,50,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39831.606,15,51,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39831.84,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39833.425,15,47,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39834.442,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39835.744,15,17,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39838.794,15,52,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39839.595,15,17,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39840.642,15,53,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39848.09,15,14,False,False,483,14,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39849.308,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39849.693,15,52,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39850.642,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39851.543,15,49,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39852.01,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39853.295,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39854.546,15,30,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39855.113,15,98,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39872.785,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39873.537,15,44,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39874.019,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39875.338,15,45,False,False,483,56,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39876.688,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39878.48,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39880.531,15,106,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39881.015,15,30,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39885.103,15,85,True,False,483,17,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39885.22,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39886.504,15,31,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39886.921,15,47,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39887.788,15,28,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39888.723,15,108,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39889.157,15,28,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39890.491,15,91,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39894.467,15,52,False,False,483,11,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39895.417,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39896.185,15,46,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39899.004,15,45,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39899.221,15,30,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39900.555,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39900.839,15,91,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39902.693,15,94,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39903.628,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39904.495,15,45,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39904.962,15,31,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39907.498,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39908.066,15,43,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39908.816,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39909.917,15,54,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39933.788,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39934.139,15,49,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39936.106,15,15,False,False,483,23,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39936.407,15,45,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39937.372,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39938.739,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39939.372,15,43,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39939.972,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39942.62,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39943.921,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39944.789,15,50,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39945.206,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39957.424,15,104,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39958.425,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39959.293,15,44,False,False,483,46,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39959.692,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39960.977,15,30,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39961.094,15,51,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39964.948,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39965.198,15,51,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39971.914,15,99,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39972.281,15,29,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39973.549,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,39973.668,15,55,False,False,483,15,True
+siax_uw_dw_092326.txt,Siax,dual_wield,39977.036,15,99,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40006.696,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40007.013,15,53,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40009.501,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40011.169,15,45,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40012.12,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40012.254,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40013.438,15,17,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40013.972,15,53,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40014.673,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40015.858,15,48,False,False,483,52,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40021.948,15,17,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40022.648,15,44,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40023.283,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40024.466,15,100,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40025.902,15,32,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40068.499,15,45,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40070.851,15,28,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40074.688,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40075.772,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40075.973,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40077.307,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40077.541,15,52,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40078.676,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40079.426,15,55,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40085.916,15,44,False,False,483,28,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40086.016,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40087.369,15,30,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40087.67,15,104,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40088.588,15,33,True,False,483,3,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40089.521,15,51,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40089.905,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40091.256,15,53,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40097.169,15,47,False,False,483,29,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40098.136,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40099.036,15,111,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40099.454,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40100.822,15,53,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40102.024,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40110.452,15,52,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40111.086,15,15,False,False,483,11,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40112.286,15,54,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40112.404,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40113.671,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40114.121,15,43,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40115.036,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40115.892,15,53,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40116.343,15,29,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40117.685,15,32,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40120.614,15,48,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40122.516,15,48,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40125.815,15,50,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40125.917,15,17,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40127.251,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40128.118,15,51,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40128.554,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40131.779,15,49,False,False,483,8,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40132.332,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40133.542,15,52,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40133.642,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40135.01,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40135.344,15,50,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40136.23,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40137.118,15,54,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40138.929,15,87,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40139.363,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40140.748,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40142.033,15,14,False,False,483,7,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40142.616,15,43,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40143.651,15,48,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40144.618,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40147.775,15,98,True,False,483,22,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40147.891,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40149.595,15,43,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40151.866,15,102,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40151.97,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40153.659,15,95,True,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40155.49,15,53,False,False,483,53,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40156.04,15,28,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40157.232,15,47,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40159.1,15,53,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40173.149,15,43,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40173.365,15,32,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40174.6,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40175.033,15,101,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40175.901,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40177.286,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40178.504,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40178.637,15,53,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40180.357,15,50,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40182.176,15,44,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40198.238,15,17,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40199.54,15,33,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40200.857,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40202.175,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40203.426,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40203.526,15,52,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40208.698,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40208.915,15,54,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40209.916,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40211.217,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40212.503,15,99,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40233.846,15,14,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40237.425,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40239.744,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40241.064,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40241.381,15,109,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40242.299,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40242.935,15,93,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40244.408,15,16,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40247.955,15,28,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40249.072,15,98,True,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40249.306,15,31,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40250.557,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40251.892,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40270.134,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40270.532,15,44,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40271.432,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40272.367,15,43,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40272.784,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40274.118,15,17,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40274.12,15,43,False,False,483,12,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40275.355,15,32,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40275.94,15,43,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40277.648,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40277.764,15,47,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40281.106,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40283.108,15,44,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40284.943,15,34,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40286.278,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40286.729,15,43,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40287.596,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40288.614,15,45,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40292.456,15,53,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40292.573,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40293.908,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40294.225,15,49,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40297.816,15,17,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40297.816,15,54,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40299.135,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40299.591,15,94,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40304.353,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40305.436,15,47,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40305.652,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40306.923,15,30,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40307.307,15,48,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40309.147,15,48,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40310.832,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40310.966,15,46,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40312.717,15,91,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40326.671,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40327.022,15,108,True,False,483,50,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40328.962,15,28,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40332.061,15,30,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40333.944,15,29,True,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40333.945,15,49,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40335.179,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40336.256,15,52,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40336.475,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40337.791,15,14,False,False,483,16,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40338.124,15,107,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40339.092,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40339.909,15,97,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40341.753,15,47,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40343.641,15,48,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40345.584,15,17,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40347.931,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40349.216,15,31,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40349.55,15,46,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40371.745,15,53,False,False,483,62,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40371.845,15,15,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40373.18,15,29,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40374.498,15,30,True,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40375.316,15,105,True,False,483,33,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40377.134,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40377.134,15,49,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40378.362,15,17,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40389.606,15,17,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40390.944,15,14,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40391.311,15,52,False,False,483,63,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40392.213,15,15,False,False,483,23,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40393.031,15,90,True,False,483,15,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40393.496,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40396.683,15,106,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40404.676,15,43,False,False,483,3,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40406.116,15,34,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40406.483,15,54,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40407.434,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40408.285,15,102,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40410.037,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40410.037,15,46,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40419.601,15,51,False,False,483,9,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40419.805,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40421.123,15,28,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40421.478,15,55,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40422.347,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40423.287,15,46,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40423.688,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40425.023,15,32,True,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40426.324,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40427.659,15,14,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40428.626,15,52,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40434.189,15,55,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40434.405,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40436.074,15,49,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40436.958,15,15,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40438.294,15,16,False,False,483,22,False
+siax_uw_dw_092326.txt,Siax,dual_wield,40439.079,15,46,False,False,483,18,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40440.831,15,54,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40440.93,15,16,False,False,483,0,True
+siax_uw_dw_092326.txt,Siax,dual_wield,40442.232,15,31,True,False,483,0,True
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72329.5792,16,58,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72329.8042,16,37,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72332.2252,16,26,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72333.4292,16,45,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72334.7262,16,32,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72335.0442,16,45,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72337.2632,16,28,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72339.9822,16,27,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72353.2302,16,25,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72356.4852,16,89,True,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72365.4682,16,38,False,False,435,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72365.6732,16,33,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72368.2682,16,58,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72369.0752,16,44,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72370.7832,16,36,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72375.8742,16,40,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72376.7492,16,32,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72377.7012,16,36,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72379.1972,16,30,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72381.9702,16,58,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72383.1152,16,70,True,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72384.9242,16,90,True,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72387.6232,16,28,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72388.9652,16,45,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72390.2192,16,55,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72396.3542,16,27,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72396.8772,16,36,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72398.9512,16,33,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72400.5602,16,73,True,False,435,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72401.6162,16,32,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72414.3522,16,39,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72415.0972,16,58,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72416.2252,16,36,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72420.2312,16,54,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72421.5812,16,40,False,False,435,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72422.9092,16,52,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72423.4162,16,38,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72425.5702,16,28,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72426.9172,16,42,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72435.2822,16,29,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72436.7052,16,33,False,True,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72437.8592,16,29,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72454.6992,16,39,False,False,435,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72456.1152,16,63,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72460.8042,16,39,False,False,435,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72462.0702,16,26,False,False,435,125,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72462.5532,16,36,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72464.4092,16,37,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72464.6362,16,33,False,False,435,44,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72475.8812,16,39,False,False,435,102,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72476.9562,16,64,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72484.6902,16,26,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72488.5642,16,35,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72492.0292,16,39,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72494.0062,16,35,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72494.8322,16,31,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72497.3542,16,32,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72502.4942,16,62,True,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72503.1602,16,39,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72504.8662,16,42,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72506.8142,16,76,True,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72507.8372,16,26,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72510.4912,16,25,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72512.7092,16,34,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72514.5082,16,41,False,False,435,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72516.4092,16,28,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72516.8462,16,45,False,False,435,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72529.9402,16,41,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72530.8632,16,36,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72531.8102,16,44,False,False,435,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72533.4892,16,33,False,False,435,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72730.0282,16,37,False,False,402,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72730.4982,16,51,True,False,402,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72733.0572,16,32,False,False,402,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72747.7852,16,37,False,False,402,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72749.0552,16,29,False,False,402,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72749.6452,16,34,False,False,402,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72763.8332,16,85,True,False,402,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72764.0512,16,48,True,False,402,125,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72765.5522,16,41,False,False,402,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72766.5482,16,25,False,False,402,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72769.2502,16,80,True,False,402,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72776.2602,16,12,False,False,402,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72778.8612,16,14,False,False,425,44,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72780.8682,16,16,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72781.3462,16,12,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72784.4212,16,18,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72811.2072,16,37,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72811.4952,16,31,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72813.0782,16,35,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72815.5032,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72817.5122,16,39,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72820.7282,16,26,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72824.4122,16,81,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72825.7202,16,60,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72826.2752,16,41,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72828.0302,16,34,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72828.4342,16,33,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72833.6262,16,28,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72835.4322,16,38,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72836.1762,16,32,False,False,425,44,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72842.5252,16,41,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72844.1402,16,30,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72844.3692,16,43,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72847.9972,16,34,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72848.6092,16,31,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72851.2342,16,33,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72862.1692,16,46,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72862.3872,16,29,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72865.8662,16,35,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72867.6172,16,26,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72869.4692,16,38,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72872.9152,16,31,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72882.6162,16,37,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72884.5992,16,46,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72886.1882,16,57,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72888.5992,16,35,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72891.2222,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72891.7142,16,78,True,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72893.9142,16,62,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72895.2482,16,43,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72896.4172,16,30,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72897.1212,16,86,True,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72899.7192,16,31,False,False,425,165,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72900.6752,16,38,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72902.4172,16,64,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72902.6302,16,83,True,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72922.6612,16,46,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72923.1122,16,28,False,True,425,125,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72924.5642,16,35,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72925.7772,16,31,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72928.2802,16,68,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72930.9302,16,28,False,False,425,165,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72933.4952,16,57,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72933.7012,16,44,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72935.3822,16,42,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72938.7572,16,27,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72940.7802,16,41,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72946.7482,16,38,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72947.5962,16,29,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72959.3372,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72961.8062,16,34,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72962.0422,16,26,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72963.5762,16,44,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72964.6452,16,25,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72975.5992,16,28,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72978.1672,16,31,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72979.8652,16,43,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72980.6392,16,68,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72987.1722,16,43,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72988.0062,16,29,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72989.0292,16,40,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72990.9012,16,45,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72995.8282,16,54,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,72996.2482,16,39,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73000.9822,16,26,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73004.9772,16,78,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73008.4322,16,43,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73010.8522,16,35,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73012.3322,16,29,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73014.8742,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73016.2912,16,43,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73017.4332,16,33,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73018.0842,16,71,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73019.9252,16,71,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73020.1312,16,58,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73022.6452,16,30,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73023.3932,16,40,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73025.3462,16,28,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73028.8182,16,38,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73030.3762,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73030.7422,16,44,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73032.4972,16,40,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73033.0032,16,30,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73035.6692,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73038.3392,16,30,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73039.8382,16,70,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73041.0122,16,31,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73078.8152,16,62,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73079.9262,16,68,True,False,425,142,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73081.4702,16,24,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73081.6712,16,36,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73083.3592,16,37,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73083.9382,16,25,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73091.5572,16,41,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73095.2962,16,29,False,False,425,165,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73096.8402,16,39,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73097.8502,16,26,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73098.6582,16,36,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73100.3802,16,38,False,False,402,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73100.4722,16,31,False,False,402,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73102.2852,16,38,False,False,402,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73103.1612,16,32,False,False,402,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73107.8762,16,27,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73108.3112,16,41,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73113.7692,16,71,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73124.6212,16,60,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73127.2642,16,27,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73131.4952,16,37,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73133.3962,16,40,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73135.1702,16,52,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73135.1712,16,40,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73140.3282,16,33,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73144.1432,16,84,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73145.4842,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73145.9302,16,89,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73147.7432,16,86,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73148.1882,16,70,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73149.5952,16,41,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73154.9562,16,41,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73156.8662,16,40,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73157.0862,16,29,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73164.9612,16,34,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73170.6352,16,26,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73170.6362,16,41,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73172.6202,16,84,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73174.2642,16,83,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73184.3792,16,26,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73184.8372,16,38,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73186.6592,16,42,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73186.8712,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73188.4262,16,37,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73191.9032,16,43,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73192.1052,16,25,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73193.7402,16,43,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73197.8272,16,30,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73200.3252,16,23,False,True,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73203.0382,16,28,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73225.8362,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73229.3022,16,34,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73229.8392,16,24,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73233.2112,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73234.1272,16,45,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73235.7212,16,33,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73235.9482,16,78,True,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73238.3962,16,28,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73239.4372,16,72,True,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73243.1342,16,44,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73251.4472,16,39,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73252.5422,16,56,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73254.9592,16,88,True,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73254.9602,16,60,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73256.6912,16,37,False,True,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73257.6842,16,33,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73262.4182,16,37,False,False,425,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73264.1092,16,46,False,False,425,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73264.8552,16,58,True,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73267.6072,16,32,False,False,425,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73322.3272,16,41,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73322.7972,16,62,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73329.0572,16,84,True,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73330.2892,16,32,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73330.9802,16,40,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73332.7442,16,34,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73332.7452,16,29,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73334.4132,16,44,False,False,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73335.5012,16,33,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73344.4562,16,41,False,False,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73344.6752,16,51,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73360.2882,16,31,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73369.9842,16,28,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73379.4932,16,44,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73379.9172,16,30,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73381.2502,16,39,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73395.2482,16,44,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73428.7782,16,39,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73431.5912,16,31,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73432.4432,16,43,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73434.2092,16,66,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73455.0962,16,35,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73462.5342,16,45,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73463.8152,16,29,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73466.1032,16,45,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73466.3452,16,28,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73467.9922,16,36,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73469.1582,16,53,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73471.1262,16,38,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73472.0772,16,35,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73477.3122,16,30,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73478.3872,16,73,True,False,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73479.9212,16,55,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73480.1282,16,41,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73482.1172,16,48,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73482.5292,16,29,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73500.1772,16,39,False,True,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73500.4652,16,28,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73502.0422,16,40,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73503.9062,16,46,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73505.6802,16,31,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73508.2352,16,26,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73510.9072,16,63,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73511.1442,16,89,True,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73512.9512,16,39,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73517.1222,16,25,False,True,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73517.9792,16,40,False,False,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73520.5262,16,44,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73527.9562,16,93,True,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73531.9762,16,42,False,True,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73533.4372,16,53,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73539.7282,16,85,True,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73541.5972,16,85,True,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73542.3062,16,33,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73545.9072,16,36,False,False,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73546.6182,16,28,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73549.2672,16,30,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73551.9352,16,26,False,True,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73554.4362,16,59,True,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73557.0842,16,30,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73557.5012,16,43,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73559.2512,16,37,False,True,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73559.6802,16,29,False,True,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73565.3992,16,40,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73567.5602,16,28,False,False,427,44,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73569.3082,16,41,False,False,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73570.2552,16,33,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73576.5422,16,38,False,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73578.0332,16,33,False,False,427,45,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73580.2332,16,88,True,False,427,62,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73607.0562,16,69,True,False,427,63,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73621.6572,16,66,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73622.5372,16,18,False,False,437,111,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73624.1392,16,59,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73624.2492,16,16,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73626.1422,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73628.0452,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73629.5382,16,54,False,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73629.7922,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73632.8172,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73634.7222,16,58,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73651.2742,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73651.4812,16,55,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73653.5502,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73653.9352,16,62,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73655.4452,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73656.5912,16,66,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73657.2702,16,37,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73658.9732,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73660.8022,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73676.1802,16,17,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73677.8822,16,61,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73679.6692,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73681.5952,16,36,True,False,437,152,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73683.3012,16,20,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73685.1902,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73685.6942,16,60,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73686.8522,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73688.8082,16,35,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73690.5782,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73704.3192,16,43,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73704.3202,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73708.3002,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73709.6472,16,60,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73715.2702,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73717.2082,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73718.8342,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73719.8952,16,138,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73720.7622,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73722.6422,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73724.3142,16,24,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73730.6562,16,58,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73730.6572,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73732.4932,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73734.3322,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73739.6792,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73741.4512,16,44,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73743.3052,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73749.4242,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73765.2472,16,36,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73765.7022,16,63,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73767.1572,16,20,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73773.3252,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73780.4282,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73782.1362,16,44,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73783.0172,16,64,False,False,437,170,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73785.7212,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73789.1502,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73807.6142,16,59,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73809.4432,16,17,False,False,437,111,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73810.1892,16,55,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73811.3712,16,38,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73848.2902,16,19,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73848.6012,16,59,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73850.1382,16,20,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73851.6612,16,108,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73852.5552,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73855.0792,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73855.3872,16,56,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73857.7402,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73860.2242,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73862.1952,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73864.0002,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73864.7332,16,129,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73868.8312,16,40,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73871.4142,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73871.6442,16,65,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73876.7022,16,22,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73881.2782,16,65,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73882.6192,16,21,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73884.4212,16,42,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73886.5182,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73893.0982,16,20,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73894.6472,16,59,False,False,437,170,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73895.4142,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73897.4162,16,123,True,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73899.1882,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73899.8962,16,59,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73905.1672,16,56,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73906.0732,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73908.1132,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73909.9302,16,40,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73910.3372,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73911.6372,16,17,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73913.5462,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73926.2222,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73926.2242,16,61,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73927.8702,16,19,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73929.6482,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73929.8712,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73931.6452,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73933.4132,16,22,False,False,437,151,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73940.7682,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73941.3552,16,119,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73942.5602,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73944.5142,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73946.1812,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73946.6182,16,57,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73948.0002,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73959.0092,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73963.2322,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73964.9332,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73966.7942,16,21,False,False,437,28,True
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73969.2332,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73969.2332,16,115,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73988.4512,16,107,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73990.1272,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73991.0022,16,111,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73991.8682,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73997.1792,16,59,False,False,437,170,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73997.8842,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,73999.5982,16,49,False,False,437,81,True
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74000.3192,16,21,False,True,437,0,True
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74002.0172,16,19,False,True,437,0,True
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74019.8822,16,59,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74020.3812,16,17,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74022.1622,16,38,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74025.8342,16,34,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74027.6462,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74029.4652,16,32,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74033.8652,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74035.7102,16,19,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74039.4332,16,39,True,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74041.2112,16,22,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74043.0682,16,40,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74044.7502,16,21,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74047.4912,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74049.1912,16,39,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74049.6112,16,73,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74051.0252,16,39,True,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74052.3542,16,72,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74065.2822,16,44,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74068.7922,16,16,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74070.0572,16,62,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74070.8022,16,34,True,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74072.7842,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74074.2102,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74084.0182,16,20,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74085.7282,16,41,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74087.6602,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74089.3312,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74091.0972,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74091.8852,16,62,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74092.8972,16,21,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74094.7162,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74096.6242,16,20,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74097.0882,16,52,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74098.4172,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74099.6292,16,56,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74100.1092,16,18,False,True,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74102.1042,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74103.7852,16,20,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74105.7182,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74121.1552,16,51,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74122.0382,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74123.6052,16,106,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74123.7122,16,16,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74127.3182,16,16,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74129.3512,16,52,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74138.2162,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74139.8922,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74140.3082,16,70,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74141.8082,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74142.8222,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74143.4512,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74145.2652,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74177.0752,16,24,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74182.3102,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74184.1882,16,23,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74185.9462,16,47,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74188.3242,16,56,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74190.2662,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74203.8102,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74204.0452,16,55,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74205.6362,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74207.4662,16,21,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74209.2302,16,61,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74209.2302,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74216.5822,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74218.3352,16,19,False,True,437,151,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74220.1582,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74221.8832,16,20,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74223.1052,16,66,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74223.7742,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74225.4282,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74225.8182,16,57,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74227.4092,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74229.1082,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74231.0132,16,38,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74232.7002,16,23,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74234.4792,16,21,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74236.1802,16,131,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74236.4002,16,24,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74238.0632,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74238.9242,16,55,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74280.9782,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74282.6852,16,70,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74282.6872,16,41,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74288.3062,16,134,True,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74290.0822,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74291.7692,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74293.5572,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74296.2042,16,55,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74297.1592,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74298.8622,16,67,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74301.0522,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74301.5172,16,121,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74302.9552,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74303.9732,16,61,False,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74304.7082,16,17,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74306.6302,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74308.5972,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74321.8652,16,37,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74323.6712,16,16,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74336.9532,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74343.6772,16,54,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74344.8962,16,37,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74346.1902,16,59,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74346.7262,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74348.4972,16,17,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74348.7052,16,65,False,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74350.4552,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74352.2852,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74353.8972,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74359.1452,16,127,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74361.1572,16,18,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74361.8582,16,117,True,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74364.7542,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74366.6832,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74368.4982,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74369.6602,16,57,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74370.1872,16,21,False,False,437,44,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74372.1492,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74372.1512,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74373.7852,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74375.6542,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74377.3702,16,52,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74377.3702,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74379.2952,16,19,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74381.1832,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74382.8042,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74384.6672,16,15,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74389.8972,16,24,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74402.5822,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74409.7192,16,16,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74411.5362,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74413.3682,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74416.1522,16,55,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74429.4082,16,41,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74429.6612,16,55,False,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74431.2432,16,42,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74432.8732,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74451.6742,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74460.0842,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74461.2262,16,55,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74461.8402,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74465.2132,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74467.0512,16,33,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74468.8642,16,17,False,False,437,151,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74474.2752,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74475.1622,16,52,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74476.1282,16,40,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74493.8042,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74493.8062,16,62,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74497.8422,16,33,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74499.7592,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74502.2362,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74502.6052,16,58,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74504.0322,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74505.2092,16,63,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74505.7122,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74507.5022,16,41,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74507.7062,16,61,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74509.2992,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74521.2782,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74521.2802,16,53,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74524.3732,16,60,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74524.8242,16,43,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74526.6112,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74528.5292,16,43,True,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74530.2092,16,21,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74532.0252,16,20,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74533.9652,16,17,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74548.6632,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74548.8682,16,69,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74551.5362,16,62,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74552.3032,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74555.9102,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74557.8802,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74559.2932,16,59,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74559.5142,16,17,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74561.4202,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74563.1332,16,19,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74564.9182,16,44,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74567.1722,16,62,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74568.6242,16,46,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74572.2522,16,54,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74573.1242,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74582.6722,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74582.7472,16,115,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74584.5172,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74585.5562,16,68,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74586.3692,16,37,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74588.0922,16,61,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74589.9412,16,24,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74591.8442,16,19,False,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74603.8052,16,56,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74605.5372,16,17,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74616.7512,16,64,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74616.7512,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74618.6882,16,44,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74620.5222,16,40,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74622.1152,16,53,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74622.3502,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74625.9712,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74627.2382,16,54,False,True,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74630.4022,16,18,False,True,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74632.3262,16,17,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74634.0062,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74635.9972,16,19,False,False,437,151,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74793.0402,16,48,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74795.4682,16,58,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74795.6722,16,18,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74797.4762,16,19,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74798.2492,16,63,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74799.1972,16,16,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74800.8172,16,50,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74802.8182,16,20,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74804.7722,16,21,False,False,414,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74805.9762,16,52,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74806.3902,16,20,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74808.3722,16,17,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74810.0752,16,20,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74811.9892,16,43,True,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74815.4282,16,18,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74817.3902,16,21,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74817.8412,16,60,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74819.8902,16,16,False,False,414,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74820.6202,16,55,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74821.8722,16,19,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74823.1012,16,62,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74823.5372,16,16,False,False,414,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74844.1742,16,52,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74845.8382,16,17,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74846.7752,16,62,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74847.7502,16,15,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74849.4202,16,17,False,False,414,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74851.2142,16,42,True,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74854.5392,16,50,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74854.8202,16,19,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74856.6252,16,17,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74857.2752,16,50,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74858.4972,16,15,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74860.3512,16,18,False,False,414,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74862.0372,16,16,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74864.0202,16,17,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74865.7202,16,19,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74867.4962,16,17,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74909.8872,16,50,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74910.0932,16,35,True,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74911.9012,16,16,False,False,414,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74912.4362,16,56,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74917.6112,16,55,False,False,414,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74918.9302,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74920.7832,16,23,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74922.7082,16,34,True,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74922.9422,16,57,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74924.5322,16,39,True,False,437,32,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74926.3242,16,22,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74930.5832,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74932.2662,16,62,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74932.4812,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74934.0992,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74936.0552,16,22,False,False,437,151,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74939.5972,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74940.1722,16,64,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74986.1822,16,167,True,False,437,89,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74991.4502,16,16,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74993.5502,16,133,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74996.1282,16,113,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74996.7742,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74998.5412,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,74998.7502,16,56,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75000.4152,16,19,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75002.2042,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75004.8782,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75008.3972,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75010.6892,16,105,True,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75014.5072,16,21,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75015.8512,16,60,False,False,437,90,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75016.3012,16,18,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75017.9662,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75020.2152,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75022.1102,16,20,False,False,437,31,False
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,75023.8512,16,39,True,False,437,31,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68659.7712,13,84,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68663.4962,13,92,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68671.0952,13,69,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68674.9242,13,78,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68681.4862,13,81,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68689.0372,13,83,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68693.0172,13,70,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68709.3302,13,88,False,False,442,170,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68713.0832,13,89,False,False,442,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68737.9222,13,87,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68741.5402,13,73,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68753.1222,13,85,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68756.7732,13,78,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68767.9052,13,74,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68779.3342,13,82,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68783.1192,13,88,False,False,442,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68787.0332,13,78,False,False,442,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68790.7632,13,74,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68803.2352,13,147,True,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68810.9692,13,72,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68833.7432,13,75,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68841.3272,13,156,True,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68845.1432,13,77,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68847.9102,13,86,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68851.5832,13,81,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68859.1812,13,74,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68874.5492,13,69,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68879.2082,13,81,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68883.1722,13,85,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68886.1082,13,78,False,False,377,167,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68889.7962,13,84,False,False,377,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68893.5892,13,75,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68898.4382,13,90,False,False,419,35,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68902.2662,13,74,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68909.8492,13,73,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68917.4882,13,78,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68921.3442,13,68,False,False,375,18,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68928.1432,13,74,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68931.7752,13,87,False,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68935.7452,13,69,False,False,377,87,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68939.4062,13,162,True,False,377,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68947.0752,13,83,False,False,377,96,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68959.8112,13,73,False,False,377,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68966.6812,13,76,False,False,375,111,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68970.3542,13,73,False,False,375,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68978.0842,13,75,False,False,375,104,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68981.8872,13,67,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68985.5632,13,71,False,False,375,104,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68993.3152,13,77,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,68997.1092,13,84,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69000.9202,13,94,False,False,419,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69008.3602,13,82,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69012.2432,13,89,False,False,419,113,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69015.9782,13,82,False,False,419,96,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69019.9572,13,65,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69022.0422,13,77,False,False,375,150,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69035.2912,13,77,False,False,375,128,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69039.1452,13,67,False,False,375,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69046.6162,13,84,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69050.4482,13,77,False,False,419,251,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69058.2012,13,76,False,False,419,19,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69062.1972,13,71,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69064.3012,13,155,True,False,377,126,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69070.6132,13,76,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69074.3452,13,172,True,False,377,158,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69078.2422,13,141,True,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69082.1512,13,146,True,False,377,88,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69090.8492,13,89,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69094.6372,13,66,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69099.6632,13,128,True,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69104.6072,13,64,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69108.2832,13,73,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69116.0822,13,73,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69119.8002,13,73,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69123.5022,13,87,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69127.4742,13,86,False,False,419,71,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69131.1242,13,179,True,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69134.9252,13,90,False,False,419,23,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69138.9012,13,77,False,False,419,98,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69146.3282,13,90,False,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69150.2212,13,160,True,False,375,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69154.0042,13,70,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69157.7202,13,78,False,False,375,170,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69161.6642,13,79,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69165.8662,13,139,True,False,375,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69174.0472,13,68,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69181.6082,13,153,True,False,419,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69185.9162,13,180,True,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69189.8542,13,81,False,False,419,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69193.5122,13,77,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69197.3302,13,89,False,False,419,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69205.0042,13,85,False,False,419,130,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69208.8282,13,85,False,False,419,68,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69216.3622,13,87,False,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69220.1322,13,81,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69227.7412,13,86,False,False,419,98,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69231.7372,13,76,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69245.3162,13,77,False,False,419,11,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69249.1412,13,66,False,False,375,251,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69253.0112,13,140,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69266.5852,13,69,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69270.4372,13,74,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69274.2542,13,75,False,False,375,160,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69278.1562,13,78,False,False,375,94,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69283.4842,13,68,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69287.1292,13,72,False,False,375,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69291.0792,13,65,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69294.8892,13,148,True,False,375,197,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69302.4302,13,81,False,False,375,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69306.2282,13,160,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69310.0672,13,88,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69313.8062,13,94,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69317.5712,13,78,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69321.5142,13,79,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69325.2852,13,94,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69329.0712,13,79,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69331.5292,13,93,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69335.3972,13,79,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69341.4212,13,86,False,False,419,111,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69345.2492,13,129,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69356.1972,13,71,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69359.9862,13,67,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69367.7392,13,71,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69375.4162,13,67,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69379.0882,13,141,True,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69383.0122,13,79,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69390.8232,13,77,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69394.4902,13,72,False,False,377,140,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69408.2182,13,80,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69415.8252,13,160,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69419.6402,13,139,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69423.4442,13,81,False,False,375,17,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69427.2202,13,67,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69429.4572,13,68,False,False,375,104,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69433.4022,13,68,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69437.2642,13,92,False,False,419,112,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69441.8822,13,86,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69445.7442,13,72,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69449.6092,13,78,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69458.9232,13,84,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69462.6472,13,85,False,False,377,120,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69466.4502,13,79,False,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69470.3902,13,84,False,False,377,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69474.1182,13,81,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69477.8052,13,133,True,False,377,17,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69481.8192,13,82,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69485.4472,13,68,False,False,377,126,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69489.3102,13,65,False,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69505.0532,13,67,False,False,377,44,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69509.0142,13,133,True,False,377,133,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69512.7772,13,82,False,False,377,98,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69516.4642,13,77,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69521.6052,13,75,False,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69525.3352,13,79,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69529.0412,13,83,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69532.9042,13,70,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69536.8332,13,68,False,False,377,150,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69540.6262,13,77,False,False,419,34,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69544.3372,13,75,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69548.2482,13,80,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69551.9092,13,140,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69559.9992,13,77,False,False,375,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69563.9582,13,67,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69567.6072,13,82,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69571.4232,13,147,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69579.0752,13,174,True,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69582.9662,13,77,False,False,419,17,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69586.8212,13,73,False,False,419,94,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69590.4652,13,79,False,False,419,95,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69594.4342,13,87,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69598.2032,13,74,False,False,419,22,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69601.8532,13,88,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69605.7832,13,81,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69613.3772,13,73,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69617.2492,13,74,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69620.8552,13,72,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69624.8402,13,141,True,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69628.4912,13,80,False,False,375,17,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69636.2432,13,76,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69640.0742,13,65,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69643.7802,13,84,False,False,419,138,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69655.0312,13,79,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69658.7452,13,70,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69666.3022,13,69,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69670.3132,13,72,False,False,375,47,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69673.9332,13,141,True,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69677.8822,13,88,False,False,419,118,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69685.3672,13,79,False,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69687.8012,13,162,True,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69703.0372,13,78,False,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69706.8352,13,79,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69710.4772,13,146,True,False,377,18,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69722.0522,13,93,False,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69733.4082,13,91,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69737.1172,13,81,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69741.0742,13,78,False,False,419,141,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69745.3682,13,83,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69749.0832,13,77,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69752.8772,13,80,False,False,377,88,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69760.4222,13,72,False,False,377,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69764.2452,13,82,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69767.2732,13,81,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69771.0942,13,68,False,False,377,165,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69774.7902,13,68,False,False,377,94,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69781.0252,13,72,False,False,377,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69784.9032,13,68,False,False,377,117,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69788.6142,13,71,False,False,377,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69792.5762,13,80,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69809.4072,13,83,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69813.0562,13,183,True,False,419,21,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69816.8682,13,93,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69820.6702,13,171,True,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69824.5662,13,77,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69828.2632,13,88,False,False,419,23,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69837.8222,13,85,False,False,419,1,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69841.5792,13,83,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69845.3602,13,77,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69849.2612,13,72,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69852.9492,13,68,False,False,400,115,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69856.1962,13,83,False,False,400,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69859.9792,13,78,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69863.8452,13,82,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69867.7172,13,81,False,False,400,130,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69871.4542,13,144,True,False,400,117,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69875.1872,13,86,False,False,442,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69879.1482,13,77,False,False,442,65,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69882.8122,13,92,False,False,442,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69886.7322,13,91,False,False,442,170,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69890.4222,13,85,False,False,442,104,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69908.6712,13,87,False,False,442,125,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69912.6672,13,179,True,False,442,170,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69920.0962,13,87,False,False,442,68,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69924.5012,13,93,False,False,442,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69928.3232,13,71,False,False,398,93,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69931.9982,13,84,False,False,398,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69939.6512,13,146,True,False,398,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69942.1292,13,87,False,False,398,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69946.0352,13,79,False,False,398,94,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69954.1492,13,73,False,False,398,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69961.7892,13,86,False,False,442,158,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69965.5442,13,87,False,False,442,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69970.1362,13,93,False,False,442,66,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69973.7942,13,80,False,True,442,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69977.6292,13,185,True,False,442,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69982.6812,13,91,False,False,442,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69986.5872,13,76,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69990.2112,13,78,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,69994.0232,13,74,False,False,400,126,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70001.8062,13,164,True,False,400,16,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70005.4192,13,87,False,False,400,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70009.3082,13,88,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70013.2192,13,173,True,False,442,219,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70018.2642,13,190,True,False,442,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70022.7112,13,73,False,False,400,98,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70026.4262,13,80,False,False,400,95,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70041.0802,13,80,False,False,400,32,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70044.9092,13,159,True,False,400,14,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70048.6182,13,74,False,False,400,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70052.6292,13,75,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70065.1742,13,73,False,False,400,7,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70068.9412,13,77,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70072.8612,13,74,False,False,400,141,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70075.0902,13,84,False,False,400,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70078.7692,13,78,False,False,400,125,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70091.3172,13,81,False,False,442,52,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70095.0332,13,94,False,False,442,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70098.7702,13,87,False,False,442,60,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70102.7112,13,73,False,False,398,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70114.0802,13,89,False,False,398,92,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70121.6912,13,77,False,False,398,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70127.8062,13,89,False,False,398,94,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70131.5522,13,174,True,False,442,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70157.7452,13,84,False,False,442,164,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70161.5692,13,74,False,False,398,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70165.5352,13,76,False,False,398,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70169.2832,13,74,False,False,398,16,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70172.9492,13,80,False,False,398,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70176.7512,13,83,False,False,398,98,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70180.5542,13,76,False,False,398,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70184.3512,13,82,False,False,398,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70188.3382,13,83,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70195.4862,13,79,False,False,377,95,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70215.1072,13,66,False,False,377,93,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70223.4882,13,82,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70227.3202,13,80,False,False,419,94,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70231.1482,13,78,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70240.4912,13,70,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70250.9592,13,146,True,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70254.8532,13,70,False,False,375,96,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70258.5572,13,88,False,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70262.3752,13,86,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70270.5482,13,70,False,False,375,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70274.4632,13,69,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70278.1082,13,82,False,False,375,117,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70281.9472,13,74,False,False,375,114,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70289.6512,13,70,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70293.2992,13,76,False,False,375,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70297.3082,13,85,False,False,375,140,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70300.9792,13,82,False,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70304.8502,13,68,False,False,377,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70316.1512,13,83,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70320.0192,13,78,False,False,377,251,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70327.7192,13,76,False,False,377,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70335.1822,13,78,False,False,419,170,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70339.0052,13,82,False,False,419,60,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70342.8612,13,183,True,False,419,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70346.6532,13,83,False,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70350.3902,13,93,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70360.5042,13,76,False,False,419,24,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70364.3412,13,80,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70375.0722,13,74,False,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70378.9442,13,154,True,False,375,0,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70397.2122,13,88,False,False,419,121,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70401.0552,13,78,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70404.8522,13,77,False,False,419,119,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70412.3652,13,75,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70416.2652,13,76,False,False,419,171,False
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70425.3372,13,78,False,False,419,53,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70429.2752,13,80,False,False,419,197,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70432.9752,13,88,False,False,419,100,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70436.9112,13,87,False,False,419,97,True
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,70440.7312,13,79,False,False,419,171,False
