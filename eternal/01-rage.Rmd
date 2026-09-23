@@ -66,7 +66,7 @@ Moving forward, we'll use these predictions as our starting hypothesis.
 
 ## The logs
 
-We studied `r length(meta)` combat logs posted to the [forever-warrior discussions](https://github.com/magey/forever-warrior/discussions), all on beta build `r meta[[1]]$beta_build`. Each log records the warrior's current rage on most events, so the rage gained from a single white swing can be read off directly.
+So far we've looked at `r length(meta)` combat logs posted to the [forever-warrior discussions](https://github.com/magey/forever-warrior/discussions), all on beta build `r meta[[1]]$beta_build`. The nice thing about these logs is that they record the warrior's current rage on almost every event, so we can read the rage from a single white swing straight off the log instead of having to guess at it.
 
 ```{r}
 tibble(
@@ -78,7 +78,7 @@ tibble(
 ) %>% knitr::kable(caption = "Logs and the metadata posted with them (main hand first).")
 ```
 
-Swings made while at 100 rage were excluded, since their gain is cut off by the cap.
+We left out any swing made while sitting at 100 rage, since the cap cuts off whatever that swing would have given.
 
 ## Findings
 
@@ -102,23 +102,23 @@ swings %>% filter(!capped) %>%
   labs(x = "Damage dealt", y = "Rage gained", colour = NULL)
 ```
 
-1. **The Classic hypothesis does not hold.** Rage per white swing does not depend on damage dealt. Within each group, damage varies by a factor of 2 to 4 while the rage gained stays the same (correlation near zero).
-2. **Crits give no extra rage.** Crits and normal hits gain the same amount, and so do glancing blows.
-3. **Rage scales with weapon speed.** The time between swings in each group matches a posted weapon speed, and rage per swing is that speed times a fixed rate:
+1. **The Classic hypothesis doesn't hold.** How much damage a white swing does has nothing to do with how much rage it gives - within each group the damage can vary by 2 to 4 times while the rage stays exactly the same.
+2. **Crits don't give extra rage.** A crit gives the same rage as a normal hit, and so does a glancing blow.
+3. **Rage scales with weapon speed.** The time between swings in each group lines up with one of the posted weapon speeds, and the rage per swing is just that speed times a fixed rate:
    - main hand (one-handed): about **3.46 rage per second of speed**
-   - off hand: about **1.73**, exactly half the main hand
-   - two-handed: about **4.5** (only one 2H weapon so far)
-4. **Rage per second does not depend on weapon speed.** Since rage per swing is proportional to speed, a fast and a slow weapon generate rage at the same rate over time.
-5. **Level had no visible effect between levels 13 and 16.** The Classic formula would have changed noticeably over that range.
+   - off hand: about **1.73**, which is exactly half the main hand
+   - two-handed: about **4.5** (though we only have one 2H weapon so far)
+4. **Weapon speed doesn't change your rage per second.** Since a slow weapon gives more rage per swing but swings less often, fast and slow weapons end up generating rage at the same rate over time.
+5. **Level didn't make a visible difference between 13 and 16**, even though the Classic formula would have changed quite a bit over that range.
 
 ### How strong is the evidence? p-values
 
-A p-value answers one question: if an idea were true, how surprising would our data be? Each test starts from an idea, which is called the null hypothesis. The p-value is the chance of seeing data at least as far from that idea as ours, if the idea were true.
+A p-value answers one question: if an idea were true, how surprising would our data be? Every test starts from an idea (statisticians call it the null hypothesis), and the p-value is the chance of seeing data at least as far from that idea as ours, assuming the idea is actually true.
 
-- A small p-value (below 0.05, and here often far below) means the data would be very surprising if the idea were true. So we reject the idea.
-- A large p-value means the data fit the idea. It does not prove the idea. It only means that the logs give no reason to doubt it.
+- A small p-value (below 0.05, and here usually way below) means our data would be really surprising if the idea were true, so we reject it.
+- A large p-value means the data fit the idea just fine. That doesn't prove the idea is right - it only means the logs don't give us any reason to doubt it.
 
-We test each finding twice where we can: once against the Classic prediction, and once against the Forever finding. The rage values in the log are rounded to one decimal place, so they are not a perfect bell curve. With more than 100 swings in each group this does not change the results of these tests.
+Wherever we can, we test each finding twice: once against what Classic predicts, and once against what we think Forever does. One small caveat is that the log rounds rage to one decimal place, so the values aren't a perfect bell curve, but with more than 100 swings in each group that doesn't change the results of these tests.
 
 ```{r}
 by_group <- obs %>% group_by(group) %>% filter(n() >= 10)
@@ -177,14 +177,14 @@ tribble(
 ) %>% knitr::kable(caption = "p-values for each finding. 'Rejected' means the data are very unlikely if the idea were true. 'Consistent' means the data give no reason to doubt it.")
 ```
 
-Some notes on reading the table:
+A couple of notes on reading the table:
 
-- **Damage.** Against Classic, the p-values are so small that R prints them as below $10^{-10}$. Against "no effect", a p-value can come out small in a group with many swings even when the effect is tiny. So we also look at the size of the effect. The largest slope we measured is `r round(max(abs(dmg$slope)) * 100, 2)` rage per 100 damage. Classic predicts about `r round(mean(dmg$classic_slope) * 100, 0)` rage per 100 damage at these levels, which is more than `r floor(min(dmg$classic_slope / pmax(abs(dmg$slope), 1e-9)))` times larger. Any effect of damage that exists is too small to matter.
-- **Level.** Classic predicts that the same damage gives `r round(classic_gap * 100, 1)`% less rage at level 16 than at level 15. The logs show a difference of `r round(abs(diff(tapply(lv$gain, lv$level, mean))) / mean(lv$gain) * 100, 2)`%. Level 13 to 16 is a small range, so this finding needs logs at higher levels.
+- **Damage.** Against Classic, the p-values are so small that R just prints them as below $10^{-10}$. Against "no effect" it's a bit trickier, because with lots of swings even a tiny effect can come out as "significant", so it's worth looking at how big the effect actually is. The largest slope we measured is `r round(max(abs(dmg$slope)) * 100, 2)` rage per 100 damage, while Classic predicts about `r round(mean(dmg$classic_slope) * 100, 0)` rage per 100 damage at these levels - more than `r floor(min(dmg$classic_slope / pmax(abs(dmg$slope), 1e-9)))` times larger. So if damage does have any effect at all, it's far too small to matter.
+- **Level.** Classic predicts that the same damage gives `r round(classic_gap * 100, 1)`% less rage at level 16 than at level 15, and the logs show a difference of just `r round(abs(diff(tapply(lv$gain, lv$level, mean))) / mean(lv$gain) * 100, 2)`%. That said, 13 to 16 is a pretty small range (and levels 15 and 16 are also two different characters), so we'll need logs from higher levels to be confident about this one.
 
 #### What level does to rage
 
-To see the level effect alone, we keep everything else the same: one weapon (Tail Spike, 1.8 speed, in the main hand) and one hit of `r round(median(lv$damage))` damage, the typical logged hit for this weapon. Only the level changes.
+To look at the effect of level on its own, we need to keep everything else the same. So we'll take one weapon (Tail Spike, 1.8 speed, in the main hand) and one hit of `r round(median(lv$damage))` damage, which is the typical logged hit for this weapon, and only change the level.
 
 ```{r}
 d_ref <- median(lv$damage)
@@ -195,7 +195,7 @@ lv_obs <- lv %>% group_by(level) %>%
 lv_classic <- tibble(level = c(15, 16), mean = 15 * d_ref / conv(level), game = "Classic (formula)")
 ```
 
-```{r fig.cap="Levels 15 and 16, same weapon and same hit. Classic (grey) drops by about 6% in one level. The logs (blue, with 95% intervals) do not move.", fig.height=3.5}
+```{r fig.cap="Levels 15 and 16, with the same weapon and the same hit. Classic (grey) drops by about 6% in a single level, while the logs (blue, with 95% intervals too narrow to see) don't move.", fig.height=3.5}
 ggplot(mapping = aes(factor(level), mean, colour = game, group = game)) +
   geom_line(data = lv_classic, linewidth = 1) + geom_point(data = lv_classic, size = 3) +
   geom_line(data = lv_obs, linewidth = 1) +
@@ -205,9 +205,9 @@ ggplot(mapping = aes(factor(level), mean, colour = game, group = game)) +
   labs(x = "Level", y = "Rage for one swing", colour = NULL)
 ```
 
-The same comparison over all levels shows how large the gap becomes. The solid part of the Forever line covers the levels where we have logs. The dashed part is our assumption that the rate does not change.
+The two levels we have logs for barely show anything, so here's the same comparison stretched out from level 10 to 60. Keep in mind that the damage is frozen at that same `r round(median(lv$damage))`-damage hit the whole way - the plot isn't asking how much rage a warrior gets at each level, but how much rage *this particular hit* is worth at each level. The solid part of the Forever line is where we actually have logs, and the dashed part is us assuming it stays flat.
 
-```{r fig.cap="Rage for the same 1.8-speed main-hand hit at every level. In Classic (grey), the same hit gives less rage as you level, because C grows with level. In Forever (blue), the rage stays the same. Dots: the logs.", fig.height=4}
+```{r fig.cap="How much rage the same 1.8-speed main-hand hit is worth at each level. In Classic (grey) it's worth less and less as you level, because C keeps growing, while in Forever (blue) it stays the same. The dots are the logs, and the circle is where both games value the hit the same.", fig.height=4}
 curve <- tibble(level = seq(10, 60, by = 0.25)) %>%
   mutate(Classic = 15 * d_ref / conv(level),
          Forever = mean(lv$gain))
@@ -229,7 +229,7 @@ ggplot(curve, aes(level)) +
   labs(x = "Level", y = "Rage for one swing", colour = NULL)
 ```
 
-For this hit, Classic gives `r round(15 * d_ref / conv(15), 1)` rage at level 15 and `r round(15 * d_ref / conv(60), 1)` at level 60, `r round((1 - conv(15) / conv(60)) * 100)`% less. With this hit, the two games give the same rage at about level `r round(cross)`. Below that level Classic gives more, and above it Forever gives more. In Classic, this drop is not a problem, because at level 60 your hits do much more damage. In Forever, the damage does not matter, so a bigger hit does not give more rage.
+In Classic, that hit is worth `r round(15 * d_ref / conv(15), 1)` rage at level 15 but only `r round(15 * d_ref / conv(60), 1)` at level 60 (`r round((1 - conv(15) / conv(60)) * 100)`% less), and the two games value it the same at around level `r round(cross)` - below that Classic gives more for this hit, and above it Forever does. This doesn't mean Classic warriors were starved for rage at 60, though: by then your hits do far more than `r round(median(lv$damage))` damage, and that extra damage is what makes up for the shrinking conversion. In Forever, on the other hand, damage doesn't count at all, so hitting harder doesn't get you any more rage.
 
 ## Classic versus Forever
 
@@ -246,7 +246,7 @@ obs %>%
   labs(x = "Rage per swing", y = "Swings", fill = NULL)
 ```
 
-The Classic formula would have given `r round(mean(obs$classic), 1)` rage per swing on average for these hits, against `r round(mean(obs$gain), 1)` observed. More important is the shape: under Classic, a crit roughly doubles the rage, and rage follows damage. In Forever, **rage per swing does not move**.
+For these exact hits, the Classic formula would have given `r round(mean(obs$classic), 1)` rage per swing on average, against the `r round(mean(obs$gain), 1)` we actually saw. The shape matters more than the average, though - under Classic rage follows damage and a crit roughly doubles it, while in Forever **rage per swing does not move**.
 
 ### How sure are we? A Bayesian estimate
 
@@ -293,14 +293,14 @@ post %>% group_by(hand) %>%
   knitr::kable(caption = "The posterior: the rage for each second of weapon speed. The lowest and highest likely rates are the ends of the 95% interval.")
 ```
 
-To read the table: for a main-hand weapon with a speed of 2.6, one swing gives about $3.46 \times 2.6 = 9.0$ rage.
+To read the table, just multiply the rate by the weapon speed - so a 2.6-speed main hand gives about $3.46 \times 2.6 = 9.0$ rage per swing.
 
 #### Are the rates round numbers?
 
-A simple formula for the game designers is 3.5 × speed for the main hand, half of that (1.75) for the off hand, and 4.5 × speed for two-handed weapons. We test these round numbers in two ways:
+If you were a game designer, a nice simple formula would be 3.5 × speed for the main hand, half of that (1.75) for the off hand, and 4.5 × speed for two-handers. So it's worth checking whether the real rates are just those round numbers, and we can do that in two ways:
 
 - The **p-value** asks how surprising our logs would be if the round number were the true rate.
-- The **posterior probability** asks how likely it is that the true rate is below the round number, given our logs.
+- The **posterior probability** asks how likely it is, given our logs, that the true rate is below the round number.
 
 ```{r}
 round_rates <- c("Main hand" = 3.5, "Off hand" = 1.75, "Two-hand" = 4.5)
@@ -318,7 +318,7 @@ rr %>% transmute(hand, Swings = n, `Measured rate` = round(rate, 3), `Round numb
   knitr::kable(caption = "The measured rates against the round numbers.")
 ```
 
-The two-handed rate is within `r sprintf("%.2f", abs(gap2h) * 100)`% of 4.5, with a p-value of `r fmt_p(p2h)`. `r if (p2h < 0.05) "By the usual cut-off of 0.05, the test rejects 4.5. But a p-value measures how surprising a difference is, not how large it is. With many swings that almost never vary, even a tiny difference becomes surprising. Here the difference comes from a few swings that gave 17.0 instead of 17.1. A difference this small can come from how the game rounds rage internally, so we still treat 4.5 as the best simple description." else "The logs give no reason to doubt it."` For the one-handed rates, 3.5 and 1.75 are rejected: the true rates are about 1% lower, far outside what rounding explains. The rounding of the rage values shows the same result, and it does not need any statistical test. With a rate of 3.5, a 2.6-speed main hand gives 9.1 rage for each swing. In the logs it never gives 9.1. It gives 9.0, and sometimes 8.9.
+The two-handed rate is within `r sprintf("%.2f", abs(gap2h) * 100)`% of 4.5, with a p-value of `r fmt_p(p2h)`. `r if (p2h < 0.05) "By the usual 0.05 cut-off that technically rejects 4.5, but a p-value tells you how surprising a difference is, not how big it is - and with lots of swings that almost never vary, even a tiny difference gets surprising. Here it comes down to a handful of swings that gave 17.0 instead of 17.1, which could easily be the game rounding rage internally, so we're still treating 4.5 as the best simple description." else "The logs don't give us any reason to doubt it."` The one-handed round numbers (3.5 and 1.75) don't survive, though: the real rates are about 1% lower, which is way more than rounding can explain. You don't even need statistics to see it - with a rate of 3.5, a 2.6-speed main hand would give 9.1 rage every swing, but in the logs it never does (it gives 9.0, and occasionally 8.9).
 
 ```{r fig.cap="The posterior predictive. Each line shows the rage that the model predicts for one swing at each weapon speed. The shaded band shows where 95% of new swings will fall. The dots are the real swings from the logs."}
 sp <- seq(1.2, 4, by = 0.1)
@@ -340,23 +340,21 @@ The intervals are very narrow (basically impossible to even see), because the ra
 
 ## Level 60: Classic versus Forever
 
-The logs come from characters at level 13 to 16. Most players care about level 60. This section asks: with the same weapons, how much rage does a level 60 warrior get in Classic, and how much in Forever?
+Our logs come from characters between level 13 and 16, but what most people actually care about is level 60. So the question for this section is: with the same weapons, how much rage would a level 60 warrior get in Classic, and how much in Forever?
 
-We cannot know the exact gear of a level 60 warrior, so we do not use one fixed number for it. Instead, we use a prior for each unknown: a range of likely values. The computer then plays 4000 level 60 warriors. Each one gets values drawn at random from these priors. This gives a distribution of rage, not one number, and the spread of that distribution shows how uncertain we are.
+We can't know the exact gear of "a level 60 warrior", so instead of picking one number for each unknown we give each one a prior (a range of likely values). The computer then plays 4000 level 60 warriors, each with values drawn at random from those priors, which gives us a whole distribution of rage rather than a single number - and the spread of that distribution shows how uncertain we are.
 
-These are the priors:
+These are the priors we used:
 
-- **Attack power**: about 1200, and usually between 900 and 1500. This is a typical level 60 fury warrior in early raid gear.
-- **Crit chance**: about 30%, and usually between 21% and 39%. The Classic compendium used 30%.
-- **Boss armor**: a boss with Sunder Armor and Faerie Fire on it takes about 75% of full damage. We use a range of about 65% to 83%.
-- **Weapon damage**: taken from the logs. Each simulated swing starts from one real hit with that weapon, in that hand. We then add the damage from the extra attack power at level 60. Classic adds 1 damage for every 14 attack power, for each second of weapon speed.
+- **Attack power**: around 1200, usually somewhere between 900 and 1500, which is roughly a fury warrior in early raid gear.
+- **Crit chance**: around 30% (the same number the Classic compendium used), usually between 21% and 39%.
+- **Boss armor**: a boss with Sunder Armor and Faerie Fire up takes about 75% of full damage, so we use a range of roughly 65% to 83%.
+- **Weapon damage**: taken from the logs. Each simulated swing starts from a real hit with that weapon in that hand, and then we add the damage from the extra attack power you'd have at 60 (in Classic, that's 1 damage for every 14 attack power, for each second of weapon speed).
 - **The Forever rates**: drawn from the posterior in the section above.
 
-Classic uses its formula with the rage conversion value for level 60 ($C = `r round(conv(60), 1)`$). Forever uses rate × speed. The simulation counts landed hits only. Misses, dodges and glancing blows are not included.
+Classic then uses its formula with the level 60 conversion value ($C = `r round(conv(60), 1)`$), while Forever just uses rate × speed. We're only counting hits that land here, so misses, dodges and glancing blows aren't included. The logged hits were also against low-level mobs that already have a bit of armor, and we put the boss armor on top of that, so the Classic side ends up slightly lower than it really would be.
 
-The logged hits were against low-level mobs, which have some armor of their own. We apply the boss armor on top of that, so the Classic damage is a little low. This makes the Classic side of the comparison slightly smaller than it would be.
-
-This comparison has one large assumption. The Forever rates come from levels 13 to 16. We assume that they do not change up to level 60. The logs cannot test this yet. If the rates change with level, the Forever side of these plots will move.
+There's one big assumption in all of this: our Forever rates come from levels 13 to 16, and we're assuming they don't change all the way up to 60. The logs can't test that yet, so if the rates do turn out to change with level, the Forever side of these plots will move.
 
 ```{r}
 n_sim <- 4000
@@ -419,7 +417,7 @@ sim %>% mutate(label = paste0(weapon, " (", hand, ", ", speed, ")")) %>%
   compare_plot(label, "Rage for one landed swing")
 ```
 
-Rage for each swing is hard to compare between weapons, because slow weapons swing less often. The better measure is rage per second: the rage from all your swings in one second of combat. For dual wield, it adds the main hand and the off hand.
+Rage per swing is a bit misleading when comparing weapons, since slow weapons swing less often. A better way to compare them is rage per second - all the rage from your swings over one second of combat, adding up both hands if you're dual wielding.
 
 ```{r}
 per_sec <- sim %>%
@@ -444,11 +442,11 @@ per_sec %>% group_by(Setup = setup) %>%
   knitr::kable(caption = "Rage per second from white hits at level 60. The last column is the share of simulated warriors who get less rage in Forever than in Classic.")
 ```
 
-The main changes for a level 60 warrior are these:
+So what actually changes for a level 60 warrior?
 
-- In Classic, better gear gives more rage, because more attack power and more crits give more damage. In Forever, gear does not change the rage from white hits.
-- In Classic, the rage per second changes from fight to fight and from player to player. In Forever, it is almost fixed: about `r round(mean(post$rate[post$hand == "Main hand"]) + mean(post$rate[post$hand == "Off hand"]), 2)` for dual wield and `r round(mean(post$rate[post$hand == "Two-hand"]), 2)` for a two-handed weapon.
-- The weapons in these logs are low-level weapons. Level 60 weapons do more damage, which gives more rage in Classic but not in Forever. So with real level 60 weapons, the gap between Classic and Forever becomes larger than these plots show.
+- In Classic, better gear means more rage, since more attack power and more crits mean more damage. In Forever, your gear doesn't change the rage you get from white hits at all.
+- In Classic, your rage per second changes from fight to fight and from player to player, whereas in Forever it's basically fixed: about `r round(mean(post$rate[post$hand == "Main hand"]) + mean(post$rate[post$hand == "Off hand"]), 2)` for dual wield and `r round(mean(post$rate[post$hand == "Two-hand"]), 2)` for a two-hander.
+- The weapons in these logs are low-level ones, and real level 60 weapons hit a lot harder. That extra damage means more rage in Classic but not in Forever, so with actual level 60 weapons the gap would be even bigger than what these plots show.
 
 ## Other rage sources
 
@@ -458,16 +456,16 @@ energize %>% filter(amount > 0) %>% mutate(Log = str_remove(file, "_092326.txt")
   knitr::kable(caption = "Rage granted directly by abilities and talents (amounts below the typical value were cut off by the cap).")
 ```
 
-- **Charge** grants 9 rage and **Bloodrage** 10 rage up front plus 1 per tick, matching their Classic values.
-- **Unbridled Wrath** grants 1 rage per proc with the one-handed setups but 2 with the two-hander. This fits the same design, where two-handers generate more rage per event.
-- **Heroic Strike** hits grant no rage, in the cases we checked.
-- **Misses, dodges and parries** on our own swings give little or no rage (small samples).
-- **Rage from damage taken** is small, but its rate varied between logs. It needs a controlled test.
+- **Charge** gives 9 rage and **Bloodrage** gives 10 up front plus 1 per tick, same as in Classic.
+- **Unbridled Wrath** gives 1 rage per proc with one-handers but 2 with the two-hander, which fits the same pattern of two-handers getting more rage per event.
+- **Heroic Strike** hits don't give any rage, at least in the cases we checked.
+- **Misses, dodges and parries** on our own swings give little or no rage (though we only have a few of them).
+- **Rage from damage taken** is small, but it varied between logs, so it needs a proper controlled test.
 
 ## Open questions
 
-- Confirm the two-handed rate with a second 2H weapon of a different speed. The current rate of 4.5 comes from a single weapon, so it could also be a flat bonus on top of the one-handed rate.
+- Confirm the two-handed rate with a second 2H weapon at a different speed. Right now 4.5 comes from a single weapon, so it could just as well be the one-handed rate plus a flat bonus per swing.
 - Check whether the rates change at higher levels.
-- Find out how attack power adds damage in Forever. The logs show 380 to 480 attack power at levels 13 to 16. With the Classic rule (1 damage for every 14 attack power, for each second of weapon speed), that adds about 100 damage to each Battle Axe swing. But the logged Battle Axe hits are only 69 to 88. So attack power works differently, or the logged attack power means something different.
+- Figure out how attack power adds damage in Forever. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing - but the logged Battle Axe hits are only 69 to 88. So either attack power works differently, or the number in the log means something else.
 - Test stances, and rage from damage taken, in a controlled setting.
-- Record hand swaps mid-log in the metadata. One log shows both weapons being used in both hands.
+- Record mid-log hand swaps in the metadata, since one log shows both weapons being used in both hands.
