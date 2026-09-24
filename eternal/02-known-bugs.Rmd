@@ -4,15 +4,15 @@
 # Reuses `procs`, `ubw`, `per_point`, `ubw_rate` and `fmt_p` from the Rage Generation chapter.
 source("data/fight_sim.R")  # for the weapon speeds and attack table used in the cost estimate
 bugs <- tribble(
-  ~id,     ~bug,                                                    ~build,   ~first_seen,  ~status,
-  "BUG-1", "Unbridled Wrath procs about 8% per point instead of 12%", "1.60.1", "2026-09-23", "Open"
+  ~id,     ~bug,                                                    ~build,   ~first_seen,  ~status,              ~report,
+  "BUG-1", "Unbridled Wrath procs about 8% per point instead of 12%", "1.60.1", "2026-09-23", "Confirmed, fix coming", "[#105](https://github.com/ClassicWoWCommunity/forever-bugs/issues/105)"
 )
 ```
 
 This chapter keeps track of everything we've found where the beta doesn't do what the game says it should - usually a tooltip promising one number while the logs show another. We only list something here when the logs make the case clearly (a p-value well below 0.05 against the tooltip value, over a decent number of events), and each bug gets an ID, the build it was seen on and a status, so we can tell when it gets fixed.
 
 ```{r}
-bugs %>% rename(ID = id, Bug = bug, Build = build, `First seen` = first_seen, Status = status) %>%
+bugs %>% rename(ID = id, Bug = bug, Build = build, `First seen` = first_seen, Status = status, Report = report) %>%
   knitr::kable(caption = "Known bugs, newest first.")
 ```
 
@@ -41,4 +41,4 @@ ubw %>%
 
 **Seen on:** build 1.60.1, in logs from Siax, Zomd Aya and Tarch (Unbridled Wrath at every rank from 1/5 to 5/5).
 
-**Status:** open. The proposals chapter uses the tooltip's 60%, since that's how the game is meant to work.
+**Status:** confirmed by the developers, fix coming. We reported it as [issue #105](https://github.com/ClassicWoWCommunity/forever-bugs/issues/105) on the forever-bugs tracker, and on 2026-09-24 it was marked as fixed, with the fix landing in a future beta build: not the next one, but the one after. Once that build is out, we'll check new logs to confirm 5/5 procs at 60%. Until then, the proposals chapter uses the tooltip's 60%, since that's how the game is meant to work.

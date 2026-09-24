@@ -38,6 +38,7 @@ fmt_p <- function(p) format.pval(p, digits = 2, eps = 1e-10)
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.1.1",  "2026-09-24", "The developers confirmed the Unbridled Wrath bug and said the fix will come in a future beta build (forever-bugs issue #105).",
   "2.1.0",  "2026-09-23", "Added a log from Tarch with Unbridled Wrath at 4/5 (dual wield and two-handed), which completes the proc rate at every talent rank. 4/5 procs on about 36% of hits, still well below the tooltip's 48%.",
   "2.0.0",  "2026-09-23", "Added six logs from Tarch (Unbridled Wrath at 1/5, 2/5 and 3/5, dual wield and two-handed). Unbridled Wrath gives about 8% per talent point instead of the tooltip's 12%, so 5/5 is about 36% instead of 60% (a bug, not a talent-point mix-up). A second two-handed weapon (3.3 speed) confirms 4.5 × speed.",
   "1.1.0",  "2026-09-23", "Measured how often Unbridled Wrath procs (about 36% of landed white hits, well below the intended 60%).",
@@ -485,7 +486,7 @@ ubw %>% mutate(rate = k / n, lo = qbeta(0.025, k + 1, n - k + 1), hi = qbeta(0.9
   labs(x = "Points in Unbridled Wrath", y = "Procs per landed white hit")
 ```
 
-The talent clearly doesn't give 12% per point: that's rejected at every rank (only just at 1/5, where we have the fewest procs). Our best estimate is about **`r round(per_point * 100, 1)`% per point**, and 5/5 lands at `r round(ubw$k[ubw$rank == 5] / ubw$n[ubw$rank == 5] * 100)`%, a long way from 60%. The tooltip says 12% per point, so this is a bug: it's close to the 8% per point Classic's Unbridled Wrath had (40% at 5/5), so the beta may still be using the old Classic chance. It's listed as [BUG-1](#bug-ubw) in the Known Bugs chapter. Siax's rank wasn't posted, but his proc rate (`r round(procs$ubw_procs[procs$character == "Siax"] / procs$landed_white[procs$character == "Siax"] * 100)`%) matches 5/5.
+The talent clearly doesn't give 12% per point: that's rejected at every rank (only just at 1/5, where we have the fewest procs). Our best estimate is about **`r round(per_point * 100, 1)`% per point**, and 5/5 lands at `r round(ubw$k[ubw$rank == 5] / ubw$n[ubw$rank == 5] * 100)`%, a long way from 60%. The tooltip says 12% per point, so this is a bug: it's close to the 8% per point Classic's Unbridled Wrath had (40% at 5/5), so the beta may still be using the old Classic chance. It's listed as [BUG-1](#bug-ubw) in the Known Bugs chapter. The developers have confirmed it and a fix is coming in a future beta build ([issue #105](https://github.com/ClassicWoWCommunity/forever-bugs/issues/105)). Siax's rank wasn't posted, but his proc rate (`r round(procs$ubw_procs[procs$character == "Siax"] / procs$landed_white[procs$character == "Siax"] * 100)`%) matches 5/5.
 
 Two more things stay the same as before: every proc gives 1 rage with one-handers and 2 with two-handers, at every rank, and none of the procs come from Heroic Strike or Cleave.
 
