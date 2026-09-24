@@ -84,3 +84,7 @@ Facts about the log that the analysis relies on:
 - Rage appears in tenths (1000 = 100 rage).
 - Each event records the unit's own rage after its effect, except `SPELL_CAST_SUCCESS`, which records it before the cost is paid.
 - Swings made at 100 rage are excluded, since their gain is cut off by the cap.
+
+## Flurry checks (once Flurry can be talented)
+
+The Flurry chapter (`eternal/04-flurry.Rmd`) is a model built on Classic assumptions. When a log comes in with Flurry talented (check `talents` in the metadata), test the assumptions from the chapter's "What to test" section using swing timings: the swing interval after a crit (should be speed / 1.25), how many swings stay hasted (3), whether Bloodthirst/Whirlwind/Heroic Strike crits start it, whether the hands share charges, and whether a hasted swing still gives rate x weapon speed rage. Update the chapter's assumption table (Assumed -> Confirmed/Wrong) and bump its version.

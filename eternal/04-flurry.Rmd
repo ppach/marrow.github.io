@@ -1,0 +1,206 @@
+# Flurry {#flurry}
+
+```{r setup-flurry, include=FALSE}
+# Reuses `forever_dw`, `phases`, `classic_rps` and `sim_defaults` from the earlier chapters.
+source("data/flurry.R")
+
+flurry_changelog <- tribble(
+  ~version, ~date,        ~change,
+  "1.0.0",  "2026-09-24", "First version: a Markov chain model of Flurry, checked against the fight simulator, and compared with Classic. Model only - Flurry can't be talented in the beta yet."
+)
+
+haste_forever <- 0.25
+haste_classic <- 0.30
+suppression   <- 0.03    # crit lost against a level 63 boss (Classic: 1.8% aura plus 1.2% from the level gap)
+landed        <- 1 - sim_defaults$miss - sim_defaults$dodge            # dual wield vs a boss, from behind
+crit_cap      <- 1 - sim_defaults$miss - sim_defaults$dodge - sim_defaults$glance
+yellow_cps    <- 1 / sim_defaults$bt_cd + 1 / sim_defaults$ww_cd       # a full Bloodthirst and Whirlwind rotation
+yellow_landed <- 1 - 0.09 - sim_defaults$dodge                          # yellow attacks don't get the dual wield miss penalty
+base_rpm      <- forever_dw * landed * 60                               # Forever white rage per minute before Flurry
+
+eff_crit <- function(sheet) pmin(pmax(sheet - suppression, 0), crit_cap)
+fl <- function(sheet, haste = haste_forever, yellow = TRUE) {
+  c <- eff_crit(sheet)
+  flurry_stats(c, haste, yellow_cps = if (yellow) yellow_cps else 0, crit_yellow = c * yellow_landed)
+}
+```
+
+*Version `r flurry_changelog$version[1]` (`r flurry_changelog$date[1]`). **Model only:** the beta is capped at level 20, so nobody can talent into Flurry yet. Everything here assumes Flurry works like it did in Classic, but at Forever's 25%. See the [changelog](#flurry-changelog).*
+
+Flurry is the talent that makes dual wield warriors tick, and in Forever it matters even more than it used to, because it's also one of the only ways left to get more rage out of your gear. This chapter builds a better model of how often Flurry is up, compares it with the way we used to work it out in Classic, and lists what we need to check once the talent is available.
+
+## What Flurry does
+
+At 5/5, a critical strike gives you **`r haste_forever * 100`% attack speed for your next 3 swings** (it was `r haste_classic * 100`% in Classic). Here's what we're assuming about how it works, and what we actually know:
+
+```{r}
+tribble(
+  ~Rule,                                                          ~Status,
+  "25% attack speed at 5/5",                                      "Tooltip",
+  "Lasts 3 white swings, and each hasted swing uses up a charge", "Assumed from Classic",
+  "Any crit refreshes it back to 3 charges, including Bloodthirst and Whirlwind", "Assumed from Classic",
+  "Yellow attacks don't use up charges",                          "Assumed from Classic",
+  "Main hand and off hand share the same charges",                "Assumed from Classic",
+  "A hasted swing gives the same rage as a normal one (rate x weapon speed)", "Assumed - the most important one for Forever"
+) %>% knitr::kable(caption = "What the model assumes about Flurry. None of it has been checked in Forever logs yet.")
+```
+
+That last one deserves a word. In Forever, each swing gives rage based on the weapon's speed, not on the time the swing actually took. If that holds for hasted swings too, then every extra swing Flurry gives you is extra rage. If the game used the hasted speed instead, Flurry would give no rage at all. We don't know yet, and it changes a lot.
+
+## The Classic way
+
+In Classic we used a simple rule of thumb for Flurry's uptime:
+
+$$F_{up} = 1 - (1 - P(Crit))^A$$
+
+where $A$ is the number of attacks in one Flurry window: 3 white swings, plus "about one" Bloodthirst or Whirlwind, so we used $A = 4$. It gets the basic idea across (crit has diminishing returns on Flurry, and 33% crit doesn't mean 100% uptime), but it has a few problems:
+
+1. **$A = 4$ is a guess.** How many yellow attacks fit into a Flurry window depends on your weapon speeds and on Flurry itself, since a hasted window is shorter.
+2. **It counts swings, not time.** A hasted swing is shorter, so the share of *time* with Flurry up is lower than the share of *swings*.
+3. **It uses the crit on your character sheet.** Against a boss you lose about `r suppression * 100`% crit, and white crits can't go past the crit cap (`r round(crit_cap * 100, 1)`% for our dual wielder, since misses, dodges and glancing blows take up the rest of the attack table).
+4. **It treats every attack the same**, when white crits and yellow crits don't work the same way: only white swings use up charges.
+
+## A better model: counting charges
+
+The trick is to follow Flurry swing by swing. Before each white swing, Flurry has 0, 1 or 2 charges left, and that's all we need to know to work out what happens next:
+
+- **If the swing triggers Flurry** (it crits, or a Bloodthirst or Whirlwind crit happened since the last swing), Flurry refills and this swing uses a charge, leaving 2.
+- **If not, and there's a charge left**, the swing is hasted and uses it up.
+- **If not, and there are no charges**, the swing isn't hasted.
+
+This is what statisticians call a **Markov chain**: a system that jumps between a few states, where the next jump only depends on where you are now. The nice thing about Markov chains is that we can work out exactly how much time they spend in each state in the long run, without simulating anything. Here are the jumps, where $p$ is the chance a swing triggers Flurry:
+
+```{r}
+P_sym <- matrix(c("1 - p", "0", "p", "1 - p", "0", "p", "0", "1 - p", "p"), 3, byrow = TRUE,
+                dimnames = list(paste("From", 0:2, "charges"), paste("To", 0:2)))
+knitr::kable(P_sym, caption = "How Flurry's charges change from one white swing to the next.")
+```
+
+From the long run shares, we get three things:
+
+- **Hasted swings:** the share of white swings made with Flurry up.
+- **Time with Flurry:** the share of time your weapons spend on hasted swings.
+- **Swing rate:** how many more swings per second you get than with no Flurry. In Forever this is also how much more white rage you get.
+
+Yellow crits come into $p$: the more Bloodthirsts and Whirlwinds land between two white swings, the more likely one of them crits. Since the time between swings depends on Flurry itself, the model goes round in a loop until the numbers settle down.
+
+In the plain white-only case, the chain gives exactly $1 - (1 - P(Crit))^3$ for the share of hasted swings. So the Classic formula had the counting right, it just needed $A = 3$ on white swings, with the yellow crits folded into the chance per swing instead of as a fourth "attack".
+
+## Checking the model
+
+To make sure the maths is right, we can run the same warrior through the fight simulator from the proposals chapter, with only white swings and Unbridled Wrath turned off, and see how much extra rage Flurry gives compared with the same fights without it:
+
+```{r flurry-check}
+set.seed(60)
+fr <- function(hand, dmg, speed) (if (hand == "MH") forever_mh else forever_oh) * speed
+p_check <- modifyList(sim_defaults, list(fight_len = 600, ubw_chance = 0, hs_threshold = 1e4, bt_cost = 1e4, ww_cost = 1e4))
+flurry_check <- map_dfr(c(0.05, 0.15, 0.25, 0.35), function(c) {
+  on  <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c)))$rps)
+  off <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c, flurry_haste = 0)))$rps)
+  tibble(crit = c, sim = mean(on) / mean(off), chain = flurry_stats(min(c, crit_cap), haste_forever)$swing_mult)
+})
+flurry_check %>%
+  transmute(`White crit per swing` = sprintf("%.0f%%", crit * 100),
+            `Simulator` = sprintf("+%.1f%%", (sim - 1) * 100),
+            `Markov chain` = sprintf("+%.1f%%", (chain - 1) * 100)) %>%
+  knitr::kable(caption = "Extra white swings (and so extra white rage) from Flurry: 100 ten-minute simulated fights against the Markov chain. At 35% the crit is above the crit cap, so both are capped.")
+```
+
+The two agree to within about a percentage point, which is about as close as 100 simulated fights can get (each simulated fight has its own luck with crits). So from here on we can use the chain, which is instant and has no randomness.
+
+## Classic vs Forever
+
+### Uptime
+
+```{r fig.cap="Flurry uptime against crit on the character sheet, for a dual wielder against a boss. The Classic formula (A = 4, on sheet crit) is the most optimistic. The chain's share of hasted swings is a bit lower, and the share of time with Flurry up is lower again. Crit stops helping at the crit cap.", fig.height=4}
+crit_grid <- seq(0.05, 0.45, by = 0.005)
+map_dfr(crit_grid, function(s) {
+  f <- fl(s)
+  tibble(sheet = s,
+         `Classic formula (A = 4)` = flurry_classic(s),
+         `Chain: hasted swings` = f$hasted_swings,
+         `Chain: time with Flurry` = f$time_share)
+}) %>%
+  pivot_longer(-sheet) %>%
+  ggplot(aes(sheet, value, colour = name)) +
+  geom_line(linewidth = 0.9) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_colour_manual(values = c("grey50", "#2c7fb8", "#d95f0e")) +
+  labs(x = "Crit on the character sheet", y = "Flurry uptime", colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+At 30% sheet crit, the Classic formula says `r round(flurry_classic(0.30) * 100)`% uptime, while the chain says `r round(fl(0.30)$hasted_swings * 100)`% of swings are hasted and Flurry is up `r round(fl(0.30)$time_share * 100)`% of the time. The difference is mostly the crit suppression and treating yellow attacks properly. Going from Classic's `r haste_classic * 100`% to Forever's `r haste_forever * 100`% doesn't change the uptime much at all, since the uptime only depends on how often you crit - it changes how much each hasted swing is worth.
+
+### Flurry as rage
+
+This is where Forever is different. Both games give more rage when you swing more often, but in Classic a crit also gave you about twice the rage directly, because rage came from damage. In Forever, damage doesn't matter, so **Flurry is the only way crit gives you rage**.
+
+```{r fig.cap="Extra white rage per minute from Flurry, for a dual wielder against a boss. Forever: 25% haste on Forever's rage per swing. The dashed line is the same warrior with Classic's 30% haste, on the same Forever rage per swing.", fig.height=3.5}
+map_dfr(crit_grid, function(s) tibble(sheet = s,
+  `Forever (25%)` = base_rpm * (fl(s)$swing_mult - 1),
+  `Forever rage with Classic's 30%` = base_rpm * (fl(s, haste_classic)$swing_mult - 1))) %>%
+  pivot_longer(-sheet) %>%
+  ggplot(aes(sheet, value, linetype = name)) +
+  geom_line(colour = "#2c7fb8", linewidth = 0.9) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Crit on the character sheet", y = "Extra rage per minute", linetype = NULL) +
+  theme(legend.position = "bottom")
+```
+
+Our dual wielder gets about `r round(base_rpm)` rage per minute from white hits before Flurry (Forever's `r round(forever_dw, 2)` rage per second when every swing lands, times the `r round(landed * 100)`% that land against a boss). At 30% sheet crit, Flurry adds about **`r round(base_rpm * (fl(0.30)$swing_mult - 1))` rage per minute** on top of that. With Classic's 30% haste it would be `r round(base_rpm * (fl(0.30, haste_classic)$swing_mult - 1))`, so the nerf to 25% costs about `r round(base_rpm * (fl(0.30, haste_classic)$swing_mult - fl(0.30)$swing_mult))` rage per minute.
+
+### What 1% crit is worth in rage
+
+```{r}
+crit_rage <- function(dps, s) {
+  d <- 0.01
+  forever <- base_rpm * (fl(s + d)$swing_mult - fl(s)$swing_mult)
+  # Classic: rage follows white damage, which goes up with crit directly and with Flurry's extra swings
+  cl <- function(x) classic_rps(dps) / (1 + 0.30) * (1 + eff_crit(x)) * fl(x, haste_classic)$swing_mult * landed * 60
+  tibble(forever = forever, classic = cl(s + d) - cl(s))
+}
+```
+
+In Classic, 1% crit gave you rage twice over: the crit itself did more damage (so more rage), and it pushed Flurry up (so more swings). In Forever, only the second part is left. For a phase 2 warrior at 28% sheet crit, 1% crit is worth about **`r round(crit_rage(58, 0.28)$forever, 1)` rage per minute in Forever**, against about `r round(crit_rage(58, 0.28)$classic, 1)` in Classic. So crit is still a rage stat in Forever, but a much weaker one.
+
+## By gear phase
+
+To put numbers on each phase, we need a typical sheet crit for each one. These are rough guesses for a raiding dual wielder, not measured values:
+
+```{r}
+phase_crit <- c(0.20, 0.25, 0.28, 0.30, 0.32)
+phases %>%
+  mutate(sheet = phase_crit,
+         f = map(sheet, fl),
+         hasted = map_dbl(f, "hasted_swings"), time = map_dbl(f, "time_share"),
+         extra = map_dbl(f, ~ base_rpm * (.x$swing_mult - 1)),
+         per_crit = map2_dbl(dps, sheet, ~ crit_rage(.x, .y)$forever)) %>%
+  transmute(Phase = phase, `Sheet crit (guess)` = sprintf("%.0f%%", sheet * 100),
+            `Hasted swings` = sprintf("%.0f%%", hasted * 100), `Time with Flurry` = sprintf("%.0f%%", time * 100),
+            `Extra rage per minute` = round(extra), `Rage per minute per 1% crit` = round(per_crit, 1)) %>%
+  knitr::kable(caption = "Flurry at each gear phase, for a dual wielder against a boss with a full Bloodthirst and Whirlwind rotation.")
+```
+
+Flurry's extra rage grows slowly from phase to phase, and each extra 1% crit is worth a little less than the one before (the diminishing returns from the Classic chapter are still there). The rotation assumes Bloodthirst and Whirlwind are pressed on cooldown; if you're short on rage and delay them, fewer yellow crits means a bit less Flurry.
+
+## What to test when the level cap goes up
+
+Everything above is a prediction. Once warriors can talent into Flurry, these are the things we need from the logs:
+
+1. **Does the swing after a crit come 25% sooner?** And does it last exactly 3 swings?
+2. **Do Bloodthirst and Whirlwind crits trigger Flurry?** And do they use up charges?
+3. **Do Heroic Strike and Cleave crits trigger it**, and do they use up a charge?
+4. **Are the charges shared between main hand and off hand?**
+5. **Does a hasted swing give the same rage as a normal one?** This is the big one for Forever.
+6. **Does Flurry speed up a swing that's already in progress**, or only the next one?
+
+All of these can be answered from swing timings in the combat log, so the best logs are a few minutes of auto-attacking a single mob with Flurry talented, with a few Bloodthirsts mixed in, and the talents and gear posted in the metadata.
+
+## Changelog {#flurry-changelog}
+
+```{r}
+flurry_changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "Flurry chapter versions, newest first.")
+```
