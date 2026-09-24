@@ -342,6 +342,8 @@ Classic then uses its formula with the level 60 conversion value ($C = `r round(
 
 There's one big assumption in all of this: our Forever rates come from levels 13 to 16, and we're assuming they don't change all the way up to 60. The logs can't test that yet, so if the rates do turn out to change with level, the Forever side of these plots will move.
 
+These plots also compare the two games **with no talents**, since that's what the logs measure. Talents change the picture quite a bit, mostly in Forever: Dual Wield Specialization now gives +100% off-hand rage and +10% off-hand hit (in Classic it only added off-hand damage), Anger Management gives 1 rage every 3 seconds, and Boundless Rage raises the cap to 130. The fight simulations in the later chapters include them.
+
 ```{r}
 n_sim <- 4000
 C60 <- conv(60)
@@ -543,7 +545,7 @@ Two more things stay the same as before: every proc gives 1 rage with one-hander
 - Check whether the rates change at higher levels.
 - Figure out how attack power adds damage in Forever. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing - but the logged Battle Axe hits are only 69 to 88. So either attack power works differently, or the number in the log means something else.
 - Keep checking new builds to see when [BUG-1](#bug-ubw) gets fixed.
-- Test Dual Wield Specialization, which Bored's spreadsheet assumes doubles off-hand rage, with a log posted with talents.
+- Test Dual Wield Specialization, whose tooltip says it doubles off-hand rage at 5/5. It's in the fourth row of the Fury tree, so it needs level 24 or higher.
 - Test stances, and rage from damage taken, in a controlled setting.
 - Record mid-log hand swaps in the metadata, since one log shows both weapons being used in both hands.
 

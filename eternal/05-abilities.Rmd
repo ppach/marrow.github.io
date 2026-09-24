@@ -1,0 +1,241 @@
+# Abilities: Classic vs Forever {#abilities}
+
+```{r setup-abilities, include=FALSE}
+# Reuses `phases`, `C60`, `forever_draws`, `n_fights` and the fight simulator from the earlier chapters.
+abilities_changelog <- tribble(
+  ~version, ~date,        ~change,
+  "1.0.0",  "2026-09-24", "First version: Bloodthirst and Whirlwind, from the beta client's tooltips, simulated in Classic and Forever. Model only - neither ability can be learned in the beta yet."
+)
+
+talents_ref   <- read_csv("data/talents/warrior_talents.csv", show_col_types = FALSE)
+abilities_ref <- read_csv("data/talents/warrior_abilities.csv", show_col_types = FALSE)
+
+game_colours <- c(Classic = "grey45", Forever = "#2c7fb8")
+profile <- function(game) modifyList(sim_defaults, if (game == "Classic") classic_talents else forever_talents)
+
+# Gear at each phase: the weapon DPS from the proposals chapter, plus our guesses for attack power and crit.
+gear <- phases %>% mutate(ap = c(1000, 1150, 1300, 1400, 1500), crit = c(0.20, 0.25, 0.28, 0.30, 0.32))
+phase_p <- function(game, ph) {
+  g <- gear[gear$phase == ph, ]
+  modifyList(profile(game), list(ap = g$ap, crit = g$crit - 0.03))   # 3% crit suppression against a boss
+}
+rage_models <- list(Classic = function(hand, dmg, speed) 15 * dmg / C60,
+                    Forever = function(hand, dmg, speed) sample(forever_draws[[hand]], 1) * speed)
+
+# Damage of single casts, rolled on the yellow attack table: miss or dodge, then a separate roll for crit.
+cast_damage <- function(p, ability, dps, n) {
+  roll <- function(d) {
+    landed <- runif(n) >= p$yellow_miss + p$dodge
+    crit <- runif(n) < p$crit
+    d * landed * ifelse(crit, p$crit_mult_yellow, 1)
+  }
+  hand_hit <- function(speed, mult) (dps * speed + p$ap / 14 * p$wpn_norm) * p$armor * mult
+  if (ability == "Bloodthirst") return(roll((p$bt_ap * p$ap + p$bt_flat) * p$armor))
+  d <- roll(hand_hit(p$mh_speed, 1))
+  if (p$raging_blows) d <- d + roll(hand_hit(p$oh_speed, 0.5 * p$oh_dmg_mult))
+  d
+}
+```
+
+*Version `r abilities_changelog$version[1]` (`r abilities_changelog$date[1]`). **Model only:** Bloodthirst needs level 40 and Whirlwind level 36, and the beta is capped at 20, so nothing here has been checked in logs yet. The numbers come from the beta client's tooltips, read by [talentsforever.com](https://talentsforever.com).*
+
+The Classic compendium compared abilities by their damage per rage: how much damage you get for each point of rage you spend. That's even more important in Forever, where rage is a fixed income that gear can't raise, so every point has to go where it does the most damage. This chapter starts with the two abilities at the heart of a Fury rotation, Bloodthirst and Whirlwind, and both of them changed.
+
+Unlike the Classic compendium, we won't give one damage per rage number for each ability. A single cast can miss, hit or crit, a fight is made of a few dozen casts, and your gear changes over the phases, so we look at the whole range of outcomes and let the simulations do the averaging.
+
+## What changed
+
+```{r}
+tribble(
+  ~Ability,       ~Classic,                                         ~Forever,
+  "Bloodthirst",  "45% of attack power, and heals you for 10-20 on your next 5 hits",
+                  "35% of attack power + 48 (rank 4), and 10% movement speed for 10 sec",
+  "Whirlwind",    "Main-hand weapon damage, to up to 4 enemies",
+                  "The same, and with Raging Blows (Fury, row 4) it also hits with the off hand",
+  "Cost and cooldown", "Bloodthirst 30 rage, 6 sec. Whirlwind 25 rage, 10 sec",
+                  "The same"
+) %>% knitr::kable(caption = "Bloodthirst and Whirlwind in the two games, from the beta client's tooltips (via talentsforever.com).")
+```
+
+So Bloodthirst lost a big chunk of its attack power scaling (45% down to 35%, with a small flat bonus to make up for it early on), while Whirlwind gained a whole second hit for dual wielders. The off-hand hit should be affected by the usual half damage for off-hand attacks, and by Dual Wield Specialization's +25% off-hand damage, which the most popular Fury build takes anyway.
+
+A few things we're assuming, since the tooltips don't say:
+
+- **Whirlwind uses a normalised weapon speed** (2.4 for one-handers) for its attack power bonus, like Classic did, for both hands.
+- **The Raging Blows hit rolls separately**, so the main hand can crit while the off hand misses.
+- **Yellow attacks** miss `r sim_defaults$yellow_miss * 100`% of the time (they don't get the dual wield penalty), get dodged `r sim_defaults$dodge * 100`% of the time, and crit for `r sim_defaults$crit_mult_yellow`x damage (double damage, plus Impale 2/2) on a separate roll.
+
+We'll use the same warrior as the rest of the book, a level 60 dual wielder against a boss, with the popular 17/34/0 build in each game. Since both abilities scale with attack power, and Whirlwind with the weapon too, we need gear for each phase. The weapon DPS comes from the proposals chapter; attack power and crit are our rough guesses, not measured values:
+
+```{r}
+gear %>% transmute(Phase = phase, `Weapon DPS (both hands)` = dps, `Attack power (guess)` = ap,
+                   `Sheet crit (guess)` = sprintf("%.0f%%", crit * 100)) %>%
+  knitr::kable(caption = "Gear at each phase.")
+```
+
+## One cast at a time
+
+Before looking at whole fights, it's worth looking at what a single cast can do. Each cast either misses, hits or crits, so its damage per rage isn't one number but a handful of possible outcomes, each with its own chance. Here are 20,000 simulated casts of each ability with phase 2 gear:
+
+```{r}
+set.seed(2)
+casts <- expand_grid(game = c("Classic", "Forever"), ability = c("Bloodthirst", "Whirlwind")) %>%
+  mutate(dpr = pmap(list(game, ability), function(g, a) {
+    p <- phase_p(g, "Phase 2")
+    cast_damage(p, a, gear$dps[gear$phase == "Phase 2"], 20000) / (if (a == "Bloodthirst") p$bt_cost else p$ww_cost)
+  })) %>% unnest(dpr)
+```
+
+```{r fig.cap="Damage per rage of single casts with phase 2 gear, out of 20,000 simulated casts of each. Each bar is one possible outcome: a miss or dodge (0), a hit, or a crit. Forever's Whirlwind has more outcomes, because each of its two hits can miss, hit or crit on its own.", fig.height=4.5}
+casts %>% mutate(bin = round(dpr)) %>% count(game, ability, bin) %>%
+  group_by(game, ability) %>% mutate(share = n / sum(n)) %>%
+  ggplot(aes(bin, share, fill = game)) +
+  geom_col(width = 0.9, position = position_dodge(preserve = "single")) +
+  facet_wrap(~ ability, ncol = 1) +
+  scale_fill_manual(values = game_colours) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "Damage per rage of one cast", y = "Share of casts", fill = NULL) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+cast_summary <- casts %>% group_by(game, ability) %>%
+  summarise(mean = mean(dpr), miss = mean(dpr == 0), lo = quantile(dpr, 0.05), hi = quantile(dpr, 0.95), .groups = "drop")
+cs <- function(g, a, col) cast_summary[[col]][cast_summary$game == g & cast_summary$ability == a]
+cast_summary %>%
+  transmute(Game = game, Ability = ability, `Average damage per rage` = round(mean, 1),
+            `Casts that do nothing` = sprintf("%.0f%%", miss * 100),
+            `Middle 90% of casts` = sprintf("%.0f to %.0f", lo, hi)) %>%
+  knitr::kable(caption = "Damage per rage of single casts with phase 2 gear.")
+```
+
+With phase 2 gear, Bloodthirst goes from about `r round(cs("Classic", "Bloodthirst", "mean"))` damage per rage in Classic to `r round(cs("Forever", "Bloodthirst", "mean"))` in Forever, while Whirlwind goes the other way, from `r round(cs("Classic", "Whirlwind", "mean"))` to `r round(cs("Forever", "Whirlwind", "mean"))`. **In Classic, Bloodthirst was the better use of rage. In Forever it's Whirlwind, by a wide margin.**
+
+Forever's Whirlwind is also more reliable. A Classic Whirlwind or any Bloodthirst does nothing `r (sim_defaults$yellow_miss + sim_defaults$dodge) * 100`% of the time (a miss or a dodge), while Forever's Whirlwind only does nothing when *both* hits miss, which is about `r round(cs("Forever", "Whirlwind", "miss") * 100, 1)`% of casts.
+
+## Across the phases
+
+Bloodthirst scales with attack power only, while Whirlwind scales with both attack power and weapon damage, so the gap between them changes as you gear up. To see how, we simulate `r n_fights` three-minute fights for each game at each phase, with the same rotation as the proposals chapter (Bloodthirst on cooldown, then Whirlwind, then Heroic Strike with spare rage), and look at each fight's average damage per rage for each ability. A fight only has about 30 Bloodthirsts and 15 Whirlwinds, so the average from one fight to the next still moves around quite a bit, and that's the range we show.
+
+```{r}
+set.seed(36)
+ability_sims <- expand_grid(game = c("Classic", "Forever"), phase = gear$phase) %>%
+  mutate(res = map2(game, phase, function(g, ph) {
+    p <- phase_p(g, ph)
+    map_dfr(seq_len(n_fights), function(i) simulate_fight(rage_models[[g]], gear$dps[gear$phase == ph], p))
+  })) %>% unnest(res) %>%
+  mutate(phase = factor(phase, levels = levels(phases$phase)))
+```
+
+```{r fig.cap="Damage per rage of Bloodthirst and Whirlwind at each phase, averaged over each simulated fight. The dots are the typical fight, and the lines cover the middle 90% of fights.", fig.height=4.5}
+ability_sims %>%
+  pivot_longer(c(dpr_bt, dpr_ww), names_to = "ability", values_to = "dpr") %>%
+  mutate(ability = recode(ability, dpr_bt = "Bloodthirst", dpr_ww = "Whirlwind")) %>%
+  group_by(game, phase, ability) %>%
+  summarise(med = median(dpr, na.rm = TRUE), lo = quantile(dpr, 0.05, na.rm = TRUE),
+            hi = quantile(dpr, 0.95, na.rm = TRUE), .groups = "drop") %>%
+  ggplot(aes(phase, med, colour = ability, shape = ability)) +
+  geom_pointrange(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.5)) +
+  facet_wrap(~ game) +
+  scale_colour_manual(values = c(Bloodthirst = "#d95f02", Whirlwind = "#1b9e77")) +
+  labs(x = NULL, y = "Damage per rage (per fight)", colour = NULL, shape = NULL) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+dpr_phase <- ability_sims %>% group_by(game, phase) %>%
+  summarise(bt = median(dpr_bt, na.rm = TRUE), ww = median(dpr_ww, na.rm = TRUE),
+            ww_wins = mean(dpr_ww > dpr_bt, na.rm = TRUE), .groups = "drop")
+dp <- function(g, ph, col) dpr_phase[[col]][dpr_phase$game == g & dpr_phase$phase == ph]
+```
+
+In Classic, Bloodthirst stays ahead at every phase, by a fairly steady `r round(min((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` to `r round(max((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` damage per rage. In Forever it's the other way round from the start, and the gap grows with every phase, since Raging Blows means Whirlwind gets two weapons' worth out of each weapon upgrade: even at pre-BiS, Whirlwind gets `r round(dp("Forever", "Pre-BiS", "ww") / dp("Forever", "Pre-BiS", "bt"), 1)` times Bloodthirst's damage per rage, and by phase 4 it's `r round(dp("Forever", "Phase 4", "ww") / dp("Forever", "Phase 4", "bt"), 1)` times. Even with all the luck of a single fight, Whirlwind comes out ahead in `r round(min(dpr_phase$ww_wins[dpr_phase$game == "Forever"]) * 100)`% or more of Forever fights at every phase, against `r round(max(dpr_phase$ww_wins[dpr_phase$game == "Classic"]) * 100)`% or fewer in Classic.
+
+## What it means for a whole fight
+
+Damage per rage is only half the story, since both abilities are limited by their cooldowns too. Here's how much of the warrior's total damage comes from each of them over a whole fight:
+
+```{r fig.cap="Damage per second from Bloodthirst and Whirlwind in each simulated fight, at each phase. The dots are the typical fight, and the lines cover the middle 90% of fights.", fig.height=4.5}
+ability_sims %>%
+  pivot_longer(c(dps_bt, dps_ww), names_to = "ability", values_to = "d") %>%
+  mutate(ability = recode(ability, dps_bt = "Bloodthirst", dps_ww = "Whirlwind")) %>%
+  group_by(game, phase, ability) %>%
+  summarise(med = median(d), lo = quantile(d, 0.05), hi = quantile(d, 0.95), .groups = "drop") %>%
+  ggplot(aes(phase, med, colour = game)) +
+  geom_pointrange(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.5)) +
+  facet_wrap(~ ability) +
+  scale_colour_manual(values = game_colours) +
+  labs(x = NULL, y = "Damage per second", colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+share_tbl <- ability_sims %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  mutate(bt_share = dps_bt / total_dps, ww_share = dps_ww / total_dps) %>%
+  group_by(Phase = phase, Game = game) %>%
+  summarise(`Total DPS` = sprintf("%.0f (%.0f to %.0f)", median(total_dps), quantile(total_dps, 0.05), quantile(total_dps, 0.95)),
+            `Bloodthirst share` = sprintf("%.0f%%", median(bt_share) * 100),
+            `Whirlwind share` = sprintf("%.0f%%", median(ww_share) * 100),
+            `Bloodthirst / min` = round(mean(bt_pm), 1), `Whirlwind / min` = round(mean(ww_pm), 1),
+            .groups = "drop")
+share_tbl %>% knitr::kable(caption = "The typical fight at three phases: total damage per second (with the middle 90% of fights in brackets), the share of it from Bloodthirst and Whirlwind, and how often each is cast. These fights leave out cooldowns, Deep Wounds and other procs, so the totals are only useful for comparing the two games with each other.")
+```
+
+```{r}
+sh <- function(ph, g) ability_sims %>% filter(phase == ph, game == g) %>%
+  summarise(bt = median(dps_bt / total_dps), ww = median(dps_ww / total_dps))
+```
+
+Bloodthirst still does more damage per second than Whirlwind in both games, simply because it comes off cooldown more often (every 6 seconds, against 10). But the balance shifts a lot: in Classic, Bloodthirst makes up about `r round(sh("Phase 2", "Classic")$bt * 100)`% of a phase 2 warrior's damage and Whirlwind `r round(sh("Phase 2", "Classic")$ww * 100)`%, while in Forever it's `r round(sh("Phase 2", "Forever")$bt * 100)`% and `r round(sh("Phase 2", "Forever")$ww * 100)`%. The total damage is also lower in Forever, and it doesn't all come from the abilities: Forever has far fewer Heroic Strikes to spend its rage on (see the [proposals chapter](#rage-proposals)).
+
+## Should Whirlwind come first?
+
+If Whirlwind is the better use of rage in Forever, should it go ahead of Bloodthirst in the rotation? We can test that directly: play the same fights with each priority, and compare. To make the comparison fair, each pair of fights starts from the same random numbers, so the difference comes from the priority rather than from luck.
+
+```{r}
+prio_sims <- expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  mutate(res = map2(game, phase, function(g, ph) {
+    d <- gear$dps[gear$phase == ph]
+    map_dfr(seq_len(n_fights), function(i) {
+      set.seed(1000 + i); a <- simulate_fight(rage_models[[g]], d, phase_p(g, ph))
+      set.seed(1000 + i); b <- simulate_fight(rage_models[[g]], d, modifyList(phase_p(g, ph), list(priority = "ww_first")))
+      tibble(diff = b$total_dps - a$total_dps, rel = b$total_dps / a$total_dps - 1)
+    })
+  })) %>% unnest(res)
+```
+
+```{r}
+prio_summary <- prio_sims %>% mutate(phase = factor(phase, levels = levels(phases$phase))) %>%
+  group_by(Game = game, Phase = phase) %>%
+  summarise(mean = mean(rel), lo = mean(rel) - 1.96 * sd(rel) / sqrt(n()), hi = mean(rel) + 1.96 * sd(rel) / sqrt(n()),
+            wins = mean(diff > 0), p = t.test(rel)$p.value, .groups = "drop")
+prio_summary %>%
+  transmute(Game, Phase, `Change in DPS, Whirlwind first` = sprintf("%+.1f%%", mean * 100),
+            `95% interval` = sprintf("%+.1f%% to %+.1f%%", lo * 100, hi * 100),
+            `Fights where Whirlwind first wins` = sprintf("%.0f%%", wins * 100),
+            `p-value` = fmt_p(p)) %>%
+  knitr::kable(caption = "Putting Whirlwind ahead of Bloodthirst: the average change in total damage per second over paired fights, with a 95% interval and a p-value against no change.")
+ps <- function(g, ph, col) prio_summary[[col]][prio_summary$Game == g & prio_summary$Phase == ph]
+```
+
+Putting Whirlwind first is a small gain: about `r sprintf("%+.1f%%", ps("Forever", "Phase 2", "mean") * 100)` damage at phase 2 in Forever. But the surprise is that it helps about as much in Classic (`r sprintf("%+.1f%%", ps("Classic", "Phase 2", "mean") * 100)`), where Bloodthirst is the better use of rage. So the gain isn't really about damage per rage. It's most likely about timing: with Bloodthirst first, our rotation holds Whirlwind back whenever Bloodthirst is less than a second from coming off cooldown, and those small delays add up to a few lost Whirlwinds over a fight. With Whirlwind first, it just goes out as soon as it's ready.
+
+Rage hardly comes into it, because with the talents counted there's enough for both abilities almost all the time (the [proposals chapter](#rage-proposals) shows the warrior is only starved for Bloodthirst about 5% of the time). Where damage per rage *would* matter is if rage turned out tighter than we think, for example while Unbridled Wrath is bugged, or before a warrior has Dual Wield Specialization. Then, in Forever, Whirlwind would be the better place for it.
+
+Also, the pairing only helps so much: after the first different decision, the two fights drift apart, so a single pair of fights can still go either way (Whirlwind first wins about `r round(ps("Forever", "Phase 2", "wins") * 100)`% of them). The effect only shows up clearly over hundreds of fights.
+
+## What to test
+
+Neither ability can be learned in the beta yet. Once they can, these are the things to check in the logs:
+
+1. **Bloodthirst's damage:** is it 35% of attack power plus 48 at rank 4? Hits against a mob with known armor, at a known attack power, would settle it.
+2. **Whirlwind's off-hand hit with Raging Blows:** does it do half damage, does Dual Wield Specialization's +25% apply, and does it roll separately from the main hand?
+3. **Whirlwind's speed:** does it use a normalised speed (2.4 for one-handers) or the weapon's real speed?
+4. **Crits:** do Bloodthirst and Whirlwind crits trigger Flurry (see the [Flurry chapter](#flurry))?
+
+## Changelog {#abilities-changelog}
+
+```{r}
+abilities_changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "Abilities chapter versions, newest first.")
+```

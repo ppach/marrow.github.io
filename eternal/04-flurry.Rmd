@@ -6,6 +6,7 @@ source("data/flurry.R")
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.1.0",  "2026-09-24", "The white rage baseline now includes Dual Wield Specialization 5/5 (+100% off-hand rage, +10% off-hand hit), so Flurry's extra rage is about 40% higher than in 1.0.0.",
   "1.0.0",  "2026-09-24", "First version: a Markov chain model of Flurry, checked against the fight simulator, and compared with Classic. Model only - Flurry can't be talented in the beta yet."
 )
 
@@ -15,8 +16,10 @@ suppression   <- 0.03    # crit lost against a level 63 boss (Classic: 1.8% aura
 landed        <- 1 - sim_defaults$miss - sim_defaults$dodge            # dual wield vs a boss, from behind
 crit_cap      <- 1 - sim_defaults$miss - sim_defaults$dodge - sim_defaults$glance
 yellow_cps    <- 1 / sim_defaults$bt_cd + 1 / sim_defaults$ww_cd       # a full Bloodthirst and Whirlwind rotation
-yellow_landed <- 1 - 0.09 - sim_defaults$dodge                          # yellow attacks don't get the dual wield miss penalty
-base_rpm      <- forever_dw * landed * 60                               # Forever white rage per minute before Flurry
+yellow_landed <- 1 - sim_defaults$yellow_miss - sim_defaults$dodge       # yellow attacks don't get the dual wield miss penalty
+landed_oh     <- landed + forever_talents$oh_hit_bonus                  # Dual Wield Specialization: +10% off-hand hit
+# Forever white rage per minute before Flurry, with Dual Wield Specialization 5/5 (+100% off-hand rage)
+base_rpm      <- (forever_mh * landed + forever_talents$oh_rage_mult * forever_oh * landed_oh) * 60
 
 eff_crit <- function(sheet) pmin(pmax(sheet - suppression, 0), crit_cap)
 fl <- function(sheet, haste = haste_forever, yellow = TRUE) {
@@ -93,7 +96,7 @@ To make sure the maths is right, we can run the same warrior through the fight s
 ```{r flurry-check}
 set.seed(60)
 fr <- function(hand, dmg, speed) (if (hand == "MH") forever_mh else forever_oh) * speed
-p_check <- modifyList(sim_defaults, list(fight_len = 600, ubw_chance = 0, hs_threshold = 1e4, bt_cost = 1e4, ww_cost = 1e4))
+p_check <- modifyList(sim_defaults, list(fight_len = 600, ubw_chance = 0, hs_threshold = 1e4, bt_cost = 1e4, ww_cost = 1e4, anger_rps = 0))
 flurry_check <- map_dfr(c(0.05, 0.15, 0.25, 0.35), function(c) {
   on  <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c)))$rps)
   off <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c, flurry_haste = 0)))$rps)
@@ -149,7 +152,7 @@ map_dfr(crit_grid, function(s) tibble(sheet = s,
   theme(legend.position = "bottom")
 ```
 
-Our dual wielder gets about `r round(base_rpm)` rage per minute from white hits before Flurry (Forever's `r round(forever_dw, 2)` rage per second when every swing lands, times the `r round(landed * 100)`% that land against a boss). At 30% sheet crit, Flurry adds about **`r round(base_rpm * (fl(0.30)$swing_mult - 1))` rage per minute** on top of that. With Classic's 30% haste it would be `r round(base_rpm * (fl(0.30, haste_classic)$swing_mult - 1))`, so the nerf to 25% costs about `r round(base_rpm * (fl(0.30, haste_classic)$swing_mult - fl(0.30)$swing_mult))` rage per minute.
+Our dual wielder gets about `r round(base_rpm)` rage per minute from white hits before Flurry. That's Forever's rage per second for each hand, with the off hand doubled by Dual Wield Specialization, times the share of swings that land against a boss (`r round(landed * 100)`% for the main hand, and `r round(landed_oh * 100)`% for the off hand with Dual Wield Specialization's +10% hit). At 30% sheet crit, Flurry adds about **`r round(base_rpm * (fl(0.30)$swing_mult - 1))` rage per minute** on top of that. With Classic's 30% haste it would be `r round(base_rpm * (fl(0.30, haste_classic)$swing_mult - 1))`, so the nerf to 25% costs about `r round(base_rpm * (fl(0.30, haste_classic)$swing_mult - fl(0.30)$swing_mult))` rage per minute.
 
 ### What 1% crit is worth in rage
 
