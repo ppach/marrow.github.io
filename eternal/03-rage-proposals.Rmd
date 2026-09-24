@@ -5,6 +5,9 @@
 forever_mh <- with(filter(obs, hand == "Main hand"), mean(gain / speed))
 forever_oh <- with(filter(obs, hand == "Off hand"),  mean(gain / speed))
 forever_dw <- forever_mh + forever_oh          # no talents
+# Rage per second of weapon speed for every logged swing, which the simulations draw from
+forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
+                      OH = with(filter(obs, hand == "Off hand"),  gain / speed))
 # With Dual Wield Specialization 5/5 (+100% off-hand rage), which every dual-wield Fury build takes. This is the
 # baseline for the rest of the chapter.
 forever_dw_tal <- forever_mh + forever_talents$oh_rage_mult * forever_oh
@@ -191,6 +194,106 @@ A few things stand out:
 - **The saturating curve** is the opposite: the first upgrade is the biggest one (`r round(at_phase[["Proposal: saturating"]][2] - at_phase[["Proposal: saturating"]][1], 2)` rage per second from pre-BiS to phase 1), and each phase after that is worth a bit less, down to `r round(at_phase[["Proposal: saturating"]][5] - at_phase[["Proposal: saturating"]][4], 2)` from phase 3 to phase 4. Because it has to reach the target by the phase 3-4 midpoint, that first upgrade is a big jump, so a fresh level 60 goes from Forever's rage to more than double it with a single weapon.
 - **The hybrid** doesn't fit this goal very well. Because it's today's Forever rate *plus* a share of Classic, meeting Classic at the target means it sits *above* Classic before that, so early-geared warriors would get even more rage than they did in Classic. It follows Classic's straight line at `r round(hyb_alpha * 100)`% of the slope until it hits its cap at about `r round(hybrid_cap_dps)` weapon DPS, and stays flat after that. On top of that, with `r round(hyb_alpha * 100)`% of Classic's rage coming from each hit's damage, it brings back most of the crit randomness.
 
+## The shape is the feel
+
+The numbers we picked for each curve are just one way to set it up. What matters much more is the *shape*, because the shape decides what gearing feels like. Warrior is the only class where getting better gear makes you press more buttons: more rage means more Heroic Strikes, and a rotation that goes from waiting on Bloodthirst to always having something to press. So a rage curve isn't just a balance number, it's a description of how the rotation changes over the life of the game. Where the curve is steep, upgrades feel big; where it's flat, they don't change how you play.
+
+A sigmoid has four knobs, and each one changes a different part of that feel:
+
+$$Rage(d) = F + \frac{C - F}{1 + e^{-(d - m)/w}}$$
+
+- $F$, the **floor**: the rage you get with a bad weapon. This is how a fresh level 60 feels.
+- $C$, the **ceiling**: where the curve levels off. This is how a fully geared warrior feels, and how many Heroic Strikes the endgame rotation has room for.
+- $m$, the **midpoint**: the weapon DPS where the curve is climbing fastest. Moving it **left or right** decides *which phase* gets the big jump in rage.
+- $w$, the **width**: how spread out the climb is. A small $w$ **squishes** the S, so the whole change happens over one or two upgrades; a large $w$ **stretches** it, so every phase gets a bit.
+
+Here's what each knob does on its own, starting from the sigmoid we've been using (the thick line):
+
+```{r}
+sig_curve <- function(d, F = forever_dw_tal, C = target_rps, m = ref_dps, w = sig_s * ref_dps)
+  F + (C - F) / (1 + exp(-(d - m) / w))
+w0 <- sig_s * ref_dps
+spare_axis <- sec_axis(~ (. - rotation_cost) * 60, breaks = seq(0, 600, 100),
+                       name = "Spare rage per minute after the core rotation")
+knob_curves <- bind_rows(
+  tibble(knob = "Midpoint: move left or right", setting = c("Phase 1", "Phase 2 (ours)", "Phase 3"),
+         m = phases$dps[2:4]) %>% mutate(w = w0, F = forever_dw_tal, C = target_rps),
+  tibble(knob = "Width: squish or stretch", setting = c("Squished (w / 2)", "Ours", "Stretched (w x 2)"),
+         w = w0 * c(0.5, 1, 2)) %>% mutate(m = ref_dps, F = forever_dw_tal, C = target_rps),
+  tibble(knob = "Floor", setting = c("Lower", "Ours", "Higher"),
+         F = forever_dw_tal + c(-1.5, 0, 1.5)) %>% mutate(m = ref_dps, w = w0, C = target_rps),
+  tibble(knob = "Ceiling", setting = c("Lower", "Ours", "Higher"),
+         C = target_rps + c(-4, 0, 4)) %>% mutate(m = ref_dps, w = w0, F = forever_dw_tal)
+) %>%
+  mutate(ours = setting %in% c("Phase 2 (ours)", "Ours"),
+         role = factor(case_when(ours ~ "Ours",
+                                 setting %in% c("Phase 1", "Squished (w / 2)", "Lower") ~ "Left / squished / lower",
+                                 TRUE ~ "Right / stretched / higher"),
+                       levels = c("Left / squished / lower", "Ours", "Right / stretched / higher")),
+         curve = pmap(list(F, C, m, w), function(F, C, m, w) tibble(dps = dps, rps = sig_curve(dps, F, C, m, w)))) %>%
+  unnest(curve) %>%
+  mutate(knob = factor(knob, levels = unique(knob)))
+```
+
+```{r fig.cap="How each of the sigmoid's four knobs changes the curve, one knob at a time. The thick line is the sigmoid used in the rest of this chapter. Midpoint: phase 1, 2 and 3. Width: half, the same, and double. Floor and ceiling: lower, the same, and higher. The right-hand axis shows the rage per minute left over after Bloodthirst, Whirlwind and two Sunders, which is what's available for extra buttons like Heroic Strike.", fig.height=7, fig.width=9}
+ggplot(knob_curves, aes(dps, rps, group = setting, colour = role)) +
+  phase_marks(max(knob_curves$rps)) +
+  geom_hline(yintercept = rotation_cost, linetype = "dotted", colour = "grey40") +
+  geom_line(aes(linewidth = ours)) +
+  scale_linewidth_manual(values = c(`TRUE` = 1.6, `FALSE` = 0.7), guide = "none") +
+  facet_wrap(~ knob, ncol = 2) +
+  scale_colour_manual(values = c("Left / squished / lower" = "#1b9e77", "Ours" = "grey20",
+                                 "Right / stretched / higher" = "#d95f02")) +
+  scale_y_continuous(sec.axis = spare_axis) +
+  labs(x = "Main-hand weapon DPS", y = "Rage per second from white hits", colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+A few ways to read it:
+
+- **Moving the midpoint** picks the phase where warriors "come online". With the midpoint at phase 1, the rotation opens up almost as soon as you're raiding, and later phases add little. At phase 3, most of the game is spent near the floor, and the payoff comes late.
+- **Squishing the S** makes that moment dramatic: one or two weapon upgrades take you from a tight rotation to a comfortable one. **Stretching** it spreads the change out, so every phase feels a little better than the last, but no single upgrade feels big.
+- **The floor and the ceiling** set the two ends of the experience: how tight the rotation is for a fresh level 60, and how much room there is for extra buttons at the very end. They're also the two numbers most directly tied to balance, since the ceiling decides how much a geared warrior can spend.
+
+The other curves have knobs too, just fewer. The saturating curve has one, $\tau$, which sets how quickly it approaches its ceiling: a small $\tau$ gives almost everything with the first upgrade, and a large one spreads it out, although it always changes fastest at the start. The hybrid has two, the share of Classic's damage-based rage ($\alpha$) and the cap. But neither can do what the sigmoid does: put the biggest change in the *middle* of the content, and choose exactly where.
+
+To see what the knobs mean for the rotation itself, we can run the fight simulation for a few versions of the sigmoid and count the Heroic Strikes, the extra buttons, at each phase:
+
+```{r}
+shape_variants <- tribble(
+  ~variant,                  ~m,             ~w,
+  "Ours",                    ref_dps,        w0,
+  "Midpoint at phase 1",     phases$dps[2],  w0,
+  "Midpoint at phase 3",     phases$dps[4],  w0,
+  "Squished (w / 2)",        ref_dps,        w0 / 2,
+  "Stretched (w x 2)",       ref_dps,        w0 * 2
+) %>% mutate(variant = factor(variant, levels = variant))
+shape_sims <- cached_sim("proposals_shapes", deps = list(shape_variants, phases, forever_draws, forever_dw_tal, target_rps, sim_defaults, forever_talents), {
+set.seed(7)
+shape_variants %>% mutate(res = pmap(list(m, w), function(m, w) {
+  phases %>% mutate(fights = map(dps, function(d) {
+    scale <- sig_curve(d, m = m, w = w) / forever_dw_tal
+    fn <- function(hand, dmg, speed) sample(forever_draws[[hand]], 1) * speed * scale
+    map_dfr(seq_len(200), function(i) simulate_fight(fn, d, modifyList(sim_defaults, forever_talents)))
+  })) %>% unnest(fights)
+})) %>% select(variant, res) %>% unnest(res)
+})
+```
+
+```{r fig.cap="Heroic Strikes per minute at each phase in simulated fights, for five versions of the sigmoid (200 fights each). The dots are the typical fight, and the lines cover the middle 90% of fights. Each version gives warriors their extra buttons at a different point in the game.", fig.height=4.5}
+shape_sims %>% group_by(variant, phase) %>%
+  summarise(med = median(hs_pm), lo = quantile(hs_pm, 0.05), hi = quantile(hs_pm, 0.95), .groups = "drop") %>%
+  ggplot(aes(phase, med, colour = variant, group = variant)) +
+  geom_line(position = position_dodge(width = 0.5), alpha = 0.6) +
+  geom_pointrange(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.5), size = 0.3) +
+  scale_colour_manual(values = c("Ours" = "grey20", "Midpoint at phase 1" = "#1b9e77", "Midpoint at phase 3" = "#d95f02",
+                                 "Squished (w / 2)" = "#7570b3", "Stretched (w x 2)" = "#e7298a")) +
+  labs(x = NULL, y = "Heroic Strikes per minute", colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+The five versions share the same floor and ceiling, so they start and end in roughly the same place, but they get there in very different ways, and that difference is exactly what players would feel from one phase to the next. So when it comes to tuning, the specific numbers are easy to adjust. The shape is the decision that matters.
+
 ## Simulating actual fights
 
 Everything above works with averages: rage per second on paper, as if every second of a fight looked the same. Real fights don't work like that. Rage comes in lumps with each swing, crits trigger Flurry and speed you up for a few swings, Bloodthirst and Whirlwind come off cooldown at awkward moments, and the rage bar caps at 100, so a lucky streak can waste rage while an unlucky one leaves you standing there with Bloodthirst ready and nothing to press it with. An average can't show any of that, so instead of assuming a formula for the whole fight, we can just play the fight out and see what happens.
@@ -207,8 +310,6 @@ The simulator plays a `r sim_defaults$fight_len / 60`-minute boss fight, swing b
 We run `r n_fights` fights for every combination of model and phase, and look at what comes out.
 
 ```{r}
-forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
-                      OH = with(filter(obs, hand == "Off hand"),  gain / speed))
 
 sims <- cached_sim("proposals_fights", deps = list(phases, forever_draws, C60, ref_dps, pre_bis, target_rps, sig_s, sat_tau, hyb_alpha, hyb_cap, forever_dw_tal, n_fights, sim_defaults, forever_talents, classic_talents), {
 set.seed(4)
@@ -331,3 +432,53 @@ This is where question 1 shows up in practice, although less dramatically than y
 The rage per second here also comes out quite a bit lower than the curves earlier in the chapter, especially for Classic (about `r round(rps_spread$median[rps_spread$phase == "Phase 2" & rps_spread$option == "Classic"], 1)` at phase 2 in the simulation, against `r round(classic_rps(ref_dps), 1)` on the curve). The curves count every hit landing in full, while the simulation has misses, dodges, glancing blows (which hit Classic's damage-based rage hard) and Heroic Strikes replacing white swings, which then give no rage at all.
 
 As with everything in this chapter, the numbers depend on the settings we picked (the attack table, the rotation, the Heroic Strike threshold and the weapon speeds), so they're best read as a comparison between the options rather than as exact predictions. The nice thing about a simulation is that any of these can be changed and rerun in a few seconds, so it's easy to try different curves, rotations or talent setups.
+
+## Boundless Rage: a talent waiting for rage
+
+Boundless Rage (Fury, row 3) raises your maximum rage by 30, to 130. That only does anything if you'd otherwise hit the 100 cap: rage that comes in while the bar is full is thrown away, and a bigger bar gives it somewhere to go. So how useful it is depends entirely on how much spare rage you have. To measure it, we play the same fights with and without the talent, starting each pair from the same random numbers, and look at the difference:
+
+```{r}
+br_sims <- cached_sim("proposals_boundless", deps = list(phases, forever_draws, forever_dw_tal, target_rps, sig_s, sat_tau, pre_bis, ref_dps, sim_defaults, forever_talents), {
+expand_grid(option = c("Forever (today)", "Proposal: sigmoid", "Proposal: saturating"), phase = phases$phase) %>%
+  mutate(res = map2(option, phase, function(opt, ph) {
+    d <- phases$dps[phases$phase == ph]
+    scale <- rage_options(d)[[opt]] / forever_dw_tal
+    fn <- function(hand, dmg, speed) sample(forever_draws[[hand]], 1) * speed * scale
+    p_with <- modifyList(sim_defaults, forever_talents)
+    p_without <- modifyList(p_with, list(rage_cap = 100))
+    map_dfr(seq_len(200), function(i) {
+      set.seed(3000 + i); a <- simulate_fight(fn, d, p_with)
+      set.seed(3000 + i); b <- simulate_fight(fn, d, p_without)
+      tibble(wasted_without = b$wasted_pm, hs_gain = a$hs_pm - b$hs_pm, dps_gain = a$total_dps / b$total_dps - 1)
+    })
+  })) %>% unnest(res) %>%
+  mutate(option = factor(option, levels = option_levels), phase = factor(phase, levels = levels(phases$phase)))
+})
+br_summary <- br_sims %>% group_by(option, phase) %>%
+  summarise(wasted = mean(wasted_without), hs = mean(hs_gain), dps = mean(dps_gain),
+            dps_lo = dps - 1.96 * sd(dps_gain) / sqrt(n()), dps_hi = dps + 1.96 * sd(dps_gain) / sqrt(n()), .groups = "drop")
+brs <- function(opt, ph, col) br_summary[[col]][br_summary$option == opt & br_summary$phase == ph]
+```
+
+```{r fig.cap="What Boundless Rage adds, over 200 paired fights at each phase: the damage gained from the extra 30 rage (average, with a 95% interval), for Forever today and the two DPS-based proposals.", fig.height=3.8}
+ggplot(br_summary, aes(phase, dps * 100, colour = option, group = option)) +
+  geom_hline(yintercept = 0, colour = "grey60") +
+  geom_line(position = position_dodge(width = 0.4), alpha = 0.6) +
+  geom_pointrange(aes(ymin = dps_lo * 100, ymax = dps_hi * 100), position = position_dodge(width = 0.4), size = 0.3) +
+  scale_colour_manual(values = option_colours) +
+  labs(x = NULL, y = "Damage gained (%)", colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+br_summary %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  transmute(Phase = phase, Option = option,
+            `Rage wasted per minute at a 100 cap` = round(wasted, 1),
+            `Extra Heroic Strikes per minute` = round(hs, 1),
+            `Damage gained` = sprintf("%+.1f%% (%+.1f%% to %+.1f%%)", dps * 100, dps_lo * 100, dps_hi * 100)) %>%
+  knitr::kable(caption = "Boundless Rage at three of the phases: how much rage a 100 cap throws away, and what the extra 30 rage turns into.")
+```
+
+**Right now, Boundless Rage does nothing.** With Forever's current rage, a warrior never fills a 100 rage bar in the first place (`r round(max(br_summary$wasted[br_summary$option == "Forever (today)"]), 1)` rage a minute thrown away, at any phase), because Bloodthirst and Whirlwind spend it long before the bar fills up. So the extra 30 rage has nothing to catch, and the talent adds no damage at all. It's three talent points that only pay off once you have more rage than your rotation can spend, and with today's flat rage that never happens, however good your gear gets.
+
+With a rage curve that grows with gear, it's a different talent, but only later on. Under the sigmoid it's still worth nothing at pre-BiS and very little at phase 2 (`r sprintf("%+.1f%%", brs("Proposal: sigmoid", "Phase 2", "dps") * 100)`, and the interval includes zero), because the rotation still spends everything. By phase 4, a 100 cap would throw away `r round(brs("Proposal: sigmoid", "Phase 4", "wasted"), 1)` rage a minute, and Boundless Rage turns that into `r round(brs("Proposal: sigmoid", "Phase 4", "hs"), 1)` more Heroic Strikes a minute (`r sprintf("%+.1f%%", brs("Proposal: sigmoid", "Phase 4", "dps") * 100)` damage). So it's a talent for the late part of the scaling: the more rage the game gives geared warriors, the more it's worth.

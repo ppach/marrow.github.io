@@ -4,6 +4,7 @@
 # Reuses `phases`, `C60`, `forever_draws`, `n_fights` and the fight simulator from the earlier chapters.
 abilities_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.1.0",  "2026-09-24", "Added Execute: the rage spent on each Execute, and Execute damage in the execute phase, simulated in both games.",
   "1.0.0",  "2026-09-24", "First version: Bloodthirst and Whirlwind, from the beta client's tooltips, simulated in Classic and Forever. Model only - neither ability can be learned in the beta yet."
 )
 
@@ -232,6 +233,69 @@ Putting Whirlwind first is a small gain: about `r sprintf("%+.1f%%", ps("Forever
 Rage hardly comes into it, because with the talents counted there's enough for both abilities almost all the time (the [proposals chapter](#rage-proposals) shows the warrior is only starved for Bloodthirst about 5% of the time). Where damage per rage *would* matter is if rage turned out tighter than we think, for example while Unbridled Wrath is bugged, or before a warrior has Dual Wield Specialization. Then, in Forever, Whirlwind would be the better place for it.
 
 Also, the pairing only helps so much: after the first different decision, the two fights drift apart, so a single pair of fights can still go either way (Whirlwind first wins about `r round(ps("Forever", "Phase 2", "wins") * 100)`% of them). The effect only shows up clearly over hundreds of fights.
+
+## Execute
+
+Execute is the one ability here that didn't change: the beta's tooltip matches Classic's exactly. At rank 5 it costs `r sim_defaults$exec_cost` rage, does `r sim_defaults$exec_base` damage, and turns every extra point of rage you have into `r sim_defaults$exec_per_rage` more damage, but it can only be used once the boss is below 20% health. What changed is everything around it: how much rage you have when you press it.
+
+```{r}
+exec_curve <- tibble(rage = sim_defaults$exec_cost:100) %>%
+  mutate(damage = sim_defaults$exec_base + sim_defaults$exec_per_rage * (rage - sim_defaults$exec_cost),
+         dpr = damage / rage)
+```
+
+```{r fig.cap="Execute's damage per rage against the rage spent on it (before armor and crits). The first 15 rage buys the 600 base damage, so a minimum-rage Execute is very efficient; every extra point after that only adds 15 damage, so damage per rage falls towards 15 the more you spend.", fig.height=3.2}
+ggplot(exec_curve, aes(rage, dpr)) +
+  geom_line(colour = "#7570b3", linewidth = 1) +
+  geom_hline(yintercept = sim_defaults$exec_per_rage, linetype = "dotted", colour = "grey50") +
+  labs(x = "Rage spent on one Execute", y = "Damage per rage")
+```
+
+So an Execute's damage depends almost entirely on how much rage you have when you press it, which is where Classic and Forever differ. To see how, we add an execute phase to the fight simulation: for the last 20% of each three-minute fight, the warrior stops using Bloodthirst, Whirlwind and Heroic Strike, and presses Execute with all their rage every time the global cooldown is free.
+
+```{r}
+exec_sims <- cached_sim("abilities_execute", deps = list(gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents), {
+set.seed(20)
+expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  mutate(res = map2(game, phase, function(g, ph) {
+    p <- modifyList(phase_p(g, ph), list(execute_at = 0.8 * sim_defaults$fight_len))
+    map_dfr(seq_len(n_fights), function(i) simulate_fight(rage_models[[g]], gear$dps[gear$phase == ph], p))
+  })) %>% unnest(res) %>%
+  mutate(phase = factor(phase, levels = levels(phases$phase)))
+})
+exec_window <- 0.2 * sim_defaults$fight_len
+exec_each <- exec_sims %>% select(game, phase, exec_rage) %>% unnest(exec_rage)
+```
+
+```{r fig.cap="Rage spent on each Execute, over every Execute in the simulated fights. The wider a shape is at some value, the more Executes were pressed with that much rage.", fig.height=4}
+ggplot(exec_each, aes(phase, exec_rage, fill = game, colour = game)) +
+  geom_violin(alpha = 0.35, scale = "width", draw_quantiles = 0.5, position = position_dodge(width = 0.8)) +
+  scale_fill_manual(values = game_colours) + scale_colour_manual(values = game_colours) +
+  labs(x = NULL, y = "Rage spent on one Execute", fill = NULL, colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+exec_summary <- exec_sims %>% group_by(game, phase) %>%
+  summarise(per_min = median(exec_n) / exec_window * 60,
+            exec_dps = median(dps_exec * sim_defaults$fight_len / exec_window),
+            lo = quantile(dps_exec * sim_defaults$fight_len / exec_window, 0.05),
+            hi = quantile(dps_exec * sim_defaults$fight_len / exec_window, 0.95), .groups = "drop") %>%
+  left_join(exec_each %>% group_by(game, phase) %>%
+              summarise(rage_med = median(exec_rage), rage_lo = quantile(exec_rage, 0.05),
+                        rage_hi = quantile(exec_rage, 0.95), .groups = "drop"), by = c("game", "phase"))
+exec_summary %>%
+  transmute(Phase = phase, Game = game,
+            `Rage per Execute` = sprintf("%.0f (%.0f to %.0f)", rage_med, rage_lo, rage_hi),
+            `Executes per minute` = round(per_min, 1),
+            `Execute DPS during the phase` = sprintf("%.0f (%.0f to %.0f)", exec_dps, lo, hi)) %>%
+  knitr::kable(caption = "The execute phase in the simulated fights: rage spent on each Execute and Execute damage per second during the phase, as the typical value with the middle 90% in brackets.")
+ex <- function(g, ph, col) exec_summary[[col]][exec_summary$game == g & exec_summary$phase == ph]
+```
+
+The typical Execute is only somewhat bigger in Classic: `r round(ex("Classic", "Phase 2", "rage_med"))` rage in Classic at phase 2, against `r round(ex("Forever", "Phase 2", "rage_med"))` in Forever, since pressing Execute every global cooldown keeps spending the rage as fast as it comes in. The difference is in what Classic does with its extra rage as it gears up. First, it fits in more Executes: `r round(ex("Classic", "Pre-BiS", "per_min"), 1)` a minute at pre-BiS and `r round(ex("Classic", "Phase 4", "per_min"), 1)` at phase 4, closer to the one every 1.5 seconds that the global cooldown allows. Second, its big Executes get bigger: the top 5% of Classic Executes use `r round(ex("Classic", "Phase 4", "rage_hi"))` rage or more at phase 4, against `r round(ex("Forever", "Phase 4", "rage_hi"))` in Forever. Forever looks the same at every phase (about `r round(ex("Forever", "Phase 4", "per_min"), 1)` Executes a minute, typically with `r round(ex("Forever", "Phase 4", "rage_med"))` rage), since its rage doesn't change with gear.
+
+Put together, during the execute phase a phase 4 warrior does about `r round(ex("Classic", "Phase 4", "exec_dps"))` damage per second with Execute in Classic, against `r round(ex("Forever", "Phase 4", "exec_dps"))` in Forever, and from pre-BiS to phase 4 Classic's Execute damage grows by `r round((ex("Classic", "Phase 4", "exec_dps") / ex("Classic", "Pre-BiS", "exec_dps") - 1) * 100)`%, against `r round((ex("Forever", "Phase 4", "exec_dps") / ex("Forever", "Pre-BiS", "exec_dps") - 1) * 100)`% in Forever. That makes Execute one of the clearest places where Forever's flat rage shows up: in Classic, gear gave you more and bigger Executes, and in Forever it barely changes them.
 
 ## What to test
 

@@ -20,6 +20,8 @@ sim_defaults <- list(
   hs_cost = 12, hs_bonus = 157, # rank 9, with Improved Heroic Strike 3/3
   hs_threshold = 60,      # queue Heroic Strike when rage is at least this much
   priority = "bt_first",  # or "ww_first"
+  execute_at = NA,        # seconds into the fight when the boss reaches 20% health (NA: no execute phase)
+  exec_cost = 15, exec_base = 600, exec_per_rage = 15,   # rank 5, the same in both games
   ubw_rage = 1
 )
 
@@ -64,8 +66,9 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
   bt_ready <- 0; ww_ready <- 0; gcd_ready <- 0
   flurry <- 0; hs_queued <- FALSE
   wasted <- 0; starved <- 0; last_t <- 0; generated <- 0
-  n <- c(bt = 0, ww = 0, hs = 0)
-  dmg <- c(white = 0, hs = 0, bt = 0, ww = 0)
+  n <- c(bt = 0, ww = 0, hs = 0, exec = 0)
+  dmg <- c(white = 0, hs = 0, bt = 0, ww = 0, exec = 0)
+  exec_rage <- numeric(0)   # rage spent on each Execute
   tr <- if (trace) list() else NULL
 
   hand_mult <- function(hand) if (hand == "OH") 0.5 * p$oh_dmg_mult else 1
@@ -97,8 +100,15 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     t <- t_new; last_t <- t
     if (abs(t - tick_t) < 1e-9) add_rage(1)   # Anger Management: 1 rage every 3 sec
 
+    # Execute phase: Execute with all your rage whenever the global cooldown is free.
+    in_execute <- !is.na(p$execute_at) && t >= p$execute_at
+    if (in_execute && t >= gcd_ready && rage >= p$exec_cost) {
+      spent <- rage; rage <- 0; gcd_ready <- t + p$gcd; n["exec"] <- n["exec"] + 1
+      exec_rage <- c(exec_rage, spent)
+      dmg["exec"] <- dmg["exec"] + yellow((p$exec_base + p$exec_per_rage * (spent - p$exec_cost)) * p$armor)
+    }
     # Abilities, by priority, whenever the global cooldown is free.
-    if (t >= gcd_ready) {
+    if (!in_execute && t >= gcd_ready) {
       bt_ok <- t >= bt_ready && rage >= p$bt_cost
       ww_ok <- t >= ww_ready && rage >= p$ww_cost
       use <- if (p$priority == "ww_first") {
@@ -120,7 +130,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
       nxt <- if (hand == "MH") next_mh else next_oh
       if (nxt > t) next
       speed <- if (hand == "MH") p$mh_speed else p$oh_speed
-      if (hand == "MH" && !hs_queued && rage >= p$hs_threshold + p$hs_cost) hs_queued <- TRUE
+      if (hand == "MH" && !in_execute && !hs_queued && rage >= p$hs_threshold + p$hs_cost) hs_queued <- TRUE
       if (hand == "MH" && hs_queued) {
         # Heroic Strike replaces the white swing: it costs rage, rolls as a yellow attack, and gives no rage.
         rage <- rage - p$hs_cost; hs_queued <- FALSE; n["hs"] <- n["hs"] + 1
@@ -152,6 +162,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
                         total_dps = sum(dmg) / p$fight_len,
                         dps_white = dmg[["white"]] / p$fight_len, dps_hs = dmg[["hs"]] / p$fight_len,
                         dps_bt = dmg[["bt"]] / p$fight_len, dps_ww = dmg[["ww"]] / p$fight_len,
+                        dps_exec = dmg[["exec"]] / p$fight_len, exec_n = n[["exec"]], exec_rage = list(exec_rage),
                         dpr_bt = if (n[["bt"]] > 0) dmg[["bt"]] / (n[["bt"]] * p$bt_cost) else NA_real_,
                         dpr_ww = if (n[["ww"]] > 0) dmg[["ww"]] / (n[["ww"]] * p$ww_cost) else NA_real_)
   if (trace) attr(out, "trace") <- do.call(rbind, tr)
