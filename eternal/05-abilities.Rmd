@@ -4,6 +4,7 @@
 # Reuses `phases`, `C60`, `forever_draws`, `n_fights` and the fight simulator from the earlier chapters.
 abilities_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.3.0",  "2026-09-24", "Execute with and without Improved Execute, the attack power where Bloodthirst matches a 30 rage Execute (2000 in Classic, as in the Classic compendium, and about 2430 in Forever), and the comparison across attack power up to 3000.",
   "1.2.1",  "2026-09-24", "Clearer table and explanation of how much rage an Execute can use and still beat Bloodthirst per point of rage.",
   "1.2.0",  "2026-09-24", "Added the rage at which Execute matches Bloodthirst's damage per rage, which is much higher in Forever, and replaced the rage-per-Execute plot with Execute damage at each phase.",
   "1.1.0",  "2026-09-24", "Added Execute: the rage spent on each Execute, and Execute damage in the execute phase, simulated in both games.",
@@ -238,107 +239,159 @@ Also, the pairing only helps so much: after the first different decision, the tw
 
 ## Execute
 
-Execute is the one ability here that didn't change: the beta's tooltip matches Classic's exactly. At rank 5 it costs `r sim_defaults$exec_cost` rage, does `r sim_defaults$exec_base` damage, and turns every extra point of rage you have into `r sim_defaults$exec_per_rage` more damage, but it can only be used once the boss is below 20% health. What changed is everything around it: how much rage you have when you press it.
+Execute is the one ability here that didn't change: the beta's tooltip matches Classic's exactly. At rank 5 it costs `r sim_defaults$exec_cost` rage, does `r sim_defaults$exec_base` damage, and turns every extra point of rage you have into `r sim_defaults$exec_per_rage` more damage, but it can only be used once the boss is below 20% health. Improved Execute (Fury, row 4) is the same in both games too: at 2/2 it brings the cost down to `r sim_defaults$exec_cost - 5`. The most popular Fury build skips it, but many warriors who care about the execute phase take it, so we'll show both. What changed is everything around Execute: how strong Bloodthirst is next to it, and how much rage you have when you press it.
+
+### Execute's damage per rage
 
 ```{r}
-exec_curve <- tibble(rage = sim_defaults$exec_cost:forever_talents$rage_cap) %>%
-  mutate(damage = sim_defaults$exec_base + sim_defaults$exec_per_rage * (rage - sim_defaults$exec_cost),
-         dpr = damage / rage)
+imp_exec <- c(`0/2` = 0, `2/2` = 5)   # rage cost reduction from Improved Execute
+exec_dmg <- function(rage, cut) sim_defaults$exec_base + sim_defaults$exec_per_rage * (rage - (sim_defaults$exec_cost - cut))
+exec_curve <- expand_grid(talent = names(imp_exec), rage = 10:forever_talents$rage_cap) %>%
+  filter(rage >= sim_defaults$exec_cost - imp_exec[talent]) %>%
+  mutate(dpr = exec_dmg(rage, imp_exec[talent]) / rage)
+# Bloodthirst's damage per rage before armor and crits, for each game at a given attack power.
+bt_raw_dpr <- function(game, ap) { p <- profile(game); (p$bt_ap * ap + p$bt_flat) / p$bt_cost }
+bt_2000 <- c(Classic = bt_raw_dpr("Classic", 2000), Forever = bt_raw_dpr("Forever", 2000))
 ```
 
+```{r fig.cap="Execute's damage per rage against the rage spent on it, with and without Improved Execute (purple), and Bloodthirst's at 2000 attack power in each game (flat lines). Both are before armor and crits, which affect the two abilities the same way. Wherever a purple line is above a flat line, an Execute does more damage per rage than Bloodthirst.", fig.height=3.8}
+ggplot(exec_curve, aes(rage, dpr)) +
+  geom_hline(data = tibble(game = names(bt_2000), bt = bt_2000), aes(yintercept = bt, colour = game), linewidth = 0.9) +
+  geom_line(aes(linetype = talent), colour = "#7570b3", linewidth = 1) +
+  geom_vline(xintercept = 30, linetype = "dotted", colour = "grey60") +
+  annotate("text", x = 31, y = 58, label = "Bloodthirst's cost (30 rage)", hjust = 0, size = 3, colour = "grey45") +
+  scale_colour_manual(values = game_colours, labels = function(g) paste(g, "Bloodthirst (2000 AP)")) +
+  scale_linetype_manual(values = c(`0/2` = "dashed", `2/2` = "solid"), labels = function(t) paste("Execute,", t, "Improved Execute")) +
+  scale_x_continuous(limits = c(0, 135)) +
+  labs(x = "Rage spent on one Execute", y = "Damage per rage", colour = NULL, linetype = NULL) +
+  theme(legend.position = "bottom", legend.box = "vertical")
+```
+
+The first `r sim_defaults$exec_cost` rage (or `r sim_defaults$exec_cost - 5` with Improved Execute) buys the `r sim_defaults$exec_base` base damage, so a minimum-rage Execute is very efficient, and every extra point after that only adds `r sim_defaults$exec_per_rage` damage, so its damage per rage falls towards `r sim_defaults$exec_per_rage` the more you spend. Improved Execute moves the whole curve up, because the same base damage comes from less rage.
+
+### When does Bloodthirst catch up?
+
+The Classic compendium answered this with one number. Bloodthirst costs 30 rage, so the first moment you can choose between the two is at 30 rage. With Improved Execute, a 30 rage Execute does 600 + (30 - 10) x 15 = 900 damage, and Bloodthirst does 900 at **2000 attack power** (45% of 2000). Above that, Bloodthirst beats even the cheapest Execute you'd choose instead of it. That's still right, and it's where the Classic lines cross at 30 rage in the plot above.
+
+In Forever, Bloodthirst is 35% of attack power plus 48, so it needs more attack power to get to the same 900 damage:
+
 ```{r}
-# Bloodthirst's damage per rage before armor and crits, for each game at each phase's attack power.
-bt_raw_dpr <- function(game, ap) { p <- profile(game); (p$bt_ap * ap + p$bt_flat) / p$bt_cost }
-# Execute's damage per rage is 15 + 375 / rage, so it matches Bloodthirst's at rage = 375 / (BT - 15).
-exec_even <- function(bt_dpr) {
-  fixed <- sim_defaults$exec_base - sim_defaults$exec_per_rage * sim_defaults$exec_cost
+ap_match <- function(game, cut) {
+  p <- profile(game); d30 <- exec_dmg(30, cut)
+  (d30 - p$bt_flat) / p$bt_ap
+}
+match_tbl <- expand_grid(Game = c("Classic", "Forever"), talent = names(imp_exec)) %>%
+  mutate(d30 = exec_dmg(30, imp_exec[talent]), ap = map2_dbl(Game, talent, ~ ap_match(.x, imp_exec[.y])))
+am <- function(g, t) match_tbl$ap[match_tbl$Game == g & match_tbl$talent == t]
+match_tbl %>%
+  transmute(Game, `Improved Execute` = talent, `Damage of a 30 rage Execute` = d30,
+            `Attack power where Bloodthirst matches it` = round(ap)) %>%
+  knitr::kable(caption = "The attack power at which Bloodthirst does as much damage as a 30 rage Execute, so both give the same damage per rage. Above it, Bloodthirst is the more efficient of the two.")
+```
+
+So the Classic rule of thumb, "above `r round(am("Classic", "2/2"))` attack power, Bloodthirst beats Execute", becomes **about `r round(am("Forever", "2/2"))` attack power in Forever** with Improved Execute, and `r round(am("Forever", "0/2"))` without it (`r round(am("Classic", "0/2"))` in Classic).
+
+That number only covers a 30 rage Execute, though. With more rage, Execute's damage per rage drops, so Bloodthirst catches up at a lower attack power. Here's the whole picture, across attack power, as the most rage an Execute can use and still beat Bloodthirst:
+
+```{r}
+exec_even <- function(bt_dpr, cut) {
+  fixed <- sim_defaults$exec_base - sim_defaults$exec_per_rage * (sim_defaults$exec_cost - cut)
   ifelse(bt_dpr > sim_defaults$exec_per_rage, fixed / (bt_dpr - sim_defaults$exec_per_rage), Inf)
 }
-even_label <- function(r, cap) ifelse(r > cap, paste0("Any amount (up to the ", cap, " cap)"), paste("Up to", round(r), "rage"))
-even_tbl <- gear %>% transmute(phase, ap,
-  bt_classic = bt_raw_dpr("Classic", ap), bt_forever = bt_raw_dpr("Forever", ap),
-  even_classic = exec_even(bt_classic), even_forever = exec_even(bt_forever))
-p2_bt <- c(Classic = even_tbl$bt_classic[even_tbl$phase == "Phase 2"], Forever = even_tbl$bt_forever[even_tbl$phase == "Phase 2"])
+even_curve <- expand_grid(game = c("Classic", "Forever"), talent = names(imp_exec), ap = seq(800, 3000, by = 10)) %>%
+  mutate(even = exec_even(map2_dbl(game, ap, bt_raw_dpr), imp_exec[talent]))
 ```
 
-```{r fig.cap="Execute's damage per rage against the rage spent on it (purple), with Bloodthirst's for a phase 2 warrior in each game (flat lines). Both are before armor and crits, which affect the two abilities the same way. Wherever the purple line is above a flat line, an Execute does more damage per rage than Bloodthirst. For a phase 2 warrior in Classic, that's true up to 83 rage (the dot); in Forever, it's true for any amount of rage you can have.", fig.height=3.6}
-ggplot(exec_curve, aes(rage, dpr)) +
-  geom_hline(data = tibble(game = names(p2_bt), bt = p2_bt), aes(yintercept = bt, colour = game), linewidth = 0.9) +
-  geom_line(colour = "#7570b3", linewidth = 1) +
-  geom_vline(xintercept = c(100, 130), linetype = "dotted", colour = "grey60") +
-  annotate("text", x = c(100, 130), y = 30, label = c("Classic cap", "Forever cap"), angle = 90, vjust = -0.5, size = 3, colour = "grey45") +
-  geom_point(data = tibble(game = names(p2_bt), bt = p2_bt, r = exec_even(p2_bt)) %>% filter(r <= 130),
-             aes(r, bt, colour = game), size = 3) +
-  scale_colour_manual(values = game_colours, labels = function(g) paste(g, "Bloodthirst")) +
-  scale_x_continuous(limits = c(0, 135)) +
-  labs(x = "Rage spent on one Execute", y = "Damage per rage", colour = NULL) +
-  theme(legend.position = "bottom")
+```{r fig.cap="The most rage an Execute can use and still do more damage per rage than Bloodthirst, across attack power. Below a line, Execute is the more efficient of the two; above it, Bloodthirst is. The dots are where each line reaches Bloodthirst's 30 rage cost (the attack power in the table above): past them, Bloodthirst beats every Execute you'd choose instead of it.", fig.height=4.2}
+cap_lines <- tibble(game = c("Classic", "Forever"), cap = c(classic_talents$rage_cap, forever_talents$rage_cap))
+ggplot(even_curve %>% filter(even <= 140), aes(ap, even, colour = game, linetype = talent)) +
+  geom_hline(yintercept = 30, linetype = "dotted", colour = "grey50") +
+  geom_hline(data = cap_lines, aes(yintercept = cap, colour = game), linetype = "dotted", alpha = 0.6, show.legend = FALSE) +
+  geom_line(linewidth = 0.9) +
+  geom_point(data = match_tbl %>% transmute(game = Game, talent, ap, even = 30), size = 2.5) +
+  annotate("text", x = 3000, y = c(30, classic_talents$rage_cap, forever_talents$rage_cap),
+           label = c("Bloodthirst's cost (30)", "Classic cap (100)", "Forever cap (130)"),
+           hjust = 1, vjust = -0.4, size = 3, colour = "grey45") +
+  scale_colour_manual(values = game_colours) +
+  scale_linetype_manual(values = c(`0/2` = "dashed", `2/2` = "solid"), labels = function(t) paste(t, "Improved Execute")) +
+  scale_x_continuous(breaks = seq(1000, 3000, 500)) +
+  coord_cartesian(ylim = c(0, 140)) +
+  labs(x = "Attack power", y = "Most rage an Execute can use\nand still beat Bloodthirst", colour = NULL, linetype = NULL) +
+  theme(legend.position = "bottom", legend.box = "vertical")
 ```
-
-The first `r sim_defaults$exec_cost` rage buys the `r sim_defaults$exec_base` base damage, so a minimum-rage Execute is very efficient, and every extra point after that only adds `r sim_defaults$exec_per_rage` damage, so its damage per rage falls towards `r sim_defaults$exec_per_rage` the more you spend. As long as Bloodthirst does more than `r sim_defaults$exec_per_rage` damage per rage, there's a point where the two are equal: below it, Execute is the more efficient of the two, and above it, Bloodthirst is. If that point is above the rage cap, Execute is always at least as efficient. Both are yellow attacks, so misses, crits and armor affect them the same way and the point only depends on your attack power:
-
-The same comparison at every phase answers one question: **how much rage can you put into an Execute and still get more damage per rage than from Bloodthirst?**
 
 ```{r}
-even_tbl %>% transmute(Phase = phase, `Attack power` = ap,
-  Classic = even_label(even_classic, classic_talents$rage_cap),
-  Forever = even_label(even_forever, forever_talents$rage_cap)) %>%
-  knitr::kable(caption = "How much rage an Execute can use and still do more damage per rage than Bloodthirst, at each phase. Above that, Bloodthirst is the more efficient of the two.")
+even_label <- function(r, cap) ifelse(r > cap, paste0("Any amount (to the ", cap, " cap)"),
+                                ifelse(r < 30, "Never (Bloodthirst wins)", paste("Up to", round(r), "rage")))
+expand_grid(ap = c(1000, 1500, 2000, 2500, 3000), game = c("Classic", "Forever"), talent = names(imp_exec)) %>%
+  mutate(even = exec_even(map2_dbl(game, ap, bt_raw_dpr), imp_exec[talent]),
+         label = even_label(even, ifelse(game == "Classic", classic_talents$rage_cap, forever_talents$rage_cap)),
+         col = paste0(game, ", ", talent)) %>%
+  select(`Attack power` = ap, col, label) %>%
+  pivot_wider(names_from = col, values_from = label) %>%
+  knitr::kable(caption = "How much rage an Execute can use and still do more damage per rage than Bloodthirst, with 0/2 and 2/2 Improved Execute.")
 ```
 
-**In Forever, Execute is the more efficient of the two for most of the game.** Up to phase 2, an Execute beats Bloodthirst's damage per rage with any amount of rage you can hold, even with Boundless Rage's 130 cap. Only in phases 3 and 4, as attack power makes Bloodthirst stronger, does a very full rage bar tip it the other way: above `r round(even_tbl$even_forever[even_tbl$phase == "Phase 3"])` rage at phase 3, and above `r round(even_tbl$even_forever[even_tbl$phase == "Phase 4"])` at phase 4.
+A few things stand out:
 
-That's a big change from Classic, where Bloodthirst's 45% attack power scaling brought the point within the rage bar from phase 2 (`r round(even_tbl$even_classic[even_tbl$phase == "Phase 2"])` rage) and down to `r round(even_tbl$even_classic[even_tbl$phase == "Phase 4"])` by phase 4. Forever's phase 4 point is close to where Classic already was at phase 2. Keep in mind this only compares the two per point of rage: Execute can only be used once the boss is below 20% health.
+- **Improved Execute matters a lot for this comparison.** Without it, Bloodthirst catches up `r round(am("Classic", "2/2") - am("Classic", "0/2"))` attack power earlier in Classic and `r round(am("Forever", "2/2") - am("Forever", "0/2"))` earlier in Forever, since the same 600 base damage costs 5 more rage.
+- **In Forever, the whole picture moves about `r round(am("Forever", "2/2") - am("Classic", "2/2"))` attack power to the right.** Bloodthirst's lower attack power scaling means Execute stays ahead for longer: at 2000 attack power, where the two are even at 30 rage in Classic, a Forever Execute with Improved Execute still beats Bloodthirst up to about `r round(exec_even(bt_raw_dpr("Forever", 2000), 5))` rage.
+- **Where you actually are on this plot depends on your attack power.** Our rough guesses for pre-BiS to phase 4 elsewhere in this chapter run from `r min(gear$ap)` to `r max(gear$ap)`, which is on the low side; well-buffed raiders can go well past 2000, which is where the choice between the two starts to matter. Keep in mind this only compares the two per point of rage: Execute can only be used once the boss is below 20% health.
 
-So an Execute's damage depends almost entirely on how much rage you have when you press it, which is where Classic and Forever differ. To see how, we add an execute phase to the fight simulation: for the last 20% of each three-minute fight, the warrior stops using Bloodthirst, Whirlwind and Heroic Strike, and presses Execute with all their rage every time the global cooldown is free.
+### Execute in a fight
+
+An Execute's damage depends almost entirely on how much rage you have when you press it, which is where Classic and Forever differ. To see how, we add an execute phase to the fight simulation: for the last 20% of each three-minute fight, the warrior stops using Bloodthirst, Whirlwind and Heroic Strike, and presses Execute with all their rage every time the global cooldown is free, with and without Improved Execute.
 
 ```{r}
-exec_sims <- cached_sim("abilities_execute", deps = list(gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents), {
+exec_sims <- cached_sim("abilities_execute", deps = list(gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents, imp_exec), {
 set.seed(20)
-expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4")) %>%
-  mutate(res = map2(game, phase, function(g, ph) {
-    p <- modifyList(phase_p(g, ph), list(execute_at = 0.8 * sim_defaults$fight_len))
+expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4"), talent = names(imp_exec)) %>%
+  mutate(res = pmap(list(game, phase, talent), function(g, ph, tl) {
+    p <- modifyList(phase_p(g, ph), list(execute_at = 0.8 * sim_defaults$fight_len,
+                                         exec_cost = sim_defaults$exec_cost - imp_exec[[tl]]))
     map_dfr(seq_len(n_fights), function(i) simulate_fight(rage_models[[g]], gear$dps[gear$phase == ph], p))
   })) %>% unnest(res) %>%
   mutate(phase = factor(phase, levels = levels(phases$phase)))
 })
 exec_window <- 0.2 * sim_defaults$fight_len
-exec_each <- exec_sims %>% select(game, phase, exec_rage) %>% unnest(exec_rage)
+exec_each <- exec_sims %>% select(game, phase, talent, exec_rage) %>% unnest(exec_rage)
 ```
 
-```{r fig.cap="Execute damage per second during the execute phase, at each phase of gear. The dots are the typical fight, and the lines cover the middle 90% of fights. In Classic, Execute damage keeps growing with gear; in Forever it barely moves.", fig.height=3.6}
+```{r fig.cap="Execute damage per second during the execute phase, at each phase of gear, with and without Improved Execute. The dots are the typical fight, and the lines cover the middle 90% of fights. In Classic, Execute damage keeps growing with gear; in Forever it barely moves.", fig.height=3.8}
 exec_sims %>% mutate(exec_phase_dps = dps_exec * sim_defaults$fight_len / exec_window) %>%
-  group_by(game, phase) %>%
+  group_by(game, phase, talent) %>%
   summarise(med = median(exec_phase_dps), lo = quantile(exec_phase_dps, 0.05), hi = quantile(exec_phase_dps, 0.95), .groups = "drop") %>%
+  mutate(talent = paste(talent, "Improved Execute")) %>%
   ggplot(aes(phase, med, colour = game, group = game)) +
   geom_line(position = position_dodge(width = 0.3), alpha = 0.6) +
   geom_pointrange(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.3)) +
+  facet_wrap(~ talent) +
   scale_colour_manual(values = game_colours) +
   labs(x = NULL, y = "Execute damage per second", colour = NULL) +
   theme(legend.position = "bottom")
 ```
 
 ```{r}
-exec_summary <- exec_sims %>% group_by(game, phase) %>%
+exec_summary <- exec_sims %>% group_by(game, phase, talent) %>%
   summarise(per_min = median(exec_n) / exec_window * 60,
             exec_dps = median(dps_exec * sim_defaults$fight_len / exec_window),
             lo = quantile(dps_exec * sim_defaults$fight_len / exec_window, 0.05),
             hi = quantile(dps_exec * sim_defaults$fight_len / exec_window, 0.95), .groups = "drop") %>%
-  left_join(exec_each %>% group_by(game, phase) %>%
+  left_join(exec_each %>% group_by(game, phase, talent) %>%
               summarise(rage_med = median(exec_rage), rage_lo = quantile(exec_rage, 0.05),
-                        rage_hi = quantile(exec_rage, 0.95), .groups = "drop"), by = c("game", "phase"))
-exec_summary %>%
-  transmute(Phase = phase, Game = game,
+                        rage_hi = quantile(exec_rage, 0.95), .groups = "drop"), by = c("game", "phase", "talent"))
+exec_summary %>% arrange(talent, phase, game) %>%
+  transmute(`Improved Execute` = talent, Phase = phase, Game = game,
             `Rage per Execute` = sprintf("%.0f (%.0f to %.0f)", rage_med, rage_lo, rage_hi),
             `Executes per minute` = round(per_min, 1),
             `Execute DPS during the phase` = sprintf("%.0f (%.0f to %.0f)", exec_dps, lo, hi)) %>%
   knitr::kable(caption = "The execute phase in the simulated fights: rage spent on each Execute and Execute damage per second during the phase, as the typical value with the middle 90% in brackets.")
-ex <- function(g, ph, col) exec_summary[[col]][exec_summary$game == g & exec_summary$phase == ph]
+ex <- function(g, ph, col, tl = "0/2") exec_summary[[col]][exec_summary$game == g & exec_summary$phase == ph & exec_summary$talent == tl]
 ```
 
-The typical Execute is only somewhat bigger in Classic: `r round(ex("Classic", "Phase 2", "rage_med"))` rage in Classic at phase 2, against `r round(ex("Forever", "Phase 2", "rage_med"))` in Forever, since pressing Execute every global cooldown keeps spending the rage as fast as it comes in. The difference is in what Classic does with its extra rage as it gears up. First, it fits in more Executes: `r round(ex("Classic", "Pre-BiS", "per_min"), 1)` a minute at pre-BiS and `r round(ex("Classic", "Phase 4", "per_min"), 1)` at phase 4, closer to the one every 1.5 seconds that the global cooldown allows. Second, its big Executes get bigger: the top 5% of Classic Executes use `r round(ex("Classic", "Phase 4", "rage_hi"))` rage or more at phase 4, against `r round(ex("Forever", "Phase 4", "rage_hi"))` in Forever. Forever looks the same at every phase (about `r round(ex("Forever", "Phase 4", "per_min"), 1)` Executes a minute, typically with `r round(ex("Forever", "Phase 4", "rage_med"))` rage), since its rage doesn't change with gear.
+Without Improved Execute, the typical Execute is only somewhat bigger in Classic: `r round(ex("Classic", "Phase 2", "rage_med"))` rage at phase 2, against `r round(ex("Forever", "Phase 2", "rage_med"))` in Forever, since pressing Execute every global cooldown keeps spending the rage as fast as it comes in. The difference is in what Classic does with its extra rage as it gears up. It fits in more Executes (`r round(ex("Classic", "Pre-BiS", "per_min"), 1)` a minute at pre-BiS and `r round(ex("Classic", "Phase 4", "per_min"), 1)` at phase 4), and its big Executes get bigger (the top 5% use `r round(ex("Classic", "Phase 4", "rage_hi"))` rage or more at phase 4, against `r round(ex("Forever", "Phase 4", "rage_hi"))` in Forever). Forever looks the same at every phase, since its rage doesn't change with gear. From pre-BiS to phase 4, Classic's Execute damage grows by `r round((ex("Classic", "Phase 4", "exec_dps") / ex("Classic", "Pre-BiS", "exec_dps") - 1) * 100)`%, against `r round((ex("Forever", "Phase 4", "exec_dps") / ex("Forever", "Pre-BiS", "exec_dps") - 1) * 100)`% in Forever.
 
-Put together, during the execute phase a phase 4 warrior does about `r round(ex("Classic", "Phase 4", "exec_dps"))` damage per second with Execute in Classic, against `r round(ex("Forever", "Phase 4", "exec_dps"))` in Forever, and from pre-BiS to phase 4 Classic's Execute damage grows by `r round((ex("Classic", "Phase 4", "exec_dps") / ex("Classic", "Pre-BiS", "exec_dps") - 1) * 100)`%, against `r round((ex("Forever", "Phase 4", "exec_dps") / ex("Forever", "Pre-BiS", "exec_dps") - 1) * 100)`% in Forever. That makes Execute one of the clearest places where Forever's flat rage shows up: in Classic, gear gave you more and bigger Executes, and in Forever it barely changes them.
+Improved Execute adds about the same to both games: `r round((ex("Forever", "Phase 2", "exec_dps", "2/2") / ex("Forever", "Phase 2", "exec_dps") - 1) * 100)`% to Forever's Execute damage at phase 2, and `r round((ex("Classic", "Phase 2", "exec_dps", "2/2") / ex("Classic", "Phase 2", "exec_dps") - 1) * 100)`% in Classic. A cheaper Execute can be pressed sooner after each one, so you get more of them (`r round(ex("Forever", "Phase 2", "per_min", "2/2"), 1)` a minute instead of `r round(ex("Forever", "Phase 2", "per_min"), 1)` in Forever), each carrying the full 600 base damage. Either way, Execute is one of the clearest places where Forever's flat rage shows up: in Classic, gear gave you more and bigger Executes, and in Forever it barely changes them.
 
 ## What to test
 
