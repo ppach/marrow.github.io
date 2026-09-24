@@ -4,6 +4,9 @@
 library(tidyverse)
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 theme_set(theme_minimal())
+# Every plot in the book starts its value axis at 0, so differences aren't exaggerated. This wraps
+# ggplot() for all chapters; plots whose values are on the x axis set that separately.
+ggplot <- function(...) ggplot2::ggplot(...) + ggplot2::expand_limits(y = 0)
 set.seed(1234)
 clusters <- read_csv("data/derived/swing_clusters.csv")
 swings   <- read_csv("data/derived/swings.csv")
@@ -394,6 +397,7 @@ compare_plot <- function(d, facet, x_lab) {
     geom_vline(data = fv, aes(xintercept = mid), colour = "#2c7fb8", linewidth = 1) +
     facet_wrap(vars({{ facet }}), ncol = 1) +
     scale_fill_manual(values = c(Classic = "grey60", Forever = "#2c7fb8")) +
+    expand_limits(x = 0) +
     labs(x = x_lab, y = NULL, fill = NULL) +
     theme(axis.text.y = element_blank(), panel.grid.major.y = element_blank(),
           panel.grid.minor.y = element_blank())

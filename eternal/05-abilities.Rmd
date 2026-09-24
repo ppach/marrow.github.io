@@ -91,14 +91,14 @@ expand_grid(game = c("Classic", "Forever"), ability = c("Bloodthirst", "Whirlwin
 
 ```{r fig.cap="Average damage per rage of one cast with phase 2 gear, from 20,000 simulated casts of each ability, going from Classic (grey) to Forever (blue). Bloodthirst gets worse and Whirlwind gets much better, so they swap places.", fig.height=2.8}
 cast_means <- casts %>% group_by(game, ability) %>% summarise(mean = mean(dpr), .groups = "drop")
-ggplot(cast_means, aes(mean, ability)) +
+ggplot2::ggplot(cast_means, aes(mean, ability)) +   # values on the x axis, so it starts at 0 instead
   geom_segment(data = pivot_wider(cast_means, names_from = game, values_from = mean),
                aes(x = Classic, xend = Forever, y = ability, yend = ability), colour = "grey70", linewidth = 1.2,
                arrow = arrow(length = unit(0.12, "inches"), type = "closed")) +
   geom_point(aes(colour = game), size = 4) +
   geom_text(aes(label = round(mean, 1), colour = game), vjust = -1.1, size = 3.5, show.legend = FALSE) +
   scale_colour_manual(values = game_colours) +
-  scale_x_continuous(limits = c(10, 25)) +
+  scale_x_continuous(limits = c(0, 25)) +
   scale_y_discrete(expand = expansion(add = 0.8)) +
   labs(x = "Average damage per rage of one cast", y = NULL, colour = NULL) +
   theme(legend.position = "bottom")
