@@ -31,3 +31,4 @@ eternal/data/__pycache__/
 !eternal/eternal.Rproj
 eternal/data/logs/incoming/
 eternal/data/*.zip
+eternal/data/talents/data.json
