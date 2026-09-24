@@ -17,7 +17,7 @@ The Classic text is rank 1 only (for example, Flurry shows 10%, when 5/5 was 30%
 
 ## Talent rules
 
-- **Points:** 1 point per level from level 10. (Check the total: talentsforever.com says 51 at level 60, but it's also been said we only get 41.)
+- **Points:** 1 point per level from level 10, so **51 at level 60**.
 - **Rows:** a row opens once the tree has 5 points per row above it: row 2 needs 5 points in that tree, row 3 needs 10, and so on (row 7 needs 30).
 - **Arrows:** some talents need the talent above them maxed first.
 - **Trees matter:** a talent can only be taken with enough points in *its own* tree, so a build's reachable talents depend on where the points go.
