@@ -6,5 +6,5 @@
 
 The Classic guide can be read at https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/
 
-- Eternal guide (in progress): https://01a0bae6-b8ea-794c-ce42-ecb8d022d9c8.share.connect.posit.cloud/
+- Eternal guide (in progress): https://ppach-warriorcompendium.share.connect.posit.cloud/
   Publish with `Rscript deploy.R` from `eternal/`.
