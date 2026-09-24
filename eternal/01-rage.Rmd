@@ -38,6 +38,7 @@ fmt_p <- function(p) format.pval(p, digits = 2, eps = 1e-10)
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.1.0",  "2026-09-23", "Added a log from Tarch with Unbridled Wrath at 4/5 (dual wield and two-handed), which completes the proc rate at every talent rank. 4/5 procs on about 36% of hits, still well below the tooltip's 48%.",
   "2.0.0",  "2026-09-23", "Added six logs from Tarch (Unbridled Wrath at 1/5, 2/5 and 3/5, dual wield and two-handed). Unbridled Wrath gives about 8% per talent point instead of the tooltip's 12%, so 5/5 is about 36% instead of 60% (a bug, not a talent-point mix-up). A second two-handed weapon (3.3 speed) confirms 4.5 × speed.",
   "1.1.0",  "2026-09-23", "Measured how often Unbridled Wrath procs (about 36% of landed white hits, well below the intended 60%).",
   "1.0.0",  "2026-09-23", "First version: three logs from beta build 1.60.1.69977, with p-values, a Bayesian estimate of the rates, and a level 60 simulation."
@@ -447,7 +448,7 @@ energize %>% filter(amount > 0) %>% mutate(Log = str_remove(file, "_092326.txt")
 
 ### Unbridled Wrath
 
-Unbridled Wrath is meant to give a 12% chance per talent point to gain rage on a white hit, so 60% at 5/5. To test that, Tarch recorded the same fights with 1, 2 and 3 points in the talent (and nothing else but 5/5 Cruelty), and Zomd's logs were recorded at 5/5. That gives us the proc rate at four different talent ranks:
+Unbridled Wrath is meant to give a 12% chance per talent point to gain rage on a white hit, so 60% at 5/5. To test that, Tarch recorded the same fights with 1, 2, 3 and 4 points in the talent (and nothing else but 5/5 Cruelty), and Zomd's logs were recorded at 5/5. That gives us the proc rate at every talent rank:
 
 ```{r}
 ubw <- procs %>% filter(!is.na(ubw_rank)) %>%
@@ -492,7 +493,7 @@ Two more things stay the same as before: every proc gives 1 rage with one-hander
 
 - Check whether the rates change at higher levels.
 - Figure out how attack power adds damage in Forever. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing - but the logged Battle Axe hits are only 69 to 88. So either attack power works differently, or the number in the log means something else.
-- Check Unbridled Wrath at 4/5 to confirm the 8% per point pattern, and keep checking new builds to see when [BUG-1](#bug-ubw) gets fixed.
+- Keep checking new builds to see when [BUG-1](#bug-ubw) gets fixed.
 - Test Dual Wield Specialization, which Bored's spreadsheet assumes doubles off-hand rage, with a log posted with talents.
 - Test stances, and rage from damage taken, in a controlled setting.
 - Record mid-log hand swaps in the metadata, since one log shows both weapons being used in both hands.

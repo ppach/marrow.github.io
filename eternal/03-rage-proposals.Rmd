@@ -35,7 +35,7 @@ hyb_alpha  <- 1 - forever_dw / target_rps                 # hybrid meets Classic
 hyb_cap    <- target_rps - forever_dw                     # ...and stays flat after it
 
 source("data/fight_sim.R")  # the fight simulator used in "Simulating actual fights"
-n_fights <- 1000
+n_fights <- 500
 ```
 
 This chapter is different from the last one: it's not about what the game does, but about what it *could* do. None of this is measured, it's us thinking out loud about better ways to scale rage, so it doesn't count towards the findings or the changelog. We'll use the numbers from the Rage Generation chapter as a starting point wherever we can, though.

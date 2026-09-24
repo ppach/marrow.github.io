@@ -22,3 +22,10 @@ tarch_uw2_2h_092326.txt,DODGE,1,0.5
 tarch_uw3_dw_092326.txt,PARRY,10,1.2
 tarch_uw3_dw_092326.txt,MISS,16,0.3875
 tarch_uw3_2h_092326.txt,PARRY,6,2.35
+tarch_uw4_dw_092326.txt,MISS,18,0.8555555555555555
+tarch_uw4_dw_092326.txt,PARRY,4,0.45
+tarch_uw4_dw_092326.txt,DODGE,3,0.4
+tarch_uw4_dw_092326.txt,ABSORB,1,0.4
+tarch_uw4_2h_092326.txt,PARRY,2,0.5
+tarch_uw4_2h_092326.txt,DODGE,2,0.45
+tarch_uw4_2h_092326.txt,MISS,1,0.3
