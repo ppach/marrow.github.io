@@ -66,6 +66,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
   bt_ready <- 0; ww_ready <- 0; gcd_ready <- 0
   flurry <- 0; hs_queued <- FALSE
   wasted <- 0; starved <- 0; last_t <- 0; generated <- 0
+  spent_core <- 0   # rage spent on Bloodthirst and Whirlwind
   n <- c(bt = 0, ww = 0, hs = 0, exec = 0)
   dmg <- c(white = 0, hs = 0, bt = 0, ww = 0, exec = 0)
   exec_rage <- numeric(0)   # rage spent on each Execute
@@ -117,10 +118,10 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         if (bt_ok) "bt" else if (ww_ok && t + 1 < bt_ready) "ww" else ""
       }
       if (use == "bt") {
-        rage <- rage - p$bt_cost; bt_ready <- t + p$bt_cd; gcd_ready <- t + p$gcd; n["bt"] <- n["bt"] + 1
+        rage <- rage - p$bt_cost; spent_core <- spent_core + p$bt_cost; bt_ready <- t + p$bt_cd; gcd_ready <- t + p$gcd; n["bt"] <- n["bt"] + 1
         dmg["bt"] <- dmg["bt"] + yellow((p$bt_ap * p$ap + p$bt_flat) * p$armor)
       } else if (use == "ww") {
-        rage <- rage - p$ww_cost; ww_ready <- t + p$ww_cd; gcd_ready <- t + p$gcd; n["ww"] <- n["ww"] + 1
+        rage <- rage - p$ww_cost; spent_core <- spent_core + p$ww_cost; ww_ready <- t + p$ww_cd; gcd_ready <- t + p$gcd; n["ww"] <- n["ww"] + 1
         dmg["ww"] <- dmg["ww"] + yellow(ww_hit("MH", p$mh_speed))
         if (p$raging_blows) dmg["ww"] <- dmg["ww"] + yellow(ww_hit("OH", p$oh_speed))
       }
@@ -159,6 +160,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
   out <- tibble::tibble(bt_pm = n[["bt"]] * per_min, ww_pm = n[["ww"]] * per_min, hs_pm = n[["hs"]] * per_min,
                         wasted_pm = wasted * per_min, starved_share = starved / p$fight_len,
                         rps = generated / p$fight_len,
+                        spare_pm = (generated - spent_core) * per_min,   # rage left after Bloodthirst and Whirlwind
                         total_dps = sum(dmg) / p$fight_len,
                         dps_white = dmg[["white"]] / p$fight_len, dps_hs = dmg[["hs"]] / p$fight_len,
                         dps_bt = dmg[["bt"]] / p$fight_len, dps_ww = dmg[["ww"]] / p$fight_len,

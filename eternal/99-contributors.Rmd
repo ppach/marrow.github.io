@@ -2,6 +2,10 @@
 
 ```{r setup-contributors, include=FALSE}
 # Keep this the last chapter. Add a row whenever the book uses someone's logs, data or analysis.
+contributors_changelog <- tribble(
+  ~version, ~date,        ~change,
+  "1.0.0",  "2026-09-24", "First version."
+)
 contributors <- tribble(
   ~Contributor,                  ~Contribution,                                                                                   ~`Used in`,
   "Tarch",                       "Eight combat logs with Unbridled Wrath at 1/5 to 4/5, dual wield and two-handed, recorded at every rank with the same character, weapons and mobs.", "Rage Generation, Known Bugs",
@@ -18,4 +22,11 @@ This book is built on other people's logs, data and work. Thank you to everyone 
 
 ```{r}
 knitr::kable(contributors, caption = "Contributors, and where their work is used.")
+```
+
+## Changelog {#contributors-changelog}
+
+```{r}
+contributors_changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "Contributors chapter versions, newest first.")
 ```

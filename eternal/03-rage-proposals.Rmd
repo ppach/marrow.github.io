@@ -43,11 +43,19 @@ hyb_alpha  <- 1 - forever_dw_tal / target_rps                 # hybrid meets Cla
 hyb_cap    <- target_rps - forever_dw_tal                     # ...and stays flat after it
 
 source("data/fight_sim.R")  # the fight simulator used in "Simulating actual fights"
+proposals_changelog <- tribble(
+  ~version, ~date,        ~change,
+  "1.4.0",  "2026-09-24", "Explained why we count Heroic Strikes, and added spare rage per minute (rage left after Bloodthirst and Whirlwind) to the simulation results.",
+  "1.3.0",  "2026-09-24", "Added how the sigmoid's four knobs change the curve and the rotation, with an interactive curve, and a section on Boundless Rage.",
+  "1.2.0",  "2026-09-24", "Talents in every simulation (the popular 17/34/0 build in each game), which puts Forever today at only 5% starved for Bloodthirst. The Heroic Strike gap with Classic comes from Classic's rage cap. Added the spread of rage per fight.",
+  "1.1.0",  "2026-09-23", "Every proposal tuned to meet Classic between phases 3 and 4, and 500 simulated fights per option.",
+  "1.0.0",  "2026-09-23", "First version: the sigmoid, saturating and hybrid curves, gear phase breakpoints, and the fight simulation."
+)
 source("data/sim_cache.R")  # saved simulation results (only re-run when the simulation or its inputs change)
 n_fights <- 500
 ```
 
-This chapter is different from the last one: it's not about what the game does, but about what it *could* do. None of this is measured, it's us thinking out loud about better ways to scale rage, so it doesn't count towards the findings or the changelog. We'll use the numbers from the Rage Generation chapter as a starting point wherever we can, though.
+This chapter is different from the last one: it's not about what the game does, but about what it *could* do. None of this is measured, it's us thinking out loud about better ways to scale rage, so it's kept apart from the findings in the Rage Generation chapter, with its own changelog. We'll use the numbers from the Rage Generation chapter as a starting point wherever we can, though.
 
 ## The two shapes we have today
 
@@ -320,6 +328,8 @@ The simulator plays a `r sim_defaults$fight_len / 60`-minute boss fight, swing b
 
 We run `r n_fights` fights for every combination of model and phase, and look at what comes out.
 
+**Why we count Heroic Strikes.** In this rotation, Heroic Strike is the last thing rage gets spent on: once Bloodthirst and Whirlwind are covered, any extra rage either becomes a Heroic Strike or is thrown away at the cap. So Heroic Strikes per minute is a way of counting spare rage in something you can feel, extra buttons pressed. It isn't a perfect measure, though. It depends on the rule we picked for queueing it (above `r sim_defaults$hs_threshold` rage), it can't go above one per main-hand swing (about `r round(60 / sim_defaults$mh_speed)` a minute with a `r sim_defaults$mh_speed` speed weapon), and each one costs more than its `r sim_defaults$hs_cost` rage: it replaces a white swing, and that swing's rage is lost too. In Forever that's about `r round(forever_mh * sim_defaults$mh_speed, 1)` rage for our main hand, so a Heroic Strike really costs about **`r round(sim_defaults$hs_cost + forever_mh * sim_defaults$mh_speed)` rage**. That's why we also report **spare rage per minute**: all the rage a fight gives, minus what Bloodthirst and Whirlwind use. It measures the room left in the rotation without depending on how it's spent.
+
 ```{r}
 
 sims <- cached_sim("proposals_fights", deps = list(phases, forever_draws, C60, ref_dps, pre_bis, target_rps, sig_s, sat_tau, hyb_alpha, hyb_cap, forever_dw_tal, n_fights, sim_defaults, forever_talents, classic_talents), {
@@ -390,12 +400,12 @@ sims %>%
 
 ```{r}
 sim_summary <- sims %>% group_by(phase, option) %>%
-  summarise(bt = mean(bt_pm), ww = mean(ww_pm), hs = mean(hs_pm),
+  summarise(bt = mean(bt_pm), ww = mean(ww_pm), hs = mean(hs_pm), spare = mean(spare_pm),
             starved = mean(starved_share) * 100, wasted = mean(wasted_pm), .groups = "drop")
 sim_summary %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
   transmute(Phase = phase, Option = option,
             `Bloodthirst / min` = round(bt, 1), `Whirlwind / min` = round(ww, 1),
-            `Heroic Strike / min` = round(hs, 1), `Starved for Bloodthirst` = sprintf("%.0f%%", starved),
+            `Heroic Strike / min` = round(hs, 1), `Spare rage / min` = round(spare), `Starved for Bloodthirst` = sprintf("%.0f%%", starved),
             `Rage wasted / min` = round(wasted, 1)) %>%
   knitr::kable(caption = "Averages over the simulated fights at three of the phases.")
 ```
@@ -407,7 +417,7 @@ rps_med <- function(ph, opt) median(sims$rps[sims$phase == ph & sims$option == o
 
 A few things the simulation shows that the averages couldn't:
 
-- **Forever today covers the core rotation, but not much more.** With the talents counted, it's only starved for Bloodthirst `r round(s("Phase 2", "Forever (today)", "starved"))`% of the time and manages `r round(s("Phase 2", "Forever (today)", "bt"), 1)` Bloodthirsts and `r round(s("Phase 2", "Forever (today)", "ww"), 1)` Whirlwinds a minute (out of a possible 10 and 6). What it doesn't have is spare rage: `r round(s("Phase 2", "Forever (today)", "hs"), 1)` Heroic Strikes a minute, against `r round(s("Phase 2", "Classic", "hs"), 1)` for Classic, and that's the same at every phase, since better weapons don't change its rage.
+- **Forever today covers the core rotation, but not much more.** With the talents counted, it's only starved for Bloodthirst `r round(s("Phase 2", "Forever (today)", "starved"))`% of the time and manages `r round(s("Phase 2", "Forever (today)", "bt"), 1)` Bloodthirsts and `r round(s("Phase 2", "Forever (today)", "ww"), 1)` Whirlwinds a minute (out of a possible 10 and 6). What it doesn't have is spare rage: `r round(s("Phase 2", "Forever (today)", "spare"))` rage a minute left after Bloodthirst and Whirlwind, against `r round(s("Phase 2", "Classic", "spare"))` for Classic, which works out to `r round(s("Phase 2", "Forever (today)", "hs"), 1)` Heroic Strikes a minute against `r round(s("Phase 2", "Classic", "hs"), 1)`, and that's the same at every phase, since better weapons don't change its rage.
 - **Classic never really waits for rage**, and it has so much of it that it throws some away at the cap, `r round(s("Phase 4", "Classic", "wasted"))` rage a minute by phase 4, even while queueing `r round(s("Phase 4", "Classic", "hs"), 1)` Heroic Strikes a minute. That's the runaway loop from the start of the chapter, playing out swing by swing.
 - **The sigmoid and saturating curves get there at different times.** Since Bloodthirst and Whirlwind are already covered, all the extra rage goes into Heroic Strikes, and the saturating curve gets there much earlier: `r round(s("Phase 1", "Proposal: saturating", "hs"), 1)` Heroic Strikes a minute by phase 1, against `r round(s("Phase 1", "Proposal: sigmoid", "hs"), 1)` for the sigmoid.
 - **In the fights, they get more Heroic Strikes than Classic, but not more rage.** At phase 4 the sigmoid generates about the same rage as Classic over a fight (`r round(rps_med("Phase 4", "Proposal: sigmoid"), 1)` rage per second, against `r round(rps_med("Phase 4", "Classic"), 1)`), which fits Figure 4.1, where the two lines meet between phases 3 and 4. But it queues `r round(s("Phase 4", "Proposal: sigmoid", "hs"), 1)` Heroic Strikes a minute, against Classic's `r round(s("Phase 4", "Classic", "hs"), 1)`. The difference is the rage cap: Classic's is 100, and a phase 4 Classic warrior throws away `r round(s("Phase 4", "Classic", "wasted"))` rage a minute because the bar is already full, while Forever's is 130 with Boundless Rage, and the sigmoid throws away `r round(s("Phase 4", "Proposal: sigmoid", "wasted"))`. At `r sim_defaults$hs_cost` rage each, that wasted rage is worth about `r round(s("Phase 4", "Classic", "wasted") / sim_defaults$hs_cost, 1)` Heroic Strikes a minute, which is most of the gap. So if the goal is to match what a Classic warrior could actually *spend*, rather than what they generated, the proposals' target could come down a bit.
@@ -493,3 +503,10 @@ br_summary %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
 **Right now, Boundless Rage does nothing.** With Forever's current rage, a warrior never fills a 100 rage bar in the first place (`r round(max(br_summary$wasted[br_summary$option == "Forever (today)"]), 1)` rage a minute thrown away, at any phase), because Bloodthirst and Whirlwind spend it long before the bar fills up. So the extra 30 rage has nothing to catch, and the talent adds no damage at all. It's three talent points that only pay off once you have more rage than your rotation can spend, and with today's flat rage that never happens, however good your gear gets.
 
 With a rage curve that grows with gear, it's a different talent, but only later on. Under the sigmoid it's still worth nothing at pre-BiS and very little at phase 2 (`r sprintf("%+.1f%%", brs("Proposal: sigmoid", "Phase 2", "dps") * 100)`, and the interval includes zero), because the rotation still spends everything. By phase 4, a 100 cap would throw away `r round(brs("Proposal: sigmoid", "Phase 4", "wasted"), 1)` rage a minute, and Boundless Rage turns that into `r round(brs("Proposal: sigmoid", "Phase 4", "hs"), 1)` more Heroic Strikes a minute (`r sprintf("%+.1f%%", brs("Proposal: sigmoid", "Phase 4", "dps") * 100)` damage). So it's a talent for the late part of the scaling: the more rage the game gives geared warriors, the more it's worth.
+
+## Changelog {#proposals-changelog}
+
+```{r}
+proposals_changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "Rage Design Proposals chapter versions, newest first.")
+```

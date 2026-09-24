@@ -4,6 +4,7 @@
 # Reuses `phases`, `C60`, `forever_draws`, `n_fights` and the fight simulator from the earlier chapters.
 abilities_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.2.0",  "2026-09-24", "Added the rage at which Execute matches Bloodthirst's damage per rage, which is much higher in Forever, and replaced the rage-per-Execute plot with Execute damage at each phase.",
   "1.1.0",  "2026-09-24", "Added Execute: the rage spent on each Execute, and Execute damage in the execute phase, simulated in both games.",
   "1.0.0",  "2026-09-24", "First version: Bloodthirst and Whirlwind, from the beta client's tooltips, simulated in Classic and Forever. Model only - neither ability can be learned in the beta yet."
 )
@@ -239,17 +240,51 @@ Also, the pairing only helps so much: after the first different decision, the tw
 Execute is the one ability here that didn't change: the beta's tooltip matches Classic's exactly. At rank 5 it costs `r sim_defaults$exec_cost` rage, does `r sim_defaults$exec_base` damage, and turns every extra point of rage you have into `r sim_defaults$exec_per_rage` more damage, but it can only be used once the boss is below 20% health. What changed is everything around it: how much rage you have when you press it.
 
 ```{r}
-exec_curve <- tibble(rage = sim_defaults$exec_cost:100) %>%
+exec_curve <- tibble(rage = sim_defaults$exec_cost:forever_talents$rage_cap) %>%
   mutate(damage = sim_defaults$exec_base + sim_defaults$exec_per_rage * (rage - sim_defaults$exec_cost),
          dpr = damage / rage)
 ```
 
-```{r fig.cap="Execute's damage per rage against the rage spent on it (before armor and crits). The first 15 rage buys the 600 base damage, so a minimum-rage Execute is very efficient; every extra point after that only adds 15 damage, so damage per rage falls towards 15 the more you spend.", fig.height=3.2}
-ggplot(exec_curve, aes(rage, dpr)) +
-  geom_line(colour = "#7570b3", linewidth = 1) +
-  geom_hline(yintercept = sim_defaults$exec_per_rage, linetype = "dotted", colour = "grey50") +
-  labs(x = "Rage spent on one Execute", y = "Damage per rage")
+```{r}
+# Bloodthirst's damage per rage before armor and crits, for each game at each phase's attack power.
+bt_raw_dpr <- function(game, ap) { p <- profile(game); (p$bt_ap * ap + p$bt_flat) / p$bt_cost }
+# Execute's damage per rage is 15 + 375 / rage, so it matches Bloodthirst's at rage = 375 / (BT - 15).
+exec_even <- function(bt_dpr) {
+  fixed <- sim_defaults$exec_base - sim_defaults$exec_per_rage * sim_defaults$exec_cost
+  ifelse(bt_dpr > sim_defaults$exec_per_rage, fixed / (bt_dpr - sim_defaults$exec_per_rage), Inf)
+}
+even_label <- function(r, cap) ifelse(r > cap, paste0("Never (above the ", cap, " cap)"), paste(round(r), "rage"))
+even_tbl <- gear %>% transmute(phase, ap,
+  bt_classic = bt_raw_dpr("Classic", ap), bt_forever = bt_raw_dpr("Forever", ap),
+  even_classic = exec_even(bt_classic), even_forever = exec_even(bt_forever))
+p2_bt <- c(Classic = even_tbl$bt_classic[even_tbl$phase == "Phase 2"], Forever = even_tbl$bt_forever[even_tbl$phase == "Phase 2"])
 ```
+
+```{r fig.cap="Execute's damage per rage against the rage spent on it (purple), with Bloodthirst's for a phase 2 warrior in each game (flat lines). Both are before armor and crits, which affect the two abilities the same way. Where the purple line crosses a flat line (the dot), an Execute with that much rage does as much damage per rage as Bloodthirst. For a phase 2 warrior, it crosses Classic's Bloodthirst but never Forever's.", fig.height=3.6}
+ggplot(exec_curve, aes(rage, dpr)) +
+  geom_hline(data = tibble(game = names(p2_bt), bt = p2_bt), aes(yintercept = bt, colour = game), linewidth = 0.9) +
+  geom_line(colour = "#7570b3", linewidth = 1) +
+  geom_vline(xintercept = c(100, 130), linetype = "dotted", colour = "grey60") +
+  annotate("text", x = c(100, 130), y = 30, label = c("Classic cap", "Forever cap"), angle = 90, vjust = -0.5, size = 3, colour = "grey45") +
+  geom_point(data = tibble(game = names(p2_bt), bt = p2_bt, r = exec_even(p2_bt)) %>% filter(r <= 130),
+             aes(r, bt, colour = game), size = 3) +
+  scale_colour_manual(values = game_colours, labels = function(g) paste(g, "Bloodthirst")) +
+  scale_x_continuous(limits = c(0, 135)) +
+  labs(x = "Rage spent on one Execute", y = "Damage per rage", colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+The first `r sim_defaults$exec_cost` rage buys the `r sim_defaults$exec_base` base damage, so a minimum-rage Execute is very efficient, and every extra point after that only adds `r sim_defaults$exec_per_rage` damage, so its damage per rage falls towards `r sim_defaults$exec_per_rage` the more you spend. As long as Bloodthirst does more than `r sim_defaults$exec_per_rage` damage per rage, there's a point where the two are equal: below it, Execute is the more efficient of the two, and above it, Bloodthirst is. If that point is above the rage cap, Execute is always at least as efficient. Both are yellow attacks, so misses, crits and armor affect them the same way and the point only depends on your attack power:
+
+```{r}
+even_tbl %>% transmute(Phase = phase, `Attack power` = ap,
+  `Bloodthirst, Classic` = round(bt_classic, 1), `Bloodthirst, Forever` = round(bt_forever, 1),
+  `Same as Bloodthirst at, Classic` = even_label(even_classic, classic_talents$rage_cap),
+  `Same as Bloodthirst at, Forever` = even_label(even_forever, forever_talents$rage_cap)) %>%
+  knitr::kable(caption = "Bloodthirst's damage per rage (before armor and crits) at each phase, and the rage at which an Execute matches it.")
+```
+
+In Classic, the two meet within the rage bar from phase 2 on: at `r round(even_tbl$even_classic[even_tbl$phase == "Phase 2"])` rage for a phase 2 warrior, coming down to `r round(even_tbl$even_classic[even_tbl$phase == "Phase 4"])` at phase 4 as attack power goes up. In Forever, Bloodthirst lost so much of its attack power scaling that the point sits much higher: above even the 130 rage cap until phase 2, `r round(even_tbl$even_forever[even_tbl$phase == "Phase 3"])` rage at phase 3, and `r round(even_tbl$even_forever[even_tbl$phase == "Phase 4"])` at phase 4, close to where Classic already was at phase 2. So in Forever, an Execute is at least as efficient as Bloodthirst with any amount of rage for most of the game, and only a very full rage bar late in the game tips it the other way.
 
 So an Execute's damage depends almost entirely on how much rage you have when you press it, which is where Classic and Forever differ. To see how, we add an execute phase to the fight simulation: for the last 20% of each three-minute fight, the warrior stops using Bloodthirst, Whirlwind and Heroic Strike, and presses Execute with all their rage every time the global cooldown is free.
 
@@ -267,11 +302,15 @@ exec_window <- 0.2 * sim_defaults$fight_len
 exec_each <- exec_sims %>% select(game, phase, exec_rage) %>% unnest(exec_rage)
 ```
 
-```{r fig.cap="Rage spent on each Execute, over every Execute in the simulated fights. The wider a shape is at some value, the more Executes were pressed with that much rage.", fig.height=4}
-ggplot(exec_each, aes(phase, exec_rage, fill = game, colour = game)) +
-  geom_violin(alpha = 0.35, scale = "width", draw_quantiles = 0.5, position = position_dodge(width = 0.8)) +
-  scale_fill_manual(values = game_colours) + scale_colour_manual(values = game_colours) +
-  labs(x = NULL, y = "Rage spent on one Execute", fill = NULL, colour = NULL) +
+```{r fig.cap="Execute damage per second during the execute phase, at each phase of gear. The dots are the typical fight, and the lines cover the middle 90% of fights. In Classic, Execute damage keeps growing with gear; in Forever it barely moves.", fig.height=3.6}
+exec_sims %>% mutate(exec_phase_dps = dps_exec * sim_defaults$fight_len / exec_window) %>%
+  group_by(game, phase) %>%
+  summarise(med = median(exec_phase_dps), lo = quantile(exec_phase_dps, 0.05), hi = quantile(exec_phase_dps, 0.95), .groups = "drop") %>%
+  ggplot(aes(phase, med, colour = game, group = game)) +
+  geom_line(position = position_dodge(width = 0.3), alpha = 0.6) +
+  geom_pointrange(aes(ymin = lo, ymax = hi), position = position_dodge(width = 0.3)) +
+  scale_colour_manual(values = game_colours) +
+  labs(x = NULL, y = "Execute damage per second", colour = NULL) +
   theme(legend.position = "bottom")
 ```
 
