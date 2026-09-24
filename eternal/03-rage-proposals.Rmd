@@ -249,6 +249,17 @@ ggplot(knob_curves, aes(dps, rps, group = setting, colour = role)) +
   theme(legend.position = "bottom")
 ```
 
+If you want to try it yourself, here's the same sigmoid with all four knobs on sliders. The table underneath shows what each phase gets, and how that compares with the sigmoid we've been using:
+
+```{r results="asis"}
+sig_cfg <- list(ours = list(F = forever_dw_tal, C = target_rps, m = ref_dps, w = w0),
+                phases = transmute(phases, phase = as.character(phase), dps), cost = rotation_cost)
+cat("<script>window.SIG_CFG = ", jsonlite::toJSON(sig_cfg, auto_unbox = TRUE, digits = 6), ";</script>
+", sep = "")
+cat(readLines("data/sigmoid_widget.html"), sep = "
+")
+```
+
 A few ways to read it:
 
 - **Moving the midpoint** picks the phase where warriors "come online". With the midpoint at phase 1, the rotation opens up almost as soon as you're raiding, and later phases add little. At phase 3, most of the game is spent near the floor, and the payoff comes late.
