@@ -9,6 +9,7 @@ clusters <- read_csv("data/derived/swing_clusters.csv")
 swings   <- read_csv("data/derived/swings.csv")
 energize <- read_csv("data/derived/energize.csv")
 procs    <- read_csv("data/derived/procs.csv")
+ubw_hand <- read_csv("data/derived/ubw_by_hand.csv")
 ubw5     <- filter(procs, ubw_rank == 5)
 ubw_rate <- sum(ubw5$ubw_procs) / sum(ubw5$landed_white)   # Unbridled Wrath proc rate at 5/5
 meta     <- yaml::read_yaml("data/logs/metadata.yaml")
@@ -38,6 +39,7 @@ fmt_p <- function(p) format.pval(p, digits = 2, eps = 1e-10)
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.2.0",  "2026-09-24", "Unbridled Wrath doesn't use procs per minute: the chance per landed white hit is the same for weapons from 1.8 to 3.8 speed, main hand, off hand and two-handers alike.",
   "2.1.1",  "2026-09-24", "The developers confirmed the Unbridled Wrath bug and said the fix will come in a future beta build (forever-bugs issue #105).",
   "2.1.0",  "2026-09-23", "Added a log from Tarch with Unbridled Wrath at 4/5 (dual wield and two-handed), which completes the proc rate at every talent rank. 4/5 procs on about 36% of hits, still well below the tooltip's 48%.",
   "2.0.0",  "2026-09-23", "Added six logs from Tarch (Unbridled Wrath at 1/5, 2/5 and 3/5, dual wield and two-handed). Unbridled Wrath gives about 8% per talent point instead of the tooltip's 12%, so 5/5 is about 36% instead of 60% (a bug, not a talent-point mix-up). A second two-handed weapon (3.3 speed) confirms 4.5 × speed.",
@@ -487,6 +489,52 @@ ubw %>% mutate(rate = k / n, lo = qbeta(0.025, k + 1, n - k + 1), hi = qbeta(0.9
 ```
 
 The talent clearly doesn't give 12% per point: that's rejected at every rank (only just at 1/5, where we have the fewest procs). Our best estimate is about **`r round(per_point * 100, 1)`% per point**, and 5/5 lands at `r round(ubw$k[ubw$rank == 5] / ubw$n[ubw$rank == 5] * 100)`%, a long way from 60%. The tooltip says 12% per point, so this is a bug: it's close to the 8% per point Classic's Unbridled Wrath had (40% at 5/5), so the beta may still be using the old Classic chance. It's listed as [BUG-1](#bug-ubw) in the Known Bugs chapter. The developers have confirmed it and a fix is coming in a future beta build ([issue #105](https://github.com/ClassicWoWCommunity/forever-bugs/issues/105)). Siax's rank wasn't posted, but his proc rate (`r round(procs$ubw_procs[procs$character == "Siax"] / procs$landed_white[procs$character == "Siax"] * 100)`%) matches 5/5.
+
+#### Does weapon speed matter? {#ubw-ppm}
+
+Some procs in the game work on "procs per minute" (PPM): instead of a fixed chance on every hit, the chance scales with weapon speed, so a slow weapon gets a bigger chance on each swing and every weapon ends up with about the same number of procs per minute. This was asked in the [forever-warrior issues](https://github.com/magey/forever-warrior/issues/4), since the low proc rate could have been PPM working out lower than 60% for common weapon speeds.
+
+We can test that by splitting the procs by which weapon made the hit. Each proc shows up in the log a few milliseconds after the white hit that caused it, and each weapon gives its own, known amount of rage per hit (rate × speed, from earlier in this chapter), so we can tell main hand, off hand and two-hander hits apart. If it were PPM, the proc chance per hit would grow in line with the weapon speed, so a 3.8 two-hander would proc about twice as often per hit as a 1.8 off hand.
+
+```{r}
+ubw_hand_rk <- ubw_hand %>% filter(!is.na(ubw_rank))
+ubw_hand_rk %>%
+  group_by(Character = character, `Talent points` = paste0(ubw_rank, "/5"),
+           Weapon = recode(hand, main_hand = "Main hand", off_hand = "Off hand", two_hand = "Two-hander"),
+           Speed = speed) %>%
+  summarise(n = n(), k = sum(proc), .groups = "drop") %>%
+  mutate(`Proc rate` = sprintf("%.0f%%", k / n * 100),
+         `95% interval` = sprintf("%.0f%% to %.0f%%", qbeta(0.025, k + 1, n - k + 1) * 100, qbeta(0.975, k + 1, n - k + 1) * 100)) %>%
+  rename(`Landed white hits` = n, Procs = k) %>%
+  knitr::kable(caption = "Unbridled Wrath's proc rate for each weapon, by talent rank. Only hits below 100 rage are counted, since those are the ones where the rage gained tells us which weapon it was.")
+```
+
+```{r}
+# Chance per hit = q x rank x speed^b. b = 0 is a fixed chance per hit, b = 1 is procs per minute.
+ppm_fit <- glm(proc ~ log(speed) + offset(log(ubw_rank)), family = binomial(link = "log"),
+               data = ubw_hand_rk, start = c(-2.6, 0))
+ppm_b   <- coef(ppm_fit)[["log(speed)"]]
+ppm_se  <- sqrt(vcov(ppm_fit)["log(speed)", "log(speed)"])
+ppm_p   <- 2 * pnorm(-abs((ppm_b - 1) / ppm_se))
+```
+
+```{r fig.cap="Unbridled Wrath's proc rate per landed white hit against weapon speed, with each rank scaled to 5/5 (dots, with 95% intervals). A fixed chance per hit gives a flat line (solid); procs per minute would make it climb in line with weapon speed (dashed, pinned to the logs' average). The logs are flat.", fig.height=3.5}
+ubw_speed <- ubw_hand_rk %>% group_by(speed) %>%
+  summarise(n = n(), k = sum(proc), w = mean(5 / ubw_rank), .groups = "drop") %>%
+  mutate(rate = k / n * w, lo = qbeta(0.025, k + 1, n - k + 1) * w, hi = qbeta(0.975, k + 1, n - k + 1) * w)
+flat <- sum(ubw_hand_rk$proc) / sum(ubw_hand_rk$ubw_rank / 5)
+mean_speed <- weighted.mean(ubw_speed$speed, ubw_speed$n)
+ggplot(ubw_speed, aes(speed, rate)) +
+  geom_hline(yintercept = flat, colour = "grey50") +
+  geom_abline(slope = flat / mean_speed, intercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_pointrange(aes(ymin = lo, ymax = hi), colour = "#2c7fb8") +
+  scale_y_continuous(labels = scales::percent, limits = c(0, NA)) +
+  labs(x = "Weapon speed", y = "Procs per landed white hit (as 5/5)")
+```
+
+It isn't PPM. The proc chance per hit is the same whatever the weapon speed: at 5/5, Zomd's 1.8 off hand, 2.6 main hand and 3.8 two-hander all proc on roughly the same share of hits, when PPM would have the two-hander at about twice the off hand's rate. To put a number on it, we fitted one model across every rank and weapon where the chance per hit goes with weapon speed to some power: 0 means a fixed chance per hit, and 1 means PPM. The logs give **`r round(ppm_b, 2)`** (95% interval `r round(ppm_b - 1.96 * ppm_se, 2)` to `r round(ppm_b + 1.96 * ppm_se, 2)`), which is right on a fixed chance, and PPM is ruled out (`r if (startsWith(fmt_p(ppm_p), "<")) paste("p", fmt_p(ppm_p)) else paste("p =", fmt_p(ppm_p))`). This covers speeds from 1.8 to 3.8, and Nooch's 1.3 daggers (about 33% at 5/5, posted in the same issue) fit the same picture.
+
+So once the fix lands, every weapon should get the same 60% chance per hit at 5/5, and faster weapons will get more procs per minute simply because they hit more often.
 
 Two more things stay the same as before: every proc gives 1 rage with one-handers and 2 with two-handers, at every rank, and none of the procs come from Heroic Strike or Cleave.
 

@@ -65,6 +65,36 @@ def analyze(meta):
     return rows, levels, swings, taken, misses, energize, procs
 
 
+def ubw_by_hand(meta, rows):
+    """One row per uncapped landed white hit: which weapon made it (told apart by the rage it gave)
+    and whether it procced Unbridled Wrath. Used to test whether the proc chance depends on weapon speed."""
+    procd = set()
+    last = None
+    for r in rows:  # a proc is logged a few ms after the swing that caused it
+        if r["event"] == "SWING_DAMAGE" and r["src"]:
+            last = r
+        elif r["event"] == "SPELL_ENERGIZE" and r["dst"] and r["spell"] == "Unbridled Wrath":
+            if last is not None and r["t"] - last["t"] < 0.5:
+                procd.add(id(last))
+    ws = sorted(meta["equipped_weapons"], key=lambda w: w["slot"] != "main_hand")
+    if meta["setup"] == "two_hand":
+        hands = [("two_hand", ws[0]["speed"], 45 * ws[0]["speed"])]
+    else:  # expected gain in tenths: 3.46 x speed main hand, 1.73 x speed off hand
+        hands = [("main_hand", ws[0]["speed"], 34.6 * ws[0]["speed"]),
+                 ("off_hand", ws[1]["speed"], 17.3 * ws[1]["speed"])]
+    out = []
+    snaps = snapshots(rows)
+    for p, s in zip(snaps, snaps[1:]):
+        if not (s["event"] == "SWING_DAMAGE" and s["src"]) or s["t"] - p["t"] > MAX_GAP or s["rage"] >= RAGE_CAP:
+            continue
+        gain = s["rage"] - after(p)
+        hand, speed, exp = min(hands, key=lambda h: abs(gain - h[2]))
+        if abs(gain - exp) <= 4:
+            out.append({"hand": hand, "speed": speed, "proc": int(id(s) in procd),
+                        "ubw_rank": (meta.get("talents") or {}).get("unbridled_wrath")})
+    return out
+
+
 def clusters(swings):
     """Group uncapped swing gains into clusters (values within 2 tenths) and time each cluster's swings."""
     vals = sorted(Counter(s["gain"] for s in swings if not s["capped"]).items())
@@ -115,7 +145,7 @@ def check(meta, rows, levels, cl):
 def main():
     metas = yaml.safe_load(open("logs/metadata.yaml"))
     os.makedirs("derived", exist_ok=True)
-    all_sw, all_tk, all_cl, all_mi, all_en, all_pr = [], [], [], [], [], []
+    all_sw, all_tk, all_cl, all_mi, all_en, all_pr, all_uh = [], [], [], [], [], [], []
     for m in metas:
         rows, levels, swings, taken, misses, energize, procs = analyze(m)
         all_pr.append({"file": m["file"], "character": m["character_name"], "setup": m["setup"], **procs})
@@ -124,6 +154,8 @@ def main():
         print(f"   weapons: {weapons}")
         print(f"   levels in log: {dict(levels)}")
         cl = clusters(swings)
+        all_uh += [{"file": m["file"], "character": m["character_name"], "setup": m["setup"], **u}
+                   for u in ubw_by_hand(m, rows)]
         for w in check(m, rows, levels, cl):
             print(f"   WARNING: {w}")
         capped = sum(s["capped"] for s in swings)
@@ -151,7 +183,7 @@ def main():
             all_en.append({"file": m["file"], "spell": spell, "amount": amt, "n": n})
 
     for name, data in [("swings", all_sw), ("taken", all_tk), ("swing_clusters", all_cl),
-                       ("misses", all_mi), ("energize", all_en), ("procs", all_pr)]:
+                       ("misses", all_mi), ("energize", all_en), ("procs", all_pr), ("ubw_by_hand", all_uh)]:
         with open(f"derived/{name}.csv", "w", newline="") as fh:
             w = csv.DictWriter(fh, fieldnames=list(data[0].keys()))
             w.writeheader()
