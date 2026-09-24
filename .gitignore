@@ -30,3 +30,4 @@ eternal/*_files/
 eternal/data/__pycache__/
 !eternal/eternal.Rproj
 eternal/data/logs/incoming/
+eternal/data/*.zip

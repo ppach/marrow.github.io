@@ -28,7 +28,8 @@ All paths below are relative to `eternal/data/`. Python is at `C:/Users/pedro/Ap
    - Copy what the poster wrote, even if it looks wrong. Put your doubts in `notes` or a comment, never in the value. For example, Siax posted 0% crit while the log shows crits.
    - Weapon order is main hand first. Weapon `type` comes from the post or the item name, and `speed` is required. If the post gives no speed, ask the user or the poster. The analysis cannot place swings without it.
    - `player_guid` comes from step 2. `source` is the discussion URL, and `attachment` is the file URL, which is what marks the log as ingested.
-   - Level is not a metadata field. The analysis reads it from the log.
+   - Record the posted level as `level_posted` and any talents under `talents` (for example `unbridled_wrath: 3`, `cruelty: 5`). Post titles can carry talents too: "UW 5/5" means 5/5 Unbridled Wrath, not a zone. Do not trust the level in the log. It was 8 levels low for Tarch (posted 20, log 12), so `analyze.py` also records the typical level of the mobs fought for comparison.
+   - Logs can also arrive as files or zips the user shares directly, not only through the discussions. Record `source` as where they came from. If one recording switches setup partway (for example, DW to 2H at a Shadowmeld cast), split it into one file per setup at that point.
    - If the post lacks a required field (build, weapons, speeds), record what exists, add a `notes` line naming what is missing, and tell the user.
 
 5. **Run the analysis and read the warnings.** Run `python analyze.py`. For each log it prints the rage-per-swing groups with their swing intervals, then `WARNING:` lines where the log and the metadata disagree:
@@ -51,6 +52,8 @@ All paths below are relative to `eternal/data/`. Python is at `C:/Users/pedro/Ap
 
    A new build can change mechanics. Report findings per build, and never pool builds silently.
 
+   **Bugs.** If a measurement contradicts what the tooltip says, with a p-value well below 0.05 over a decent number of events, add it to `eternal/02-known-bugs.Rmd`. Add a row to the `bugs` table (next free BUG-n ID, build, first-seen date, status "Open"), and give it a section with the tooltip value, what the logs show, how sure we are, what it costs and which logs it was seen in. Use the tooltip values in the proposals and the simulator, not the bugged ones. If a new build's logs match the tooltip for a known bug, set its status to "Fixed in <build>" instead of deleting it.
+
 7. **Rebuild the book.** From `eternal/`, run:
 
    ```bash
@@ -59,7 +62,14 @@ All paths below are relative to `eternal/data/`. Python is at `C:/Users/pedro/Ap
 
    The chapter reads `data/derived/*.csv` and `metadata.yaml`, so new logs appear in its tables and plots without code changes. Update the prose when the numbers or conclusions moved. Look at the rendered plots, not only the build status.
 
-8. **Report, then ask before publishing.** Tell the user:
+8. **Bump the chapter version.** Add a row at the top of the `changelog` tribble in the setup chunk of `eternal/01-rage.Rmd`, with the new version, today's date (YYYY-MM-DD) and one sentence on what changed. The version line at the top of the chapter and the changelog table both read from it. Use the scheme described in the chapter's Changelog section:
+   - MAJOR when a conclusion changes (for example, a rate moves, or damage turns out to matter)
+   - MINOR when findings are added without overturning anything (new logs that agree, a newly measured mechanic)
+   - PATCH when a number is corrected without changing any conclusion
+
+   The changelog tracks findings only: do not add a row for rewording, style or layout changes. If you are unsure whether a change is MAJOR or MINOR, ask the user.
+
+9. **Report, then ask before publishing.** Tell the user:
    - which logs you added
    - the warnings and what you found for each
    - whether the findings changed

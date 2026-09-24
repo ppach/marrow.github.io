@@ -50,7 +50,19 @@ def analyze(meta):
 
     energize = Counter((r["spell"], r["amount"]) for r in rows
                        if r["event"].endswith("ENERGIZE") and r["dst"] and r.get("energize_type") == "1")
-    return rows, levels, swings, taken, misses, energize
+    # Unbridled Wrath procs per landed white hit (procs at the rage cap still log, with 0 rage).
+    landed_white = sum(1 for r in rows if r["event"] == "SWING_DAMAGE" and r["src"])
+    ubw_procs = sum(1 for r in rows if r["event"] == "SPELL_ENERGIZE" and r["dst"] and r["spell"] == "Unbridled Wrath")
+    # Level check: the level the log gives the player, against the level of the mobs they hit.
+    # (SWING_DAMAGE_LANDED carries the target's advanced block, so its level field is the mob's.)
+    mob_levels = [int(r["raw"][9 + 18]) for r in rows if r["event"] == "SWING_DAMAGE_LANDED" and r["src"]
+                  and r["raw"][9].startswith("Creature")]
+    procs = {"landed_white": landed_white, "ubw_procs": ubw_procs,
+             "ubw_rank": (meta.get("talents") or {}).get("unbridled_wrath"),
+             "log_level": levels.most_common(1)[0][0] if levels else None,
+             "posted_level": meta.get("level_posted"),
+             "mob_level_median": st.median(mob_levels) if mob_levels else None}
+    return rows, levels, swings, taken, misses, energize, procs
 
 
 def clusters(swings):
@@ -103,9 +115,10 @@ def check(meta, rows, levels, cl):
 def main():
     metas = yaml.safe_load(open("logs/metadata.yaml"))
     os.makedirs("derived", exist_ok=True)
-    all_sw, all_tk, all_cl, all_mi, all_en = [], [], [], [], []
+    all_sw, all_tk, all_cl, all_mi, all_en, all_pr = [], [], [], [], [], []
     for m in metas:
-        rows, levels, swings, taken, misses, energize = analyze(m)
+        rows, levels, swings, taken, misses, energize, procs = analyze(m)
+        all_pr.append({"file": m["file"], "character": m["character_name"], "setup": m["setup"], **procs})
         weapons = ", ".join(f"{w['slot']} {w['name']} {w['speed']}" for w in m["equipped_weapons"])
         print(f"\n== {m['file']}  ({m['character_name']}, build {m['beta_build']}, {m['setup']})")
         print(f"   weapons: {weapons}")
@@ -138,7 +151,7 @@ def main():
             all_en.append({"file": m["file"], "spell": spell, "amount": amt, "n": n})
 
     for name, data in [("swings", all_sw), ("taken", all_tk), ("swing_clusters", all_cl),
-                       ("misses", all_mi), ("energize", all_en)]:
+                       ("misses", all_mi), ("energize", all_en), ("procs", all_pr)]:
         with open(f"derived/{name}.csv", "w", newline="") as fh:
             w = csv.DictWriter(fh, fieldnames=list(data[0].keys()))
             w.writeheader()

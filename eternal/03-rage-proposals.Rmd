@@ -1,0 +1,326 @@
+# Rage Design Proposals {#rage-proposals}
+
+```{r setup-proposals, include=FALSE}
+# Reuses `obs`, `conv` and the theme from the Rage Generation chapter (bookdown knits all chapters in one session).
+forever_mh <- with(filter(obs, hand == "Main hand"), mean(gain / speed))
+forever_oh <- with(filter(obs, hand == "Off hand"),  mean(gain / speed))
+forever_dw <- forever_mh + forever_oh
+
+# Gear breakpoints: main-hand weapon DPS for each phase. Phase 3 is the midpoint of phases 2 and 4.
+phases <- tibble(phase = c("Pre-BiS", "Phase 1", "Phase 2", "Phase 3", "Phase 4"),
+                 dps   = c(42, 51, 58, (58 + 73) / 2, 73)) %>%
+  mutate(phase = factor(phase, levels = phase))
+ref_dps <- phases$dps[phases$phase == "Phase 2"]   # the middle of the curve, where most raiders are
+
+# A level 60 dual-wield warrior against a boss, as in the level 60 simulation.
+C60   <- conv(60)
+ap    <- 1200   # held fixed, so only the weapon changes
+armor <- 0.75   # share of damage left after boss armor, with Sunder Armor and Faerie Fire
+crit  <- 0.30
+
+# Classic: rage per second = 15 / C x white damage per second (landed hits, off hand at half damage,
+# off-hand weapon assumed to have the same DPS as the main hand).
+classic_rps <- function(dps) 15 / C60 * (dps + ap / 14) * 1.5 * armor * (1 + crit)
+classic_per_10dps <- classic_rps(ref_dps + 10) - classic_rps(ref_dps)
+classic_per_100ap <- 15 / C60 * (100 / 14) * 1.5 * armor * (1 + crit)
+rotation_cost <- 435 / 60   # Bloodthirst, Whirlwind and two Sunders, from Bored's rage spreadsheet
+
+# Target: every proposal reaches Classic's rage per second at the midpoint between phases 3 and 4, then levels off.
+pre_bis    <- phases$dps[phases$phase == "Pre-BiS"]
+target_dps <- mean(phases$dps[phases$phase %in% c("Phase 3", "Phase 4")])
+target_rps <- classic_rps(target_dps)
+sig_s      <- (target_dps / ref_dps - 1) / qlogis(0.95)   # sigmoid is 95% of the way up at the target
+sat_tau    <- (target_dps - pre_bis) / log(20)            # saturating curve is 95% of the way up at the target
+hyb_alpha  <- 1 - forever_dw / target_rps                 # hybrid meets Classic exactly at the target...
+hyb_cap    <- target_rps - forever_dw                     # ...and stays flat after it
+
+source("data/fight_sim.R")  # the fight simulator used in "Simulating actual fights"
+n_fights <- 200
+```
+
+This chapter is different from the last one: it's not about what the game does, but about what it *could* do. None of this is measured, it's us thinking out loud about better ways to scale rage, so it doesn't count towards the findings or the changelog. We'll use the numbers from the Rage Generation chapter as a starting point wherever we can, though.
+
+## The two shapes we have today
+
+Before proposing anything, it's worth being precise about the shape of each system: how does rage per second change as your gear gets better? Throughout this chapter we'll look at a level 60 dual-wield warrior against a boss, counting only hits that land, and we'll measure gear by the damage per second of the main-hand weapon, using these breakpoints for each phase:
+
+```{r}
+phases %>% transmute(Phase = phase, `Main-hand weapon DPS` = dps) %>%
+  knitr::kable(caption = "Main-hand weapon DPS at each phase. Phase 3 is the midpoint between phases 2 and 4.")
+```
+
+To keep things simple, we'll assume the off-hand weapon has the same DPS as the main hand and hold attack power at `r ap`, so the only thing that changes from phase to phase is the weapon.
+
+### Classic: a straight line with no ceiling
+
+In Classic, rage per second is just $15 / C$ times your white damage per second, and at level 60 $C$ is fixed at `r round(C60, 1)`. So rage is directly proportional to white damage, and white damage goes up in a straight line with weapon damage, attack power and crit. For our warrior that works out to about **`r round(classic_per_10dps, 2)` more rage per second for every 10 weapon DPS** (and about `r round(classic_per_100ap, 2)` for every 100 attack power), and the line never stops going up: going from a pre-BiS weapon to a phase 4 one alone takes you from `r round(classic_rps(42), 1)` to `r round(classic_rps(73), 1)` rage per second.
+
+That alone would be fine, but it also feeds itself: more damage gives more rage, more rage pays for more Heroic Strikes, and more Heroic Strikes give more damage. At the top end, rage basically stops being a limit at all - well-geared warriors end up queueing Heroic Strike on almost every swing while sitting close to full rage. That's the "too strong" part.
+
+### Forever: a flat line
+
+In Forever, rage per swing is a fixed rate times weapon speed, so the speed cancels out and rage per second is just the rate: about **`r round(forever_dw, 2)` for dual wield**. Weapon damage, attack power and crit don't move it at all, so a phase 4 weapon gives exactly the same rage as a pre-BiS one. The only things that can still change it are the ones that change how many swings you land: hit, expertise, haste (if haste counts, which we haven't been able to test yet) and extra attacks.
+
+That fixes the feedback loop and removes the randomness of crit streaks, but it swings too far the other way: gearing up does nothing for your rage, and our level 60 simulation puts Forever below Classic for almost any gear. You're rage-starved at level 60 and there's no way to gear out of it.
+
+## What we want from a better curve
+
+Putting both together, a good rage curve for Forever should:
+
+1. give a **playable floor**, so a fresh level 60 in pre-BiS gear isn't starved,
+2. **respond to gear**, so each phase's weapon upgrade feels like it matters for rage and not only for damage,
+3. have a **ceiling**, so the Classic feedback loop can't run away, and
+4. stay **steady from swing to swing**, keeping what Forever does well today.
+
+A sigmoid (an S-shaped curve) ticks the first three boxes on paper. The fourth one depends on what we plug into it, which brings us to the first of four questions.
+
+## Four questions for any new curve
+
+### 1. What should the curve be a function of?
+
+The obvious choice is the damage of each hit, since that's what Classic uses. The problem is that it brings back everything Forever got rid of: a crit doubles the input, so a lucky streak of crits jumps you up the curve, and one big hit is worth far more than a small one. Rage per swing goes back to being random.
+
+The better choice is a steady stat that the game can read at the moment of the swing, and weapon DPS is a natural one: it doesn't change from one swing to the next, so every swing still gives a predictable amount of rage (just like Forever today), but that amount goes up as your weapon gets better. It also lines up neatly with how gear actually progresses, since each phase brings a clear weapon upgrade. Attack power would work too, but it's spread across many items, so it's harder to tie to a phase.
+
+One thing to avoid is using haste or hit as the input. They already change how many swings you land, so putting them in the curve too would count them twice.
+
+### 2. How should it work while leveling, and across phases?
+
+If the input is raw weapon DPS, a curve tuned for level 60 raiders would be useless at level 20, where weapons are nowhere near 42 DPS. The simple fix is to measure the weapon relative to what's normal:
+
+$$x = \frac{\text{your weapon DPS}}{\text{typical weapon DPS for your level}}$$
+
+With that, $x = 1$ always means "a normal weapon for your level", and the same curve works from level 10 to 60 without being retuned. At level 60 the same idea works across phases: if "typical" is the current phase's weapon, the curve moves along with the content, so a phase 4 weapon in phase 4 feels the same as a phase 1 weapon did in phase 1. In the plots below we use phase 2 (`r ref_dps` DPS) as the reference, so $x = 1$ is a phase 2 weapon.
+
+### 3. What happens at the bottom of the S?
+
+The catch with a sigmoid is that it's flat at both ends. The flat top is exactly what we want (that's the ceiling), but the flat bottom means that early gear upgrades barely change your rage, which can feel pretty bad right after hitting level 60. How much that matters depends on where the bottom of the S sits compared to pre-BiS gear: if the curve only starts rising above a pre-BiS weapon, fresh level 60 players never notice the flat part, but the first upgrade after that might not feel like much either.
+
+If we want every upgrade to count from the first one, a saturating curve is the alternative: it rises fastest at the start and then slowly levels off, without ever having a flat bottom. The square root of $x$ behaves in a similar way. So roughly:
+
+- a **sigmoid** is the better choice if we want a guaranteed floor and a deliberate ramp in the middle phases, where most raiders are,
+- a **saturating curve** is the better choice if we want every upgrade to count, just less and less as you go.
+
+### 4. Is there a smaller change than a new curve?
+
+There is: keep Forever's rate × speed exactly as it is, and add a small damage-based bonus on top, with a cap:
+
+$$Rage_{swing} = rate \times speed + \min\left(\alpha \times \frac{D}{C} \times 15,\ cap\right)$$
+
+Here $\alpha$ is a share of what Classic would have given for that hit, and the cap stops the bonus from growing forever. This is the smallest step away from what the beta does today, since the formula players see in the logs stays exactly the same and just gets a bonus on top. The downside is that it's still based on each hit's damage, so it brings back some of the crit randomness from question 1 - and the bigger $\alpha$ is, the more of it comes back.
+
+## All options in one plot
+
+To compare everything side by side, we need to decide where each curve should end up. Our goal is for a fully geared Forever warrior to end up with about as much rage as a Classic warrior had between phases 3 and 4 (a `r target_dps` DPS weapon), which for our warrior is about **`r round(target_rps, 1)` rage per second**. So every proposal starts from today's Forever rate (`r round(forever_dw, 2)`) and is tuned to reach Classic's level at that point, and then stops climbing:
+
+- **Sigmoid**: the middle of the S at a phase 2 weapon, and 95% of the way to the target by the phase 3-4 midpoint.
+- **Saturating**: starts from the floor with a pre-BiS weapon, rises fastest with the first upgrade, and is 95% of the way to the target by the phase 3-4 midpoint.
+- **Hybrid**: today's Forever rate plus `r round(hyb_alpha * 100)`% of Classic's damage-based rage, capped at `r round(hyb_cap, 1)` extra rage per second, which is exactly where it meets Classic at the target.
+
+The sigmoid and saturating curves both run on weapon DPS (questions 1 and 2), while the hybrid follows damage (question 4).
+
+It's worth keeping in mind how much rage that is. The [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml) put together by Bored (a bored member of the Fight Club Discord, fittingly) puts Bloodthirst, Whirlwind and two Sunders at around 420 to 450 rage per minute, which is 7 to 7.5 rage per second, so at `r round(target_rps, 1)` a geared warrior has about twice what the core rotation needs, and the rest goes into Heroic Strikes. That's the Classic feel we're after - the difference is that the proposals stop climbing at that point, while Classic keeps going.
+
+```{r}
+dps <- seq(35, 80, by = 0.25)
+x   <- dps / ref_dps
+
+
+rage_options <- function(dps) {
+  x <- dps / ref_dps
+  tibble(dps = dps,
+         `Classic`              = classic_rps(dps),
+         `Forever (today)`      = forever_dw,
+         `Proposal: sigmoid`    = forever_dw + (target_rps - forever_dw) / (1 + exp(-(x - 1) / sig_s)),
+         `Proposal: saturating` = forever_dw + (target_rps - forever_dw) * (1 - exp(-pmax(dps - pre_bis, 0) / sat_tau)),
+         `Proposal: hybrid`     = forever_dw + pmin(hyb_alpha * classic_rps(dps), hyb_cap))
+}
+option_levels <- c("Classic", "Forever (today)", "Proposal: sigmoid", "Proposal: saturating", "Proposal: hybrid")
+curves <- rage_options(dps) %>%
+  pivot_longer(-dps, names_to = "option", values_to = "rps") %>%
+  mutate(option = factor(option, levels = option_levels))
+
+hybrid_cap_dps <- dps[which(hyb_alpha * classic_rps(dps) >= hyb_cap)[1]]
+at_phase <- rage_options(phases$dps) %>% mutate(phase = phases$phase)
+
+option_colours <- c("Classic" = "grey45", "Forever (today)" = "#2c7fb8", "Proposal: sigmoid" = "#d95f02",
+                    "Proposal: saturating" = "#7570b3", "Proposal: hybrid" = "#1b9e77")
+option_lines   <- c("Classic" = "solid", "Forever (today)" = "solid", "Proposal: sigmoid" = "dashed",
+                    "Proposal: saturating" = "dashed", "Proposal: hybrid" = "dashed")
+
+phase_marks <- function(y_top) list(
+  geom_vline(data = phases, aes(xintercept = dps), colour = "grey75", linetype = "dotted"),
+  geom_text(data = phases, aes(x = dps, y = y_top, label = phase), inherit.aes = FALSE,
+            angle = 90, hjust = 1, vjust = -0.4, size = 3, colour = "grey40")
+)
+```
+
+```{r fig.cap="Rage per second from white hits for a level 60 dual-wield warrior, as the weapon gets better. The vertical dotted lines are the phase breakpoints, and the horizontal one is roughly what Bloodthirst, Whirlwind and two Sunders cost per second (about 7.2), so anything above it can afford some Heroic Strikes on top. Classic keeps climbing in a straight line and Forever today is flat, while the three proposals meet Classic between phases 3 and 4 and level off there.", fig.height=5}
+ggplot(curves, aes(dps, rps, colour = option, linetype = option)) +
+  phase_marks(max(curves$rps)) +
+  geom_hline(yintercept = rotation_cost, linetype = "dotted", colour = "grey40") +
+  annotate("text", x = min(dps), y = rotation_cost, label = "rotation cost", hjust = 0, vjust = -0.5,
+           size = 3, colour = "grey40") +
+  geom_line(linewidth = 1) +
+  scale_colour_manual(values = option_colours) +
+  scale_linetype_manual(values = option_lines) +
+  labs(x = "Main-hand weapon DPS", y = "Rage per second from white hits", colour = NULL, linetype = NULL)
+```
+
+```{r}
+at_phase %>%
+  pivot_longer(-c(dps, phase), names_to = "Option", values_to = "rps") %>%
+  mutate(Option = factor(Option, levels = option_levels), rps = round(rps, 2),
+         phase = paste0(phase, " (", dps, ")")) %>%
+  select(-dps) %>%
+  pivot_wider(names_from = phase, values_from = rps) %>%
+  arrange(Option) %>%
+  knitr::kable(caption = "Rage per second from white hits at each phase (main-hand weapon DPS in brackets).")
+```
+
+A few things stand out:
+
+- **Classic** is the only option with no ceiling: every proposal catches up with it between phases 3 and 4, but Classic keeps going after that. That's the runaway loop from the start of this chapter.
+- **The sigmoid** moves slowly from pre-BiS to phase 1, ramps up steeply through phases 2 and 3, and levels off at Classic's phase 3-4 level by phase 4. That's the "flat bottom" from question 3 in action: the upgrade from a pre-BiS weapon to a phase 1 one is worth `r round(at_phase[["Proposal: sigmoid"]][2] - at_phase[["Proposal: sigmoid"]][1], 2)` rage per second, only about half of what phase 1 to phase 2 is worth (`r round(at_phase[["Proposal: sigmoid"]][3] - at_phase[["Proposal: sigmoid"]][2], 2)`).
+- **The saturating curve** is the opposite: the first upgrade is the biggest one (`r round(at_phase[["Proposal: saturating"]][2] - at_phase[["Proposal: saturating"]][1], 2)` rage per second from pre-BiS to phase 1), and each phase after that is worth a bit less, down to `r round(at_phase[["Proposal: saturating"]][5] - at_phase[["Proposal: saturating"]][4], 2)` from phase 3 to phase 4. Because it has to reach the target by the phase 3-4 midpoint, that first upgrade is a big jump, so a fresh level 60 goes from Forever's rage to more than double it with a single weapon.
+- **The hybrid** doesn't fit this goal very well. Because it's today's Forever rate *plus* a share of Classic, meeting Classic at the target means it sits *above* Classic before that, so early-geared warriors would get even more rage than they did in Classic. It follows Classic's straight line at `r round(hyb_alpha * 100)`% of the slope until it hits its cap at about `r round(hybrid_cap_dps)` weapon DPS, and stays flat after that. On top of that, with `r round(hyb_alpha * 100)`% of Classic's rage coming from each hit's damage, it brings back most of the crit randomness.
+
+## Simulating actual fights
+
+Everything above works with averages: rage per second on paper, as if every second of a fight looked the same. Real fights don't work like that. Rage comes in lumps with each swing, crits trigger Flurry and speed you up for a few swings, Bloodthirst and Whirlwind come off cooldown at awkward moments, and the rage bar caps at 100, so a lucky streak can waste rage while an unlucky one leaves you standing there with Bloodthirst ready and nothing to press it with. An average can't show any of that, so instead of assuming a formula for the whole fight, we can just play the fight out and see what happens.
+
+The simulator plays a `r sim_defaults$fight_len / 60`-minute boss fight, swing by swing:
+
+- **Every white swing rolls on the attack table**: `r sim_defaults$miss * 100`% miss, `r sim_defaults$dodge * 100`% dodge, `r sim_defaults$glance * 100`% glancing (for `r sim_defaults$glance_dmg * 100`% damage) and `r sim_defaults$crit * 100`% crit, with a `r sim_defaults$mh_speed` speed main hand and a `r sim_defaults$oh_speed` speed off hand.
+- **Crits trigger Flurry**, which makes the next `r sim_defaults$flurry_charges` swings `r sim_defaults$flurry_haste * 100`% faster (the Forever value).
+- **Unbridled Wrath** gives `r sim_defaults$ubw_rage` rage on `r sim_defaults$ubw_chance * 100`% of landed white hits, which is what the tooltip says 5/5 should give, and never procs off Heroic Strike. (In the beta it only procs on about `r round(ubw_rate * 100)`% of hits at 5/5 because of a bug - see [BUG-1](#bug-ubw) - but for proposals about how the game *should* work, we use the tooltip's rate.)
+- **The rotation** is a simple priority list: Bloodthirst (`r sim_defaults$bt_cost` rage, `r sim_defaults$bt_cd` second cooldown) whenever it's ready and affordable, then Whirlwind (`r sim_defaults$ww_cost` rage, `r sim_defaults$ww_cd` second cooldown) unless Bloodthirst is less than a second away, and Heroic Strike queued whenever rage is above `r sim_defaults$hs_threshold`. A Heroic Strike replaces the white swing, so that swing gives no rage. Because Whirlwind gives way to Bloodthirst and both share the `r sim_defaults$gcd` second global cooldown, even a warrior with unlimited rage ends up with a bit under the 6 Whirlwinds a minute its cooldown would allow.
+- **Rage from each landed swing** comes from the model being tested. For Forever, it isn't a formula at all: each swing's rage is drawn at random from the real swings in our logs (the rage per second of weapon speed, times the weapon's speed), so the simulation carries the actual in-game values, rounding and all. The sigmoid and saturating proposals scale those same draws up to their target for each phase, the hybrid adds its capped damage bonus on top of them, and Classic uses its formula on each swing's actual damage.
+
+We run `r n_fights` fights for every combination of model and phase, and look at what comes out.
+
+```{r}
+forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
+                      OH = with(filter(obs, hand == "Off hand"),  gain / speed))
+
+sims <- phases %>% mutate(res = map2(phase, dps, function(ph, d) {
+  targets <- rage_options(d)
+  models <- make_rage_models(forever_draws, C60,
+                             scale_rps = c(sigmoid = targets[["Proposal: sigmoid"]] / forever_dw,
+                                           saturating = targets[["Proposal: saturating"]] / forever_dw),
+                             hybrid_alpha = hyb_alpha, hybrid_cap_rps = hyb_cap)
+  map_dfr(names(models), function(nm) {
+    map_dfr(seq_len(n_fights), function(i) simulate_fight(models[[nm]], d)) %>% mutate(option = nm)
+  })
+})) %>% unnest(res) %>%
+  mutate(option = factor(option, levels = option_levels))
+```
+
+Here's what a single stretch of fight looks like with a phase 2 weapon. The dashed line is Bloodthirst's cost, so whenever the rage line sits below it with Bloodthirst off cooldown, you're waiting for rage:
+
+```{r fig.cap="Rage over the first minute of one simulated fight with a phase 2 weapon. Classic bounces off the 100 cap, Forever today spends a lot of time below the 30 rage Bloodthirst needs, and the proposals sit in between.", fig.height=6}
+set.seed(42)
+trace_models <- make_rage_models(forever_draws, C60,
+  scale_rps = c(sigmoid = rage_options(ref_dps)[["Proposal: sigmoid"]] / forever_dw,
+                saturating = rage_options(ref_dps)[["Proposal: saturating"]] / forever_dw),
+  hybrid_alpha = hyb_alpha, hybrid_cap_rps = hyb_cap)
+traces <- map_dfr(names(trace_models), function(nm) {
+  tr <- attr(simulate_fight(trace_models[[nm]], ref_dps, trace = TRUE), "trace")
+  as_tibble(tr) %>% mutate(option = nm)
+}) %>% filter(t <= 60) %>% mutate(option = factor(option, levels = option_levels))
+
+ggplot(traces, aes(t, rage, colour = option)) +
+  geom_hline(yintercept = sim_defaults$bt_cost, linetype = "dashed", colour = "grey50") +
+  geom_step(linewidth = 0.6) +
+  facet_wrap(~ option, ncol = 1) +
+  scale_colour_manual(values = option_colours, guide = "none") +
+  scale_y_continuous(limits = c(0, 100), breaks = c(0, 30, 100)) +
+  labs(x = "Seconds into the fight", y = "Rage")
+```
+
+And here's how every model does across the phases, over all `r n_fights` fights each. The lines are the average, and the shaded bands cover the middle 90% of fights, so they show how much one fight can differ from the next:
+
+```{r fig.cap="What happens in simulated fights at each phase. Left: the share of the fight spent with Bloodthirst ready but not enough rage to press it. Middle: Heroic Strikes per minute. Right: rage wasted per minute because the bar was already full.", fig.height=4.5, fig.width=9}
+sims %>%
+  mutate(`Time starved for Bloodthirst (%)` = starved_share * 100,
+         `Heroic Strikes per minute` = hs_pm,
+         `Rage wasted at the cap per minute` = wasted_pm) %>%
+  pivot_longer(c(`Time starved for Bloodthirst (%)`, `Heroic Strikes per minute`, `Rage wasted at the cap per minute`),
+               names_to = "metric", values_to = "value") %>%
+  mutate(metric = factor(metric, levels = c("Time starved for Bloodthirst (%)", "Heroic Strikes per minute",
+                                            "Rage wasted at the cap per minute"))) %>%
+  group_by(phase, dps, option, metric) %>%
+  summarise(mean = mean(value), lo = quantile(value, 0.05), hi = quantile(value, 0.95), .groups = "drop") %>%
+  ggplot(aes(dps, mean, colour = option, fill = option)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.12, colour = NA) +
+  geom_line(linewidth = 0.9) + geom_point(size = 1.5) +
+  facet_wrap(~ metric, scales = "free_y") +
+  scale_colour_manual(values = option_colours) + scale_fill_manual(values = option_colours) +
+  scale_x_continuous(breaks = phases$dps, labels = c("Pre", "P1", "P2", "P3", "P4")) +
+  labs(x = NULL, y = NULL, colour = NULL, fill = NULL) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+sim_summary <- sims %>% group_by(phase, option) %>%
+  summarise(bt = mean(bt_pm), ww = mean(ww_pm), hs = mean(hs_pm),
+            starved = mean(starved_share) * 100, wasted = mean(wasted_pm), .groups = "drop")
+sim_summary %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  transmute(Phase = phase, Option = option,
+            `Bloodthirst / min` = round(bt, 1), `Whirlwind / min` = round(ww, 1),
+            `Heroic Strike / min` = round(hs, 1), `Starved for Bloodthirst` = sprintf("%.0f%%", starved),
+            `Rage wasted / min` = round(wasted, 1)) %>%
+  knitr::kable(caption = "Averages over the simulated fights at three of the phases.")
+```
+
+```{r}
+s <- function(ph, opt, col) sim_summary[[col]][sim_summary$phase == ph & sim_summary$option == opt]
+```
+
+A few things the simulation shows that the averages couldn't:
+
+- **Forever today is starved for Bloodthirst `r round(s("Phase 2", "Forever (today)", "starved"))`% of the time**, at every phase, since better weapons don't change its rage. It manages `r round(s("Phase 2", "Forever (today)", "bt"), 1)` Bloodthirsts a minute (out of a possible 10) and essentially never has rage to spare for a Heroic Strike.
+- **Classic never really waits for rage**, and it has so much of it that it throws some away at the cap, `r round(s("Phase 4", "Classic", "wasted"))` rage a minute by phase 4, even while queueing `r round(s("Phase 4", "Classic", "hs"), 1)` Heroic Strikes a minute. That's the runaway loop from the start of the chapter, playing out swing by swing.
+- **The sigmoid and saturating curves get there at different times.** Both stop waiting on Bloodthirst once they're geared, but the saturating curve gets there by phase 1 (`r round(s("Phase 1", "Proposal: saturating", "starved"))`% starved, against `r round(s("Phase 1", "Proposal: sigmoid", "starved"))`% for the sigmoid), while the sigmoid needs until phase 2. From then on, the extra rage turns into Heroic Strikes.
+- **At the top end, they feel like Classic again.** By phase 4 the sigmoid queues `r round(s("Phase 4", "Proposal: sigmoid", "hs"), 1)` Heroic Strikes a minute, `r if (s("Phase 4", "Proposal: sigmoid", "hs") > s("Phase 4", "Classic", "hs")) "even more than Classic's" else "close to Classic's"` `r round(s("Phase 4", "Classic", "hs"), 1)`, and throws away `r round(s("Phase 4", "Proposal: sigmoid", "wasted"))` rage a minute at the cap. That's exactly what we asked for, but it's worth being clear that it brings back the Classic situation where rage stops being a limit for geared warriors. The difference is that it stops there: Classic wastes `r round(s("Phase 4", "Classic", "wasted"))` rage a minute by phase 4 and keeps climbing, while the proposals level off.
+- **The hybrid** is the odd one out: it's close to Classic at every phase, including pre-BiS, where it has `r round(s("Pre-BiS", "Proposal: hybrid", "hs"), 1)` Heroic Strikes a minute before the warrior has any real gear. So with this goal it hardly changes anything from Classic.
+
+### How much rage each fight actually gives
+
+The averages hide one more thing: how much the rage changes from one fight to the next. Every simulated fight ends up with its own rage per second (all the rage from white hits and Unbridled Wrath, divided by the length of the fight), so we can look at the whole spread of fights for each option. Each ridge below is one option, and its width shows how different one fight can be from the next:
+
+```{r fig.cap="Rage per second in each simulated fight: one panel per option, and one ridge per phase going down the page. A narrow ridge means every fight gives about the same rage, and a wide one means it depends more on the fight. Forever today stays in the same place whatever the gear, the proposals move right as the weapon gets better, and Classic moves right while also getting wider.", fig.height=5, fig.width=10}
+sims %>%
+  mutate(phase = fct_rev(phase)) %>%
+  ggplot(aes(rps, phase, fill = option)) +
+  ggridges::geom_density_ridges(scale = 1.6, alpha = 0.8, colour = "white", rel_min_height = 0.01) +
+  facet_wrap(~ option, nrow = 1, labeller = label_wrap_gen(14)) +
+  scale_fill_manual(values = option_colours, guide = "none") +
+  scale_x_continuous(breaks = seq(4, 12, 2)) +
+  labs(x = "Rage per second over the whole fight", y = NULL)
+```
+
+```{r}
+rps_spread <- sims %>% group_by(phase, option) %>%
+  summarise(median = median(rps), lo = quantile(rps, 0.05), hi = quantile(rps, 0.95), .groups = "drop") %>%
+  mutate(width = hi - lo)
+rps_spread %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  transmute(Phase = phase, Option = option, `Median rage per second` = round(median, 1),
+            `Middle 90% of fights` = sprintf("%.1f to %.1f", lo, hi), `Spread` = round(width, 1)) %>%
+  knitr::kable(caption = "Rage per second over the whole fight: the typical fight, and the range covering the middle 90% of fights.")
+w <- function(ph, opt) rps_spread$width[rps_spread$phase == ph & rps_spread$option == opt]
+```
+
+This is where question 1 shows up in practice, although less dramatically than you might expect. Classic's rage changes the most from fight to fight, and it gets wider as the gear gets better (the middle 90% of fights spread over about `r round(w("Pre-BiS", "Classic"), 1)` rage per second at pre-BiS and `r round(w("Phase 4", "Classic"), 1)` at phase 4), because it follows damage, so a fight with a lucky run of crits simply gives more rage. Everything else sits at about `r round(median(rps_spread$width[rps_spread$option != "Classic"]), 1)`, including the hybrid: even though `r round(hyb_alpha * 100)`% of its rage comes from damage, over a three-minute fight the lucky and unlucky swings mostly cancel out. So the randomness question matters more swing by swing (you notice it when you're waiting on a Bloodthirst) than over a whole fight.
+
+The rage per second here also comes out quite a bit lower than the curves earlier in the chapter, especially for Classic (about `r round(rps_spread$median[rps_spread$phase == "Phase 2" & rps_spread$option == "Classic"], 1)` at phase 2 in the simulation, against `r round(classic_rps(ref_dps), 1)` on the curve). The curves count every hit landing in full, while the simulation has misses, dodges, glancing blows (which hit Classic's damage-based rage hard) and Heroic Strikes replacing white swings, which then give no rage at all.
+
+As with everything in this chapter, the numbers depend on the settings we picked (the attack table, the rotation, the Heroic Strike threshold and the weapon speeds), so they're best read as a comparison between the options rather than as exact predictions. The nice thing about a simulation is that any of these can be changed and rerun in a few seconds, so it's easy to try different curves, rotations or talent setups.
+
+## What we'd need to know to pick one
+
+None of these can be tuned properly without a few more things from the beta:
+
+- what the phase breakpoints actually look like in Forever: which weapons drop in each phase, and how much attack power comes with them (the logs suggest attack power doesn't work like it did in Classic, so we can't assume Classic numbers),
+- whether haste adds rage, since that changes how much room there is above the floor, and
+- how much rage the rotation really needs per minute, so the floor and ceiling are set against real costs instead of guesses (Bored's spreadsheet puts Bloodthirst, Whirlwind and two Sunders at around 420 to 450 rage per minute).

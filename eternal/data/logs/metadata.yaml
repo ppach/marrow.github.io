@@ -45,6 +45,8 @@
       type: dagger
       speed: 1.8
       weapon_skill: 100
+  talents:
+    unbridled_wrath: 5   # from the post title ("UW 5/5"); other talents not posted
   character_sheet:
     hit_chance_percent: 0
     crit_chance_percent: 12.3
@@ -63,6 +65,131 @@
       type: two_hand_axe
       speed: 3.8
       weapon_skill: 100
+  talents:
+    unbridled_wrath: 5   # from the post title ("UW 5/5"); other talents not posted
   character_sheet:
     hit_chance_percent: 0
     crit_chance_percent: 12.3
+
+
+# Shared directly with us as a zip ("UW Ranks 1 through 3"), not posted to the discussions.
+# Posted: level 20 Night Elf, 5/5 Cruelty and nothing else but Unbridled Wrath at the rank noted.
+# The log records Tarch at level 12 in every file, not 20. The 2/5 and 3/5 recordings were one file each,
+# switching from DW to 2H at a Shadowmeld cast; they were split there into separate files.
+- file: tarch_uw1_dw_092326.txt
+  source: zip "UW Ranks 1 through 3", file WoWCombatLog-1of5 UW DW.txt
+  date_collected: "2026-09-23"
+  character_name: Tarch
+  player_guid: Player-4619-0067141E
+  beta_build: "1.60.1"   # from the log header; the full build number was not posted
+  setup: dual_wield
+  equipped_weapons:
+    - name: Goblin Hammer
+      slot: main_hand
+      speed: 2.0
+    - name: Smiter's Reaver
+      slot: off_hand
+      speed: 1.9
+  talents:
+    cruelty: 5
+    unbridled_wrath: 1
+  race: night_elf
+  level_posted: 20
+  notes: The log records level 12, not the posted 20. Weapon skill, hit and crit were not posted.
+
+- file: tarch_uw1_2h_092326.txt
+  source: zip "UW Ranks 1 through 3", file WoWCombatLog-1of5 UW 2h.txt
+  date_collected: "2026-09-23"
+  character_name: Tarch
+  player_guid: Player-4619-0067141E
+  beta_build: "1.60.1"   # from the log header; the full build number was not posted
+  setup: two_hand
+  equipped_weapons:
+    - name: Rockslicer
+      slot: main_hand
+      speed: 3.3
+  talents:
+    cruelty: 5
+    unbridled_wrath: 1
+  race: night_elf
+  level_posted: 20
+  notes: The log records level 12, not the posted 20. Weapon skill, hit and crit were not posted.
+
+- file: tarch_uw2_dw_092326.txt
+  source: zip "UW Ranks 1 through 3", file WoWCombatLog-2of5 UW.txt (split at Shadowmeld)
+  date_collected: "2026-09-23"
+  character_name: Tarch
+  player_guid: Player-4619-0067141E
+  beta_build: "1.60.1"   # from the log header; the full build number was not posted
+  setup: dual_wield
+  equipped_weapons:
+    - name: Goblin Hammer
+      slot: main_hand
+      speed: 2.0
+    - name: Smiter's Reaver
+      slot: off_hand
+      speed: 1.9
+  talents:
+    cruelty: 5
+    unbridled_wrath: 2
+  race: night_elf
+  level_posted: 20
+  notes: The log records level 12, not the posted 20. Weapon skill, hit and crit were not posted.
+
+- file: tarch_uw2_2h_092326.txt
+  source: zip "UW Ranks 1 through 3", file WoWCombatLog-2of5 UW.txt (split at Shadowmeld)
+  date_collected: "2026-09-23"
+  character_name: Tarch
+  player_guid: Player-4619-0067141E
+  beta_build: "1.60.1"   # from the log header; the full build number was not posted
+  setup: two_hand
+  equipped_weapons:
+    - name: Rockslicer
+      slot: main_hand
+      speed: 3.3
+  talents:
+    cruelty: 5
+    unbridled_wrath: 2
+  race: night_elf
+  level_posted: 20
+  notes: The log records level 12, not the posted 20. Weapon skill, hit and crit were not posted.
+
+- file: tarch_uw3_dw_092326.txt
+  source: zip "UW Ranks 1 through 3", file WoWCombatLog-3of5 UW.txt (split at Shadowmeld)
+  date_collected: "2026-09-23"
+  character_name: Tarch
+  player_guid: Player-4619-0067141E
+  beta_build: "1.60.1"   # from the log header; the full build number was not posted
+  setup: dual_wield
+  equipped_weapons:
+    - name: Goblin Hammer
+      slot: main_hand
+      speed: 2.0
+    - name: Smiter's Reaver
+      slot: off_hand
+      speed: 1.9
+  talents:
+    cruelty: 5
+    unbridled_wrath: 3
+  race: night_elf
+  level_posted: 20
+  notes: The log records level 12, not the posted 20. Weapon skill, hit and crit were not posted.
+
+- file: tarch_uw3_2h_092326.txt
+  source: zip "UW Ranks 1 through 3", file WoWCombatLog-3of5 UW.txt (split at Shadowmeld)
+  date_collected: "2026-09-23"
+  character_name: Tarch
+  player_guid: Player-4619-0067141E
+  beta_build: "1.60.1"   # from the log header; the full build number was not posted
+  setup: two_hand
+  equipped_weapons:
+    - name: Rockslicer
+      slot: main_hand
+      speed: 3.3
+  talents:
+    cruelty: 5
+    unbridled_wrath: 3
+  race: night_elf
+  level_posted: 20
+  notes: The log records level 12, not the posted 20. Weapon skill, hit and crit were not posted.
+

@@ -8,6 +8,9 @@ set.seed(1234)
 clusters <- read_csv("data/derived/swing_clusters.csv")
 swings   <- read_csv("data/derived/swings.csv")
 energize <- read_csv("data/derived/energize.csv")
+procs    <- read_csv("data/derived/procs.csv")
+ubw5     <- filter(procs, ubw_rank == 5)
+ubw_rate <- sum(ubw5$ubw_procs) / sum(ubw5$landed_white)   # Unbridled Wrath proc rate at 5/5
 meta     <- yaml::read_yaml("data/logs/metadata.yaml")
 
 conv <- function(lvl) 0.0091107836 * lvl^2 + 3.225598133 * lvl + 4.2652911
@@ -31,7 +34,17 @@ obs <- swings %>% filter(!capped) %>%
          group   = paste0(character, ", ", hand, " ", speed))
 
 fmt_p <- function(p) format.pval(p, digits = 2, eps = 1e-10)
+
+# Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
+changelog <- tribble(
+  ~version, ~date,        ~change,
+  "2.0.0",  "2026-09-23", "Added six logs from Tarch (Unbridled Wrath at 1/5, 2/5 and 3/5, dual wield and two-handed). Unbridled Wrath gives about 8% per talent point instead of the tooltip's 12%, so 5/5 is about 36% instead of 60% (a bug, not a talent-point mix-up). A second two-handed weapon (3.3 speed) confirms 4.5 × speed.",
+  "1.1.0",  "2026-09-23", "Measured how often Unbridled Wrath procs (about 36% of landed white hits, well below the intended 60%).",
+  "1.0.0",  "2026-09-23", "First version: three logs from beta build 1.60.1.69977, with p-values, a Bayesian estimate of the rates, and a level 60 simulation."
+)
 ```
+
+*Version `r changelog$version[1]` (`r changelog$date[1]`), based on `r length(meta)` logs from beta build 1.60.1. See the [changelog](#rage-changelog) for what changed.*
 
 ## Base hypothesis: the Classic formula
 
@@ -66,7 +79,7 @@ Moving forward, we'll use these predictions as our starting hypothesis.
 
 ## The logs
 
-So far we've looked at `r length(meta)` combat logs posted to the [forever-warrior discussions](https://github.com/magey/forever-warrior/discussions), all on beta build `r meta[[1]]$beta_build`. The nice thing about these logs is that they record the warrior's current rage on almost every event, so we can read the rage from a single white swing straight off the log instead of having to guess at it.
+So far we've looked at `r length(meta)` combat logs, some posted to the [forever-warrior discussions](https://github.com/magey/forever-warrior/discussions) and some shared with us directly, all on beta build 1.60.1. The nice thing about these logs is that they record the warrior's current rage on almost every event, so we can read the rage from a single white swing straight off the log instead of having to guess at it.
 
 ```{r}
 tibble(
@@ -107,9 +120,9 @@ swings %>% filter(!capped) %>%
 3. **Rage scales with weapon speed.** The time between swings in each group lines up with one of the posted weapon speeds, and the rage per swing is just that speed times a fixed rate:
    - main hand (one-handed): about **3.46 rage per second of speed**
    - off hand: about **1.73**, which is exactly half the main hand
-   - two-handed: about **4.5** (though we only have one 2H weapon so far)
+   - two-handed: about **4.5** (confirmed with two different two-handers, at 3.3 and 3.8 speed)
 4. **Weapon speed doesn't change your rage per second.** Since a slow weapon gives more rage per swing but swings less often, fast and slow weapons end up generating rage at the same rate over time.
-5. **Level didn't make a visible difference between 13 and 16**, even though the Classic formula would have changed quite a bit over that range.
+5. **Level didn't make a visible difference either.** Every character in our logs gets the same rates, from the level 13 ones up to a level 20 one, even though the Classic formula would have changed quite a bit over that range.
 
 ### How strong is the evidence? p-values
 
@@ -285,40 +298,9 @@ post <- obs %>% group_by(hand) %>%
     tibble(rate = sample(grid, 4000, replace = TRUE, prob = p), sigma = sig)
   })
 
-post %>% group_by(hand) %>%
-  summarise(`Most likely rate` = mean(rate), `Lowest likely rate` = quantile(rate, 0.025),
-            `Highest likely rate` = quantile(rate, 0.975)) %>%
-  mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
-  rename(Hand = hand) %>%
-  knitr::kable(caption = "The posterior: the rage for each second of weapon speed. The lowest and highest likely rates are the ends of the 95% interval.")
 ```
 
-To read the table, just multiply the rate by the weapon speed - so a 2.6-speed main hand gives about $3.46 \times 2.6 = 9.0$ rage per swing.
-
-#### Are the rates round numbers?
-
-If you were a game designer, a nice simple formula would be 3.5 × speed for the main hand, half of that (1.75) for the off hand, and 4.5 × speed for two-handers. So it's worth checking whether the real rates are just those round numbers, and we can do that in two ways:
-
-- The **p-value** asks how surprising our logs would be if the round number were the true rate.
-- The **posterior probability** asks how likely it is, given our logs, that the true rate is below the round number.
-
-```{r}
-round_rates <- c("Main hand" = 3.5, "Off hand" = 1.75, "Two-hand" = 4.5)
-rr <- obs %>% mutate(rate = gain / speed) %>% group_by(hand) %>%
-  summarise(n = n(), rate = mean(rate), round = round_rates[first(hand)],
-            p = t.test(gain / speed, mu = round_rates[first(hand)])$p.value) %>%
-  mutate(gap = (rate - round) / round)
-p2h <- rr$p[rr$hand == "Two-hand"]; gap2h <- rr$gap[rr$hand == "Two-hand"]
-rr %>% transmute(hand, Swings = n, `Measured rate` = round(rate, 3), `Round number` = round,
-                 `Difference` = sprintf("%+.2f%%", gap * 100), `p-value` = fmt_p(p)) %>%
-  left_join(post %>% group_by(hand) %>%
-              summarise(`Posterior probability that the rate is below the round number` =
-                          round(mean(rate < round_rates[first(hand)]), 3)), by = "hand") %>%
-  rename(Hand = hand) %>%
-  knitr::kable(caption = "The measured rates against the round numbers.")
-```
-
-The two-handed rate is within `r sprintf("%.2f", abs(gap2h) * 100)`% of 4.5, with a p-value of `r fmt_p(p2h)`. `r if (p2h < 0.05) "By the usual 0.05 cut-off that technically rejects 4.5, but a p-value tells you how surprising a difference is, not how big it is - and with lots of swings that almost never vary, even a tiny difference gets surprising. Here it comes down to a handful of swings that gave 17.0 instead of 17.1, which could easily be the game rounding rage internally, so we're still treating 4.5 as the best simple description." else "The logs don't give us any reason to doubt it."` The one-handed round numbers (3.5 and 1.75) don't survive, though: the real rates are about 1% lower, which is way more than rounding can explain. You don't even need statistics to see it - with a rate of 3.5, a 2.6-speed main hand would give 9.1 rage every swing, but in the logs it never does (it gives 9.0, and occasionally 8.9).
+Looking at the logs, the formula comes down to nice round numbers: every white swing gives **3.5 × weapon speed** rage in the main hand, **half of that (1.75 × speed)** in the off hand, and **4.5 × speed** with a two-hander. (If you want to be picky, the one-handed rates actually come in about 1% lower, at 3.46 and 1.73, but the round numbers are the easiest way to remember it.)
 
 ```{r fig.cap="The posterior predictive. Each line shows the rage that the model predicts for one swing at each weapon speed. The shaded band shows where 95% of new swings will fall. The dots are the real swings from the logs."}
 sp <- seq(1.2, 4, by = 0.1)
@@ -336,7 +318,7 @@ ggplot(pp, aes(speed, mid, colour = hand, fill = hand)) +
   labs(x = "Weapon speed", y = "Rage per swing", colour = NULL, fill = NULL)
 ```
 
-The intervals are very narrow (basically impossible to even see), because the rage from each weapon almost never changes, meaning we are pretty sure of each rate. What we are less sure of is the model itself - all two-handed swings come from one weapon, with a speed of 3.8, so we need more data (one point does not show the shape of a line, obviously). Two-handed weapons can have a rate of 4.5, or they can have the one-handed rate plus a fixed bonus for each swing. Both explain the logs equally well. A log with a second two-handed weapon at a different speed will tell us which one is correct.
+The intervals are very narrow (basically impossible to even see), because the rage from each weapon almost never changes, meaning we are pretty sure of each rate. What we used to be less sure of was the model itself - all two-handed swings came from one weapon, with a speed of 3.8 (one point does not show the shape of a line, obviously), so two-handed weapons could have had a rate of 4.5, or the one-handed rate plus a fixed bonus for each swing. Tarch's Rockslicer (3.3 speed) now gives us a second point, and it lands right on 4.5 × speed: with a flat bonus instead, a 3.3-speed two-hander would give about `r round(mean(post$rate[post$hand == "Main hand"]) * 3.3 + (mean(post$rate[post$hand == "Two-hand"]) - mean(post$rate[post$hand == "Main hand"])) * 3.8, 1)` rage per swing, not the `r round(mean(obs$gain[obs$hand == "Two-hand" & obs$speed == 3.3]), 2)` we see.
 
 ## Level 60: Classic versus Forever
 
@@ -458,14 +440,72 @@ energize %>% filter(amount > 0) %>% mutate(Log = str_remove(file, "_092326.txt")
 
 - **Charge** gives 9 rage and **Bloodrage** gives 10 up front plus 1 per tick, same as in Classic.
 - **Unbridled Wrath** gives 1 rage per proc with one-handers but 2 with the two-hander, which fits the same pattern of two-handers getting more rage per event.
+- **Unbridled Wrath procs a lot less often than its tooltip says** (a bug), and never off Heroic Strike or Cleave. There's a whole section on it below.
 - **Heroic Strike** hits don't give any rage, at least in the cases we checked.
 - **Misses, dodges and parries** on our own swings give little or no rage (though we only have a few of them).
 - **Rage from damage taken** is small, but it varied between logs, so it needs a proper controlled test.
 
+### Unbridled Wrath
+
+Unbridled Wrath is meant to give a 12% chance per talent point to gain rage on a white hit, so 60% at 5/5. To test that, Tarch recorded the same fights with 1, 2 and 3 points in the talent (and nothing else but 5/5 Cruelty), and Zomd's logs were recorded at 5/5. That gives us the proc rate at four different talent ranks:
+
+```{r}
+ubw <- procs %>% filter(!is.na(ubw_rank)) %>%
+  group_by(rank = ubw_rank) %>%
+  summarise(n = sum(landed_white), k = sum(ubw_procs), .groups = "drop")
+
+# Best estimate of the chance per talent point, assuming each point adds the same chance
+# (maximum likelihood over all ranks together).
+per_point <- optimize(function(q) -sum(dbinom(ubw$k, ubw$n, pmin(q * ubw$rank, 1), log = TRUE)),
+                      c(0.01, 0.2))$minimum
+
+ubw %>%
+  transmute(`Talent points` = paste0(rank, "/5"), `Landed white hits` = n, Procs = k,
+            `Proc rate` = sprintf("%.1f%%", k / n * 100),
+            `95% interval` = sprintf("%.1f%% to %.1f%%", qbeta(0.025, k + 1, n - k + 1) * 100,
+                                     qbeta(0.975, k + 1, n - k + 1) * 100),
+            `Expected at 12% per point` = sprintf("%.0f%%", 12 * rank),
+            `p-value vs 12% per point` = map2_chr(k, n, ~ fmt_p(binom.test(.x, .y, 0.12 * ubw$rank[ubw$k == .x & ubw$n == .y])$p.value)),
+            `Expected at 8% per point` = sprintf("%.0f%%", 8 * rank),
+            `p-value vs 8% per point` = map2_chr(k, n, ~ fmt_p(binom.test(.x, .y, 0.08 * ubw$rank[ubw$k == .x & ubw$n == .y])$p.value))) %>%
+  knitr::kable(caption = "How often Unbridled Wrath procs on a landed white hit, by talent points. The 95% interval comes from a Bayesian posterior with a flat prior. A small p-value means the logs are very unlikely at that proc rate.")
+```
+
+```{r fig.cap="Unbridled Wrath's proc rate at each talent rank (dots, with 95% intervals), against 12% per point (what the talent should give, dashed) and 8% per point (dotted). The logs follow the lower line.", fig.height=3.5}
+ubw %>% mutate(rate = k / n, lo = qbeta(0.025, k + 1, n - k + 1), hi = qbeta(0.975, k + 1, n - k + 1)) %>%
+  ggplot(aes(rank, rate)) +
+  geom_abline(slope = 0.12, intercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_abline(slope = 0.08, intercept = 0, linetype = "dotted", colour = "grey50") +
+  annotate("text", x = 4.6, y = 0.12 * 4.6, label = "12% per point", hjust = 1, vjust = -0.6, size = 3, colour = "grey40") +
+  annotate("text", x = 4.6, y = 0.08 * 4.6, label = "8% per point", hjust = 0, vjust = 1.6, size = 3, colour = "grey40") +
+  geom_pointrange(aes(ymin = lo, ymax = hi), colour = "#2c7fb8") +
+  scale_x_continuous(breaks = 1:5, labels = paste0(1:5, "/5"), limits = c(0.8, 5.2)) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 0.65)) +
+  labs(x = "Points in Unbridled Wrath", y = "Procs per landed white hit")
+```
+
+The talent clearly doesn't give 12% per point: that's rejected at every rank (only just at 1/5, where we have the fewest procs). Our best estimate is about **`r round(per_point * 100, 1)`% per point**, and 5/5 lands at `r round(ubw$k[ubw$rank == 5] / ubw$n[ubw$rank == 5] * 100)`%, a long way from 60%. The tooltip says 12% per point, so this is a bug: it's close to the 8% per point Classic's Unbridled Wrath had (40% at 5/5), so the beta may still be using the old Classic chance. It's listed as [BUG-1](#bug-ubw) in the Known Bugs chapter. Siax's rank wasn't posted, but his proc rate (`r round(procs$ubw_procs[procs$character == "Siax"] / procs$landed_white[procs$character == "Siax"] * 100)`%) matches 5/5.
+
+Two more things stay the same as before: every proc gives 1 rage with one-handers and 2 with two-handers, at every rank, and none of the procs come from Heroic Strike or Cleave.
+
 ## Open questions
 
-- Confirm the two-handed rate with a second 2H weapon at a different speed. Right now 4.5 comes from a single weapon, so it could just as well be the one-handed rate plus a flat bonus per swing.
 - Check whether the rates change at higher levels.
 - Figure out how attack power adds damage in Forever. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing - but the logged Battle Axe hits are only 69 to 88. So either attack power works differently, or the number in the log means something else.
+- Check Unbridled Wrath at 4/5 to confirm the 8% per point pattern, and keep checking new builds to see when [BUG-1](#bug-ubw) gets fixed.
+- Test Dual Wield Specialization, which Bored's spreadsheet assumes doubles off-hand rage, with a log posted with talents.
 - Test stances, and rage from damage taken, in a controlled setting.
 - Record mid-log hand swaps in the metadata, since one log shows both weapons being used in both hands.
+
+## Changelog {#rage-changelog}
+
+This chapter will keep changing as more logs come in, so each version of the findings gets a number in the form MAJOR.MINOR.PATCH, plus the date it was published. The changelog only tracks the findings, so rewording or tidying up the text doesn't get a new version.
+
+- **MAJOR** goes up when a conclusion changes, for example if a new log shows that rage does depend on damage after all, or that a rate is different from what we thought.
+- **MINOR** goes up when we add findings without overturning what was there, like new logs that agree with the current results, or a new mechanic we've measured.
+- **PATCH** goes up when we correct a number (a better estimate, or a fixed calculation) without changing any conclusion.
+
+```{r}
+changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "Versions of this chapter, newest first.")
+```

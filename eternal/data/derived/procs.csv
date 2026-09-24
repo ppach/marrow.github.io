@@ -1,0 +1,10 @@
+file,character,setup,landed_white,ubw_procs,ubw_rank,log_level,posted_level,mob_level_median
+siax_uw_dw_092326.txt,Siax,dual_wield,544,197,,15,,13.0
+ryqenz_zomdaya_uw_dw_092326.txt,Zomd Aya,dual_wield,782,275,5,16,,19.0
+ryqenz_zomdaya_uw_2h_092326.txt,Zomd Aya,two_hand,367,139,5,13,,17
+tarch_uw1_dw_092326.txt,Tarch,dual_wield,161,10,1,12,20,21
+tarch_uw1_2h_092326.txt,Tarch,two_hand,83,9,1,12,20,21
+tarch_uw2_dw_092326.txt,Tarch,dual_wield,173,29,2,12,20,21
+tarch_uw2_2h_092326.txt,Tarch,two_hand,77,12,2,12,20,21
+tarch_uw3_dw_092326.txt,Tarch,dual_wield,194,47,3,12,20,21.0
+tarch_uw3_2h_092326.txt,Tarch,two_hand,92,23,3,12,20,21.0
