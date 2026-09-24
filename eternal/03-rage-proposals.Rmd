@@ -35,7 +35,7 @@ hyb_alpha  <- 1 - forever_dw / target_rps                 # hybrid meets Classic
 hyb_cap    <- target_rps - forever_dw                     # ...and stays flat after it
 
 source("data/fight_sim.R")  # the fight simulator used in "Simulating actual fights"
-n_fights <- 200
+n_fights <- 1000
 ```
 
 This chapter is different from the last one: it's not about what the game does, but about what it *could* do. None of this is measured, it's us thinking out loud about better ways to scale rage, so it doesn't count towards the findings or the changelog. We'll use the numbers from the Rage Generation chapter as a starting point wherever we can, though.
@@ -119,7 +119,7 @@ To compare everything side by side, we need to decide where each curve should en
 
 The sigmoid and saturating curves both run on weapon DPS (questions 1 and 2), while the hybrid follows damage (question 4).
 
-It's worth keeping in mind how much rage that is. The [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml) put together by Bored (a bored member of the Fight Club Discord, fittingly) puts Bloodthirst, Whirlwind and two Sunders at around 420 to 450 rage per minute, which is 7 to 7.5 rage per second, so at `r round(target_rps, 1)` a geared warrior has about twice what the core rotation needs, and the rest goes into Heroic Strikes. That's the Classic feel we're after - the difference is that the proposals stop climbing at that point, while Classic keeps going.
+It's worth keeping in mind how much rage that is. The [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml) put together by Bored from the Fight Club Discord puts Bloodthirst, Whirlwind and two Sunders at around 420 to 450 rage per minute, which is 7 to 7.5 rage per second, so at `r round(target_rps, 1)` a geared warrior has about twice what the core rotation needs, and the rest goes into Heroic Strikes. That's the Classic feel we're after - the difference is that the proposals stop climbing at that point, while Classic keeps going.
 
 ```{r}
 dps <- seq(35, 80, by = 0.25)
@@ -287,18 +287,7 @@ A few things the simulation shows that the averages couldn't:
 
 ### How much rage each fight actually gives
 
-The averages hide one more thing: how much the rage changes from one fight to the next. Every simulated fight ends up with its own rage per second (all the rage from white hits and Unbridled Wrath, divided by the length of the fight), so we can look at the whole spread of fights for each option. Each ridge below is one option, and its width shows how different one fight can be from the next:
-
-```{r fig.cap="Rage per second in each simulated fight: one panel per option, and one ridge per phase going down the page. A narrow ridge means every fight gives about the same rage, and a wide one means it depends more on the fight. Forever today stays in the same place whatever the gear, the proposals move right as the weapon gets better, and Classic moves right while also getting wider.", fig.height=5, fig.width=10}
-sims %>%
-  mutate(phase = fct_rev(phase)) %>%
-  ggplot(aes(rps, phase, fill = option)) +
-  ggridges::geom_density_ridges(scale = 1.6, alpha = 0.8, colour = "white", rel_min_height = 0.01) +
-  facet_wrap(~ option, nrow = 1, labeller = label_wrap_gen(14)) +
-  scale_fill_manual(values = option_colours, guide = "none") +
-  scale_x_continuous(breaks = seq(4, 12, 2)) +
-  labs(x = "Rage per second over the whole fight", y = NULL)
-```
+The averages hide one more thing: how much the rage changes from one fight to the next. Every simulated fight ends up with its own rage per second (all the rage from white hits and Unbridled Wrath, divided by the length of the fight), so we can look at the whole spread of fights for each option. The table below shows the typical fight for each option and the range that covers the middle 90% of fights, so a wider range means one fight can be quite different from the next:
 
 ```{r}
 rps_spread <- sims %>% group_by(phase, option) %>%
@@ -316,11 +305,3 @@ This is where question 1 shows up in practice, although less dramatically than y
 The rage per second here also comes out quite a bit lower than the curves earlier in the chapter, especially for Classic (about `r round(rps_spread$median[rps_spread$phase == "Phase 2" & rps_spread$option == "Classic"], 1)` at phase 2 in the simulation, against `r round(classic_rps(ref_dps), 1)` on the curve). The curves count every hit landing in full, while the simulation has misses, dodges, glancing blows (which hit Classic's damage-based rage hard) and Heroic Strikes replacing white swings, which then give no rage at all.
 
 As with everything in this chapter, the numbers depend on the settings we picked (the attack table, the rotation, the Heroic Strike threshold and the weapon speeds), so they're best read as a comparison between the options rather than as exact predictions. The nice thing about a simulation is that any of these can be changed and rerun in a few seconds, so it's easy to try different curves, rotations or talent setups.
-
-## What we'd need to know to pick one
-
-None of these can be tuned properly without a few more things from the beta:
-
-- what the phase breakpoints actually look like in Forever: which weapons drop in each phase, and how much attack power comes with them (the logs suggest attack power doesn't work like it did in Classic, so we can't assume Classic numbers),
-- whether haste adds rage, since that changes how much room there is above the floor, and
-- how much rage the rotation really needs per minute, so the floor and ceiling are set against real costs instead of guesses (Bored's spreadsheet puts Bloodthirst, Whirlwind and two Sunders at around 420 to 450 rage per minute).
