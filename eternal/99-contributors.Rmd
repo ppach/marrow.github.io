@@ -1,0 +1,21 @@
+# Contributors {#contributors}
+
+```{r setup-contributors, include=FALSE}
+# Keep this the last chapter. Add a row whenever the book uses someone's logs, data or analysis.
+contributors <- tribble(
+  ~Contributor,                  ~Contribution,                                                                                   ~`Used in`,
+  "Tarch",                       "Eight combat logs with Unbridled Wrath at 1/5 to 4/5, dual wield and two-handed, recorded at every rank with the same character, weapons and mobs.", "Rage Generation, Known Bugs",
+  "Ryqenz (Zomd Aya)",           "Two combat logs with Unbridled Wrath at 5/5, dual wield and two-handed ([discussion #8](https://github.com/magey/forever-warrior/discussions/8), [#9](https://github.com/magey/forever-warrior/discussions/9), posted by kninib12a).", "Rage Generation, Known Bugs",
+  "Siax",                        "A dual wield combat log with Unbridled Wrath ([discussion #6](https://github.com/magey/forever-warrior/discussions/6), posted by Critthulu).", "Rage Generation, Known Bugs",
+  "Nooch",                       "A combat log with 1.3 speed daggers, used as a check on the Unbridled Wrath proc rate.", "Rage Generation",
+  "magey",                       "The [forever-warrior](https://github.com/magey/forever-warrior) repository: the log guidelines and metadata format, the testing questions (including whether Unbridled Wrath uses procs per minute), and the first analysis of the Unbridled Wrath logs.", "Rage Generation, Known Bugs",
+  "Bored (Fight Club Discord)",  "The [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml), used for the cost of the core rotation.", "Rage Design Proposals",
+  "Chris Baldwin ([talentsforever.com](https://talentsforever.com))", "Every talent and ability tooltip from the beta client, with the Classic versions to compare (CC BY 4.0), and the most popular Fury build, which the simulations use.", "Rage Design Proposals, Flurry, Abilities"
+)
+```
+
+This book is built on other people's logs, data and work. Thank you to everyone below. If you've contributed and aren't listed, or would like to be credited differently, let us know on the [forever-warrior](https://github.com/magey/forever-warrior) repository.
+
+```{r}
+knitr::kable(contributors, caption = "Contributors, and where their work is used.")
+```

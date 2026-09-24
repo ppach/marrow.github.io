@@ -78,23 +78,28 @@ gear %>% transmute(Phase = phase, `Weapon DPS (both hands)` = dps, `Attack power
 Before looking at whole fights, it's worth looking at what a single cast can do. Each cast either misses, hits or crits, so its damage per rage isn't one number but a handful of possible outcomes, each with its own chance. Here are 20,000 simulated casts of each ability with phase 2 gear:
 
 ```{r}
+casts <- cached_sim("abilities_casts", deps = list(gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents), {
 set.seed(2)
-casts <- expand_grid(game = c("Classic", "Forever"), ability = c("Bloodthirst", "Whirlwind")) %>%
+expand_grid(game = c("Classic", "Forever"), ability = c("Bloodthirst", "Whirlwind")) %>%
   mutate(dpr = pmap(list(game, ability), function(g, a) {
     p <- phase_p(g, "Phase 2")
     cast_damage(p, a, gear$dps[gear$phase == "Phase 2"], 20000) / (if (a == "Bloodthirst") p$bt_cost else p$ww_cost)
   })) %>% unnest(dpr)
+})
 ```
 
-```{r fig.cap="Damage per rage of single casts with phase 2 gear, out of 20,000 simulated casts of each. Each bar is one possible outcome: a miss or dodge (0), a hit, or a crit. Forever's Whirlwind has more outcomes, because each of its two hits can miss, hit or crit on its own.", fig.height=4.5}
-casts %>% mutate(bin = round(dpr)) %>% count(game, ability, bin) %>%
-  group_by(game, ability) %>% mutate(share = n / sum(n)) %>%
-  ggplot(aes(bin, share, fill = game)) +
-  geom_col(width = 0.9, position = position_dodge(preserve = "single")) +
-  facet_wrap(~ ability, ncol = 1) +
-  scale_fill_manual(values = game_colours) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(x = "Damage per rage of one cast", y = "Share of casts", fill = NULL) +
+```{r fig.cap="Average damage per rage of one cast with phase 2 gear, from 20,000 simulated casts of each ability, going from Classic (grey) to Forever (blue). Bloodthirst gets worse and Whirlwind gets much better, so they swap places.", fig.height=2.8}
+cast_means <- casts %>% group_by(game, ability) %>% summarise(mean = mean(dpr), .groups = "drop")
+ggplot(cast_means, aes(mean, ability)) +
+  geom_segment(data = pivot_wider(cast_means, names_from = game, values_from = mean),
+               aes(x = Classic, xend = Forever, y = ability, yend = ability), colour = "grey70", linewidth = 1.2,
+               arrow = arrow(length = unit(0.12, "inches"), type = "closed")) +
+  geom_point(aes(colour = game), size = 4) +
+  geom_text(aes(label = round(mean, 1), colour = game), vjust = -1.1, size = 3.5, show.legend = FALSE) +
+  scale_colour_manual(values = game_colours) +
+  scale_x_continuous(limits = c(10, 25)) +
+  scale_y_discrete(expand = expansion(add = 0.8)) +
+  labs(x = "Average damage per rage of one cast", y = NULL, colour = NULL) +
   theme(legend.position = "bottom")
 ```
 
@@ -118,13 +123,15 @@ Forever's Whirlwind is also more reliable. A Classic Whirlwind or any Bloodthirs
 Bloodthirst scales with attack power only, while Whirlwind scales with both attack power and weapon damage, so the gap between them changes as you gear up. To see how, we simulate `r n_fights` three-minute fights for each game at each phase, with the same rotation as the proposals chapter (Bloodthirst on cooldown, then Whirlwind, then Heroic Strike with spare rage), and look at each fight's average damage per rage for each ability. A fight only has about 30 Bloodthirsts and 15 Whirlwinds, so the average from one fight to the next still moves around quite a bit, and that's the range we show.
 
 ```{r}
+ability_sims <- cached_sim("abilities_fights", deps = list(gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents), {
 set.seed(36)
-ability_sims <- expand_grid(game = c("Classic", "Forever"), phase = gear$phase) %>%
+expand_grid(game = c("Classic", "Forever"), phase = gear$phase) %>%
   mutate(res = map2(game, phase, function(g, ph) {
     p <- phase_p(g, ph)
     map_dfr(seq_len(n_fights), function(i) simulate_fight(rage_models[[g]], gear$dps[gear$phase == ph], p))
   })) %>% unnest(res) %>%
   mutate(phase = factor(phase, levels = levels(phases$phase)))
+})
 ```
 
 ```{r fig.cap="Damage per rage of Bloodthirst and Whirlwind at each phase, averaged over each simulated fight. The dots are the typical fight, and the lines cover the middle 90% of fights.", fig.height=4.5}
@@ -193,7 +200,8 @@ Bloodthirst still does more damage per second than Whirlwind in both games, simp
 If Whirlwind is the better use of rage in Forever, should it go ahead of Bloodthirst in the rotation? We can test that directly: play the same fights with each priority, and compare. To make the comparison fair, each pair of fights starts from the same random numbers, so the difference comes from the priority rather than from luck.
 
 ```{r}
-prio_sims <- expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+prio_sims <- cached_sim("abilities_priority", deps = list(gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents), {
+expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4")) %>%
   mutate(res = map2(game, phase, function(g, ph) {
     d <- gear$dps[gear$phase == ph]
     map_dfr(seq_len(n_fights), function(i) {
@@ -202,6 +210,7 @@ prio_sims <- expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "P
       tibble(diff = b$total_dps - a$total_dps, rel = b$total_dps / a$total_dps - 1)
     })
   })) %>% unnest(res)
+})
 ```
 
 ```{r}

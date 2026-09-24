@@ -40,6 +40,7 @@ hyb_alpha  <- 1 - forever_dw_tal / target_rps                 # hybrid meets Cla
 hyb_cap    <- target_rps - forever_dw_tal                     # ...and stays flat after it
 
 source("data/fight_sim.R")  # the fight simulator used in "Simulating actual fights"
+source("data/sim_cache.R")  # saved simulation results (only re-run when the simulation or its inputs change)
 n_fights <- 500
 ```
 
@@ -209,7 +210,9 @@ We run `r n_fights` fights for every combination of model and phase, and look at
 forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
                       OH = with(filter(obs, hand == "Off hand"),  gain / speed))
 
-sims <- phases %>% mutate(res = map2(phase, dps, function(ph, d) {
+sims <- cached_sim("proposals_fights", deps = list(phases, forever_draws, C60, ref_dps, pre_bis, target_rps, sig_s, sat_tau, hyb_alpha, hyb_cap, forever_dw_tal, n_fights, sim_defaults, forever_talents, classic_talents), {
+set.seed(4)
+phases %>% mutate(res = map2(phase, dps, function(ph, d) {
   targets <- rage_options(d)
   models <- make_rage_models(forever_draws, C60,
                              scale_rps = c(sigmoid = targets[["Proposal: sigmoid"]] / forever_dw_tal,
@@ -221,11 +224,13 @@ sims <- phases %>% mutate(res = map2(phase, dps, function(ph, d) {
   })
 })) %>% unnest(res) %>%
   mutate(option = factor(option, levels = option_levels))
+})
 ```
 
 Here's what a single stretch of fight looks like with a phase 2 weapon. The dashed line is Bloodthirst's cost, so whenever the rage line sits below it with Bloodthirst off cooldown, you're waiting for rage:
 
 ```{r fig.cap="Rage over the first minute of one simulated fight with a phase 2 weapon. Classic bounces off its 100 cap (Forever's is 130 with Boundless Rage), Forever today spends a lot of time below the 30 rage Bloodthirst needs, and the proposals sit in between.", fig.height=6}
+traces <- cached_sim("proposals_trace", deps = list(phases, forever_draws, C60, ref_dps, pre_bis, target_rps, sig_s, sat_tau, hyb_alpha, hyb_cap, forever_dw_tal, n_fights, sim_defaults, forever_talents, classic_talents), {
 set.seed(42)
 trace_models <- make_rage_models(forever_draws, C60,
   scale_rps = c(sigmoid = rage_options(ref_dps)[["Proposal: sigmoid"]] / forever_dw_tal,
@@ -236,6 +241,8 @@ traces <- map_dfr(names(trace_models), function(nm) {
   tr <- attr(simulate_fight(trace_models[[nm]], ref_dps, prof, trace = TRUE), "trace")
   as_tibble(tr) %>% mutate(option = nm)
 }) %>% filter(t <= 60) %>% mutate(option = factor(option, levels = option_levels))
+traces
+})
 
 ggplot(traces, aes(t, rage, colour = option)) +
   geom_hline(yintercept = sim_defaults$bt_cost, linetype = "dashed", colour = "grey50") +
@@ -283,6 +290,7 @@ sim_summary %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
 
 ```{r}
 s <- function(ph, opt, col) sim_summary[[col]][sim_summary$phase == ph & sim_summary$option == opt]
+rps_med <- function(ph, opt) median(sims$rps[sims$phase == ph & sims$option == opt])
 ```
 
 A few things the simulation shows that the averages couldn't:
@@ -290,7 +298,7 @@ A few things the simulation shows that the averages couldn't:
 - **Forever today covers the core rotation, but not much more.** With the talents counted, it's only starved for Bloodthirst `r round(s("Phase 2", "Forever (today)", "starved"))`% of the time and manages `r round(s("Phase 2", "Forever (today)", "bt"), 1)` Bloodthirsts and `r round(s("Phase 2", "Forever (today)", "ww"), 1)` Whirlwinds a minute (out of a possible 10 and 6). What it doesn't have is spare rage: `r round(s("Phase 2", "Forever (today)", "hs"), 1)` Heroic Strikes a minute, against `r round(s("Phase 2", "Classic", "hs"), 1)` for Classic, and that's the same at every phase, since better weapons don't change its rage.
 - **Classic never really waits for rage**, and it has so much of it that it throws some away at the cap, `r round(s("Phase 4", "Classic", "wasted"))` rage a minute by phase 4, even while queueing `r round(s("Phase 4", "Classic", "hs"), 1)` Heroic Strikes a minute. That's the runaway loop from the start of the chapter, playing out swing by swing.
 - **The sigmoid and saturating curves get there at different times.** Since Bloodthirst and Whirlwind are already covered, all the extra rage goes into Heroic Strikes, and the saturating curve gets there much earlier: `r round(s("Phase 1", "Proposal: saturating", "hs"), 1)` Heroic Strikes a minute by phase 1, against `r round(s("Phase 1", "Proposal: sigmoid", "hs"), 1)` for the sigmoid.
-- **At the top end, they overshoot Classic.** By phase 4 the sigmoid queues `r round(s("Phase 4", "Proposal: sigmoid", "hs"), 1)` Heroic Strikes a minute, `r if (s("Phase 4", "Proposal: sigmoid", "hs") > s("Phase 4", "Classic", "hs")) "more than Classic's" else "close to Classic's"` `r round(s("Phase 4", "Classic", "hs"), 1)`. That's because the target was set from Classic's white-hit rage alone, and Forever's talents add a lot on top of it that Classic didn't have: Anger Management's rage over time, Unbridled Wrath at 60% instead of 40%, and a 130 rage cap that wastes almost nothing (`r round(s("Phase 4", "Proposal: sigmoid", "wasted"))` rage a minute, against `r round(s("Phase 4", "Classic", "wasted"))` for Classic). So with talents counted, the proposals' target could come down quite a bit and still match Classic's Heroic Strikes.
+- **In the fights, they get more Heroic Strikes than Classic, but not more rage.** At phase 4 the sigmoid generates about the same rage as Classic over a fight (`r round(rps_med("Phase 4", "Proposal: sigmoid"), 1)` rage per second, against `r round(rps_med("Phase 4", "Classic"), 1)`), which fits Figure 4.1, where the two lines meet between phases 3 and 4. But it queues `r round(s("Phase 4", "Proposal: sigmoid", "hs"), 1)` Heroic Strikes a minute, against Classic's `r round(s("Phase 4", "Classic", "hs"), 1)`. The difference is the rage cap: Classic's is 100, and a phase 4 Classic warrior throws away `r round(s("Phase 4", "Classic", "wasted"))` rage a minute because the bar is already full, while Forever's is 130 with Boundless Rage, and the sigmoid throws away `r round(s("Phase 4", "Proposal: sigmoid", "wasted"))`. At `r sim_defaults$hs_cost` rage each, that wasted rage is worth about `r round(s("Phase 4", "Classic", "wasted") / sim_defaults$hs_cost, 1)` Heroic Strikes a minute, which is most of the gap. So if the goal is to match what a Classic warrior could actually *spend*, rather than what they generated, the proposals' target could come down a bit.
 - **The hybrid** is the odd one out: it's close to Classic at every phase, including pre-BiS, where it has `r round(s("Pre-BiS", "Proposal: hybrid", "hs"), 1)` Heroic Strikes a minute before the warrior has any real gear. So with this goal it hardly changes anything from Classic.
 
 ### How much rage each fight actually gives
@@ -306,6 +314,16 @@ rps_spread %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
             `Middle 90% of fights` = sprintf("%.1f to %.1f", lo, hi), `Spread` = round(width, 1)) %>%
   knitr::kable(caption = "Rage per second over the whole fight: the typical fight, and the range covering the middle 90% of fights.")
 w <- function(ph, opt) rps_spread$width[rps_spread$phase == ph & rps_spread$option == opt]
+```
+
+```{r fig.cap="Rage per second in each of the simulated fights, for each option, at three of the phases. The wider a shape is at some value, the more fights ended up there, and the line inside each shape is the typical fight.", fig.height=5.5}
+sims %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  ggplot(aes(option, rps, fill = option, colour = option)) +
+  geom_violin(alpha = 0.35, scale = "width", draw_quantiles = 0.5) +
+  facet_wrap(~ phase, ncol = 1) +
+  scale_fill_manual(values = option_colours, guide = "none") +
+  scale_colour_manual(values = option_colours, guide = "none") +
+  labs(x = NULL, y = "Rage per second over the fight")
 ```
 
 This is where question 1 shows up in practice, although less dramatically than you might expect. Classic's rage changes the most from fight to fight, and it gets wider as the gear gets better (the middle 90% of fights spread over about `r round(w("Pre-BiS", "Classic"), 1)` rage per second at pre-BiS and `r round(w("Phase 4", "Classic"), 1)` at phase 4), because it follows damage, so a fight with a lucky run of crits simply gives more rage. Everything else sits at about `r round(median(rps_spread$width[rps_spread$option != "Classic"]), 1)`, including the hybrid: even though `r round(hyb_alpha * 100)`% of its rage comes from damage, over a three-minute fight the lucky and unlucky swings mostly cancel out. So the randomness question matters more swing by swing (you notice it when you're waiting on a Bloodthirst) than over a whole fight.

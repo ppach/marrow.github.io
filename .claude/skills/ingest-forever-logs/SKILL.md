@@ -88,3 +88,11 @@ Facts about the log that the analysis relies on:
 ## Flurry checks (once Flurry can be talented)
 
 The Flurry chapter (`eternal/04-flurry.Rmd`) is a model built on Classic assumptions. When a log comes in with Flurry talented (check `talents` in the metadata), test the assumptions from the chapter's "What to test" section using swing timings: the swing interval after a crit (should be speed / 1.25), how many swings stay hasted (3), whether Bloodthirst/Whirlwind/Heroic Strike crits start it, whether the hands share charges, and whether a hasted swing still gives rate x weapon speed rage. Update the chapter's assumption table (Assumed -> Confirmed/Wrong) and bump its version.
+
+## Contributors
+
+`eternal/99-contributors.Rmd` is always the last chapter (keep it last in `_bookdown.yml`). Whenever the book starts using someone's logs, data or analysis, add or update their row in its `contributors` tribble: the character and the account that posted it, what they contributed, and which chapters use it.
+
+## Saved simulations
+
+Every simulation in the book goes through `cached_sim()` (`eternal/data/sim_cache.R`), which saves its result to `eternal/data/sim_cache/`. A render reuses the saved result unless the simulation code (`fight_sim.R`, `flurry.R`), the code inside `cached_sim()`, or its `deps` changed. New simulations should use it too, set their own seed, and list every input in `deps`. New logs change `forever_draws`, which is in `deps`, so the simulations that use the logs re-run on their own. Commit the updated `.rds` files along with the change.

@@ -94,6 +94,7 @@ In the plain white-only case, the chain gives exactly $1 - (1 - P(Crit))^3$ for 
 To make sure the maths is right, we can run the same warrior through the fight simulator from the proposals chapter, with only white swings and Unbridled Wrath turned off, and see how much extra rage Flurry gives compared with the same fights without it:
 
 ```{r flurry-check}
+flurry_check <- cached_sim("flurry_check", deps = list(sim_defaults, forever_mh, forever_oh, crit_cap, haste_forever), {
 set.seed(60)
 fr <- function(hand, dmg, speed) (if (hand == "MH") forever_mh else forever_oh) * speed
 p_check <- modifyList(sim_defaults, list(fight_len = 600, ubw_chance = 0, hs_threshold = 1e4, bt_cost = 1e4, ww_cost = 1e4, anger_rps = 0))
@@ -101,6 +102,7 @@ flurry_check <- map_dfr(c(0.05, 0.15, 0.25, 0.35), function(c) {
   on  <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c)))$rps)
   off <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c, flurry_haste = 0)))$rps)
   tibble(crit = c, sim = mean(on) / mean(off), chain = flurry_stats(min(c, crit_cap), haste_forever)$swing_mult)
+})
 })
 flurry_check %>%
   transmute(`White crit per swing` = sprintf("%.0f%%", crit * 100),
