@@ -6,6 +6,7 @@ source("data/flurry.R")
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.2.0",  "2026-09-24", "Confirmed that a hasted swing gives the full rage, using Berserking and Fishliver Oil logs, so Flurry's extra swings are extra rage.",
   "1.1.0",  "2026-09-24", "The white rage baseline now includes Dual Wield Specialization 5/5 (+100% off-hand rage, +10% off-hand hit), so Flurry's extra rage is about 40% higher than in 1.0.0.",
   "1.0.0",  "2026-09-24", "First version: a Markov chain model of Flurry, checked against the fight simulator, and compared with Classic. Model only - Flurry can't be talented in the beta yet."
 )
@@ -44,11 +45,11 @@ tribble(
   "Any crit refreshes it back to 3 charges, including Bloodthirst and Whirlwind", "Assumed from Classic",
   "Yellow attacks don't use up charges",                          "Assumed from Classic",
   "Main hand and off hand share the same charges",                "Assumed from Classic",
-  "A hasted swing gives the same rage as a normal one (rate x weapon speed)", "Assumed - the most important one for Forever"
+  "A hasted swing gives the same rage as a normal one (rate x weapon speed)", "Confirmed for Berserking and Fishliver Oil haste"
 ) %>% knitr::kable(caption = "What the model assumes about Flurry. None of it has been checked in Forever logs yet.")
 ```
 
-That last one deserves a word. In Forever, each swing gives rage based on the weapon's speed, not on the time the swing actually took. If that holds for hasted swings too, then every extra swing Flurry gives you is extra rage. If the game used the hasted speed instead, Flurry would give no rage at all. We don't know yet, and it changes a lot.
+That last one deserves a word. In Forever, each swing gives rage based on the weapon's speed, not on the time the swing actually took. If the game used the hasted swing time instead, Flurry would give no rage at all. The logs now show it doesn't: swings hasted by Berserking and Fishliver Oil give the full rage (see the [Haste section](#haste)), so every extra swing Flurry gives you is extra rage. Flurry itself still can't be tested, but it would be very surprising if its haste worked differently.
 
 ## The Classic way
 
@@ -198,7 +199,7 @@ Everything above is a prediction. Once warriors can talent into Flurry, these ar
 2. **Do Bloodthirst and Whirlwind crits trigger Flurry?** And do they use up charges?
 3. **Do Heroic Strike and Cleave crits trigger it**, and do they use up a charge?
 4. **Are the charges shared between main hand and off hand?**
-5. **Does a hasted swing give the same rage as a normal one?** This is the big one for Forever.
+5. **Does a Flurry-hasted swing give the same rage as a normal one?** Other haste does (see the [Haste section](#haste)), so this is only a check.
 6. **Does Flurry speed up a swing that's already in progress**, or only the next one?
 
 All of these can be answered from swing timings in the combat log, so the best logs are a few minutes of auto-attacking a single mob with Flurry talented, with a few Bloodthirsts mixed in, and the talents and gear posted in the metadata.

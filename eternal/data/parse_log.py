@@ -61,12 +61,15 @@ def parse(path, player_guid):
                              "spell": f[10] if a == 12 else "Melee", "info_is_player": False,
                              "miss": f[a], "raw": f})
                 continue
-            if a is None or len(f) < a + ADV_LEN:
+            if a is None:
                 continue
+            # Logs recorded without advanced combat logging have no advanced block: the suffix starts
+            # right after the base fields, and there is no rage snapshot. Hits and procs still count.
+            advanced = len(f) >= a + ADV_LEN
             t = ts_seconds(ts)
             src, dst = f[1], f[5]
             row = {"t": t, "event": ev, "src": src == player_guid, "dst": dst == player_guid,
-                   "spell": f[10] if a == 12 else "Melee", "info_is_player": f[a] == player_guid}
+                   "spell": f[10] if a == 12 else "Melee", "info_is_player": advanced and f[a] == player_guid}
             if row["info_is_player"]:
                 row["ptype"] = first(f[a + 10])
                 row["rage"] = int(first(f[a + 11]))
@@ -75,7 +78,7 @@ def parse(path, player_guid):
                 row["ap"] = int(f[a + 4])
                 row["hp"] = int(f[a + 2])
                 row["maxhp"] = int(f[a + 3])
-            s = a + ADV_LEN
+            s = a + ADV_LEN if advanced else a
             if ev in ("SWING_DAMAGE", "SWING_DAMAGE_LANDED", "SPELL_DAMAGE", "RANGE_DAMAGE"):
                 row["amount"] = int(f[s])
                 row["crit"] = f[s + 7] == "1"

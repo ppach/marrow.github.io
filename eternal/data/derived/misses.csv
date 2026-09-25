@@ -29,3 +29,14 @@ tarch_uw4_dw_092326.txt,ABSORB,1,0.4
 tarch_uw4_2h_092326.txt,PARRY,2,0.5
 tarch_uw4_2h_092326.txt,DODGE,2,0.45
 tarch_uw4_2h_092326.txt,MISS,1,0.3
+budder_uw1_2h_092326.txt,MISS,6,0.2833333333333333
+budder_uw1_2h_092326.txt,DODGE,3,0.5333333333333333
+budder_uw1_2h_092326.txt,PARRY,4,0.275
+budder_uw2_2h_092326.txt,PARRY,4,0.3
+budder_uw2_2h_092326.txt,MISS,3,4.333333333333334
+budder_uw2_2h_092326.txt,DODGE,3,0.3
+ceece_fishliver_1h_092226.txt,DODGE,2,0.35
+ceece_fishliver_1h_092226.txt,MISS,1,0.4
+ceece_fishliver_1h_092226.txt,PARRY,1,0.4
+ceece_fishliver_2h_092426.txt,PARRY,2,0.3
+elvenfresh_hasterage_berserking_1h_092426.txt,PARRY,1,0.7

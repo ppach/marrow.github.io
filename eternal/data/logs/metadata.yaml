@@ -232,3 +232,101 @@
   race: night_elf
   level_posted: 20
   notes: Same character, weapons and talents as the 1/5-3/5 recordings (not re-posted). The log records level 12, not the posted 20.
+
+- file: budder_uw1_2h_092326.txt
+  source: https://github.com/magey/forever-warrior/discussions/10
+  attachment: https://github.com/user-attachments/files/32587838/WoWCombatLog-092326_201346.txt
+  date_collected: "2026-09-23"
+  character_name: Budder Pinda
+  player_guid: Player-4618-006137F8
+  beta_build: "1.60.1.69977"
+  setup: two_hand
+  equipped_weapons:
+    - name: Corpse Chopper
+      slot: main_hand
+      speed: 3.6
+      weapon_skill: 100
+  talents:
+    unbridled_wrath: 1   # from the post title ("2H 1/5 UW")
+  character_sheet:
+    hit_chance_percent: 0
+    crit_chance_percent: 11.6
+  notes: The log header says advanced combat logging is off, but the events still carry the advanced fields (rage, level), so the log is fully usable. Log is Budder-ClassicBetaPvE-.
+
+- file: budder_uw2_2h_092326.txt
+  source: https://github.com/magey/forever-warrior/discussions/11
+  attachment: https://github.com/user-attachments/files/32592035/WoWCombatLog-092326_234406.txt
+  date_collected: "2026-09-23"
+  character_name: Budder Pinda
+  player_guid: Player-4618-006137F8
+  beta_build: "1.60.1.69977"
+  setup: two_hand
+  equipped_weapons:
+    - name: Corpse Chopper
+      slot: main_hand
+      speed: 3.6
+      weapon_skill: 100
+  talents:
+    unbridled_wrath: 2   # from the post title ("2H 2/5 UW")
+  character_sheet:
+    hit_chance_percent: 0
+    crit_chance_percent: 11.6
+  notes: The log header says advanced combat logging is off, but the events still carry the advanced fields (rage, level), so the log is fully usable.
+
+- file: ceece_fishliver_1h_092226.txt
+  haste_buff: Fishliver Oil   # swings under this buff are hasted (see derived/haste.csv)
+  source: https://github.com/magey/forever-warrior/discussions/13
+  attachment: https://github.com/user-attachments/files/32619499/2.7spd.Fishliver.txt
+  date_collected: "2026-09-22"
+  character_name: Ceece
+  player_guid: Player-4613-005C0BA8
+  beta_build: ""   # not posted; the log header says 1.60.1
+  setup: one_hand
+  equipped_weapons:
+    - name: Cruel Barb
+      slot: main_hand
+      speed: 2.8   # as posted; the file was named "2.7spd"
+      weapon_skill: 100
+  character_sheet:
+    hit_chance_percent: 0
+    crit_chance_percent: null
+  notes: Posted as "Fishliver Oil Logs". Only one weapon was posted. Fishliver Oil hastes swings by about 10% in Forever (2.80 to 2.54 sec).
+
+- file: ceece_fishliver_2h_092426.txt
+  haste_buff: Fishliver Oil   # swings under this buff are hasted (see derived/haste.csv)
+  source: https://github.com/magey/forever-warrior/discussions/13
+  attachment: https://github.com/user-attachments/files/32619501/3.7spd.Fishliver.txt
+  date_collected: "2026-09-24"
+  character_name: Ceece
+  player_guid: Player-4613-005C0BA8
+  beta_build: "1.60.1.69977"
+  setup: two_hand
+  equipped_weapons:
+    - name: Rock Hammer
+      slot: main_hand
+      speed: 3.7
+      weapon_skill: 92
+  character_sheet:
+    hit_chance_percent: 0
+    crit_chance_percent: 5.2
+  notes: Posted as "Fishliver Oil Logs". Fishliver Oil hastes swings by about 10% in Forever (3.70 to 3.36 sec), which explains the swing interval warning.
+
+- file: elvenfresh_hasterage_berserking_1h_092426.txt
+  haste_buff: Berserking   # swings under this buff are hasted (see derived/haste.csv)
+  source: https://github.com/magey/forever-warrior/discussions/14
+  attachment: https://github.com/user-attachments/files/32620469/WoWCombatLog-092426_141813.txt
+  date_collected: "2026-09-24"
+  character_name: Hasterage Tester   # as posted; the log's warrior is Hasterage-ClassicBetaPvE2-
+  player_guid: Player-4620-00E7033C
+  beta_build: "1.60.1 (69977)"
+  setup: one_hand
+  race: troll
+  equipped_weapons:
+    - name: Worn Axe
+      slot: main_hand
+      speed: 2.0   # NOT POSTED: taken from the swing intervals outside Berserking (about 2.0 s)
+      weapon_skill: 5
+  character_sheet:
+    hit_chance_percent: 0
+    crit_chance_percent: 5.5
+  notes: Haste test with the Troll racial Berserking (cast at 14:19:54, 10 sec). A level 1 character (60 health, weapon skill 5); the log's level field reads 0. Weapon speed was not posted.

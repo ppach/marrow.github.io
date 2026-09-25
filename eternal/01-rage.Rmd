@@ -42,6 +42,7 @@ fmt_p <- function(p) format.pval(p, digits = 2, eps = 1e-10)
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.3.0",  "2026-09-24", "Haste doesn't change rage per swing: every hasted swing under Berserking or Fishliver Oil (which gives about 10% attack speed in Forever) gave the full rate x weapon speed, so haste raises rage per second. New logs from Budder (3.6 two-hander, Unbridled Wrath 1/5 and 2/5) and Ceece (2.8 one-hander, 3.7 two-hander) match the rates and the Unbridled Wrath bug.",
   "2.2.0",  "2026-09-24", "Unbridled Wrath doesn't use procs per minute: the chance per landed white hit is the same for weapons from 1.8 to 3.8 speed, main hand, off hand and two-handers alike.",
   "2.1.1",  "2026-09-24", "The developers confirmed the Unbridled Wrath bug and said the fix will come in a future beta build (forever-bugs issue #105).",
   "2.1.0",  "2026-09-23", "Added a log from Tarch with Unbridled Wrath at 4/5 (dual wield and two-handed), which completes the proc rate at every talent rank. 4/5 procs on about 36% of hits, still well below the tooltip's 48%.",
@@ -111,7 +112,7 @@ clusters %>%
             `Damage range` = paste(damage_min, damage_max, sep = "-"),
             `Crit` = round(mean_gain_crit, 2), `Non-crit` = round(mean_gain_noncrit, 2),
             Swings = n) %>%
-  knitr::kable(caption = "Rage per white swing, grouped by the distinct values observed.")
+  knitr::kable(caption = "Rage per white swing, grouped by the distinct values observed. Rage per second of swing interval uses the measured interval, so it reads high for Ceece's two-hander, where half the swings were hasted by Fishliver Oil (see the Haste section).")
 ```
 
 ```{r fig.cap="Rage per swing against damage dealt. Each group is flat: damage does not change the rage gained."}
@@ -343,7 +344,7 @@ These are the priors we used:
 
 Classic then uses its formula with the level 60 conversion value ($C = `r round(conv(60), 1)`$), while Forever just uses rate × speed. We're only counting hits that land here, so misses, dodges and glancing blows aren't included. The logged hits were also against low-level mobs that already have a bit of armor, and we put the boss armor on top of that, so the Classic side ends up slightly lower than it really would be.
 
-There's one big assumption in all of this: our Forever rates come from levels 13 to 16, and we're assuming they don't change all the way up to 60. The logs can't test that yet, so if the rates do turn out to change with level, the Forever side of these plots will move.
+There's one big assumption in all of this: our Forever rates come from low-level characters, and we're assuming they don't change all the way up to 60. The logs now span a level 1 character (elvenfresh's haste test, 60 health) up to Ceece at level 17, and every one of them gives the same rates, which is a good sign, but nothing above 20 can be tested yet. So if the rates do turn out to change at higher levels, the Forever side of these plots will move.
 
 These plots also compare the two games **with no talents**, since that's what the logs measure. Talents change the picture quite a bit, mostly in Forever: Dual Wield Specialization now gives +100% off-hand rage and +10% off-hand hit (in Classic it only added off-hand damage), Anger Management gives 1 rage every 3 seconds, and Boundless Rage raises the cap to 130. The fight simulations in the later chapters include them.
 
@@ -439,6 +440,54 @@ So what actually changes for a level 60 warrior?
 - In Classic, better gear means more rage, since more attack power and more crits mean more damage. In Forever, your gear doesn't change the rage you get from white hits at all.
 - In Classic, your rage per second changes from fight to fight and from player to player, whereas in Forever it's basically fixed: about `r round(mean(post$rate[post$hand == "Main hand"]) + mean(post$rate[post$hand == "Off hand"]), 2)` for dual wield and `r round(mean(post$rate[post$hand == "Two-hand"]), 2)` for a two-hander.
 - The weapons in these logs are low-level ones, and real level 60 weapons hit a lot harder. That extra damage means more rage in Classic but not in Forever, so with actual level 60 weapons the gap would be even bigger than what these plots show.
+
+## Haste {#haste}
+
+In Forever, each swing gives rate x weapon speed rage. That leaves one important question: when something makes you swing faster, does each swing still give the full amount, or does the game shrink it to match the shorter swing? If it's the full amount, haste gives you more rage per second, just like it gives you more damage. If it shrinks, haste does nothing for rage.
+
+Two posters tested this. elvenfresh recorded a level 1 Troll using **Berserking** (their racial, which gives 10% attack speed at full health), and Ceece recorded two fights with **Fishliver Oil**, which in Forever turns out to give about 10% attack speed for 30 seconds. For every swing, we know whether the buff was up, how long since the last swing, and how much rage it gave:
+
+```{r}
+haste <- read_csv("data/derived/haste.csv", show_col_types = FALSE) %>%
+  mutate(label = paste0(character, ": ", buff, " (", speed, " speed)"))
+haste_tbl <- haste %>% group_by(label, speed, hasted) %>%
+  summarise(n = n(), interval = median(interval, na.rm = TRUE), gain = mean(gain), .groups = "drop") %>%
+  pivot_wider(names_from = hasted, values_from = c(n, interval, gain)) %>%
+  mutate(speedup = interval_FALSE / interval_TRUE - 1,
+         model = if_else(grepl("Rock Hammer|3.7", label), 4.5, 3.46) * speed)
+haste_tbl %>%
+  transmute(Log = label,
+            `Swing time (normal / hasted)` = sprintf("%.2f / %.2f sec", interval_FALSE, interval_TRUE),
+            `Faster by` = sprintf("%.0f%%", speedup * 100),
+            `Rage per swing, normal` = sprintf("%.2f (n = %d)", gain_FALSE, n_FALSE),
+            `Rage per swing, hasted` = sprintf("%.2f (n = %d)", gain_TRUE, n_TRUE),
+            `If rage shrank with the swing` = sprintf("%.2f", gain_FALSE / (1 + speedup))) %>%
+  knitr::kable(caption = "Rage per landed white swing with and without a haste buff. The last column is what a hasted swing would give if the game scaled rage to the shorter swing time.")
+```
+
+```{r fig.cap="Every landed white swing in the three haste logs: the rage it gave (left) and the time since the previous swing (right), without and with the haste buff. The buff makes swings come about 10% sooner, but each one still gives the same rage.", fig.height=4.2}
+haste %>%
+  select(label, hasted, `Time since the last swing (sec)` = interval, `Rage from the swing` = gain) %>%
+  pivot_longer(-c(label, hasted)) %>%
+  filter(!is.na(value), !(name == "Time since the last swing (sec)" & value > 5)) %>%
+  mutate(hasted = if_else(hasted, "Hasted", "Normal")) %>%
+  ggplot(aes(label, value, colour = hasted)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.6), alpha = 0.7) +
+  facet_wrap(~ name, scales = "free_x") +
+  coord_flip() +
+  scale_colour_manual(values = c(Normal = "grey55", Hasted = "#d95f02")) +
+  labs(x = NULL, y = NULL, colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+n_hasted <- sum(haste$hasted)
+haste_diff <- haste %>% group_by(label) %>% summarise(d = mean(gain[hasted]) - mean(gain[!hasted])) %>% pull(d)
+```
+
+**Haste doesn't shrink the rage from a swing.** All `r n_hasted` hasted swings gave the normal rate x weapon speed, within the 0.1 rage the log rounds to (the averages differ by at most `r sprintf("%.2f", max(abs(haste_diff)))` rage), and none came anywhere near the smaller amount they would give if the game scaled rage to the shorter swing time. Since rage per swing is always exactly the same in Forever, this doesn't need a p-value: a single hasted swing at full rage is enough to rule out the shrinking version, and we have `r n_hasted`.
+
+So **in Forever, haste is a rage stat**: 10% faster swings give 10% more white rage per second. That matters for Flurry (see the [Flurry chapter](#flurry)), Berserking, haste potions and any haste on gear, and it's one of the few ways left to raise your rage with gear.
 
 ## Other rage sources
 
@@ -546,7 +595,7 @@ Two more things stay the same as before: every proc gives 1 rage with one-hander
 
 ## Open questions
 
-- Check whether the rates change at higher levels.
+- Check whether the rates change above level 20. From level 1 to 17 they don't.
 - Figure out how attack power adds damage in Forever. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing - but the logged Battle Axe hits are only 69 to 88. So either attack power works differently, or the number in the log means something else.
 - Keep checking new builds to see when [BUG-1](#bug-ubw) gets fixed.
 - Test Dual Wield Specialization, whose tooltip says it doubles off-hand rage at 5/5. It's in the fourth row of the Fury tree, so it needs level 24 or higher.

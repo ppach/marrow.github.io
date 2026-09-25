@@ -79,6 +79,8 @@ def ubw_by_hand(meta, rows):
     ws = sorted(meta["equipped_weapons"], key=lambda w: w["slot"] != "main_hand")
     if meta["setup"] == "two_hand":
         hands = [("two_hand", ws[0]["speed"], 45 * ws[0]["speed"])]
+    elif len(ws) == 1:   # a single one-handed weapon
+        hands = [("main_hand", ws[0]["speed"], 34.6 * ws[0]["speed"])]
     else:  # expected gain in tenths: 3.46 x speed main hand, 1.73 x speed off hand
         hands = [("main_hand", ws[0]["speed"], 34.6 * ws[0]["speed"]),
                  ("off_hand", ws[1]["speed"], 17.3 * ws[1]["speed"])]
@@ -92,6 +94,36 @@ def ubw_by_hand(meta, rows):
         if abs(gain - exp) <= 4:
             out.append({"hand": hand, "speed": speed, "proc": int(id(s) in procd),
                         "ubw_rank": (meta.get("talents") or {}).get("unbridled_wrath")})
+    return out
+
+
+def haste_swings(meta, rows):
+    """One row per landed white swing below the cap, for logs with a haste buff: the time since the
+    previous swing, the rage it gave, and whether the buff was up. Tests whether haste changes rage per swing."""
+    buff = meta.get("haste_buff")
+    if not buff:
+        return []
+    win, start = [], None
+    for r in rows:
+        if r.get("spell") != buff or not (r["dst"] or r["src"]):
+            continue
+        if r["event"] == "SPELL_AURA_APPLIED" and r["dst"]:
+            start = r["t"]
+        elif r["event"] == "SPELL_AURA_REMOVED" and r["dst"] and start is not None:
+            win.append((start, r["t"])); start = None
+    if start is not None:
+        win.append((start, rows[-1]["t"]))
+    own = [r for r in rows if r["src"] and r["event"] in ("SWING_DAMAGE", "SWING_MISSED")]
+    prev_t = {id(b): a["t"] for a, b in zip(own, own[1:])}
+    snaps = snapshots(rows)
+    out = []
+    for p, s in zip(snaps, snaps[1:]):
+        if s["event"] != "SWING_DAMAGE" or not s["src"] or s["t"] - p["t"] > MAX_GAP or s["rage"] >= RAGE_CAP:
+            continue
+        iv = s["t"] - prev_t[id(s)] if id(s) in prev_t else None
+        out.append({"buff": buff, "t": s["t"], "interval": iv, "gain": (s["rage"] - after(p)) / 10,
+                    "speed": meta["equipped_weapons"][0]["speed"],
+                    "hasted": any(a <= s["t"] <= b for a, b in win)})
     return out
 
 
@@ -145,7 +177,7 @@ def check(meta, rows, levels, cl):
 def main():
     metas = yaml.safe_load(open("logs/metadata.yaml"))
     os.makedirs("derived", exist_ok=True)
-    all_sw, all_tk, all_cl, all_mi, all_en, all_pr, all_uh = [], [], [], [], [], [], []
+    all_sw, all_tk, all_cl, all_mi, all_en, all_pr, all_uh, all_hs = [], [], [], [], [], [], [], []
     for m in metas:
         rows, levels, swings, taken, misses, energize, procs = analyze(m)
         all_pr.append({"file": m["file"], "character": m["character_name"], "setup": m["setup"], **procs})
@@ -156,6 +188,7 @@ def main():
         cl = clusters(swings)
         all_uh += [{"file": m["file"], "character": m["character_name"], "setup": m["setup"], **u}
                    for u in ubw_by_hand(m, rows)]
+        all_hs += [{"file": m["file"], "character": m["character_name"], **h} for h in haste_swings(m, rows)]
         for w in check(m, rows, levels, cl):
             print(f"   WARNING: {w}")
         capped = sum(s["capped"] for s in swings)
@@ -183,7 +216,7 @@ def main():
             all_en.append({"file": m["file"], "spell": spell, "amount": amt, "n": n})
 
     for name, data in [("swings", all_sw), ("taken", all_tk), ("swing_clusters", all_cl),
-                       ("misses", all_mi), ("energize", all_en), ("procs", all_pr), ("ubw_by_hand", all_uh)]:
+                       ("misses", all_mi), ("energize", all_en), ("procs", all_pr), ("ubw_by_hand", all_uh), ("haste", all_hs)]:
         with open(f"derived/{name}.csv", "w", newline="") as fh:
             w = csv.DictWriter(fh, fieldnames=list(data[0].keys()))
             w.writeheader()
