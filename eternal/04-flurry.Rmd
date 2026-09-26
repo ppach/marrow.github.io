@@ -6,6 +6,7 @@ source("data/flurry.R")
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.2.1",  "2026-09-25", "Crit lost against a boss corrected to 4.8% (3% from the level gap plus 1.8% on aura crit, from the Classic warrior wiki), and Classic's rage to 7.5 x damage / C. The uptimes come down a little and Classic's rage per 1% crit halves, but the conclusions stand.",
   "1.2.0",  "2026-09-24", "Confirmed that a hasted swing gives the full rage, using Berserking and Fishliver Oil logs, so Flurry's extra swings are extra rage.",
   "1.1.0",  "2026-09-24", "The white rage baseline now includes Dual Wield Specialization 5/5 (+100% off-hand rage, +10% off-hand hit), so Flurry's extra rage is about 40% higher than in 1.0.0.",
   "1.0.0",  "2026-09-24", "First version: a Markov chain model of Flurry, checked against the fight simulator, and compared with Classic. Model only - Flurry can't be talented in the beta yet."
@@ -13,7 +14,7 @@ flurry_changelog <- tribble(
 
 haste_forever <- 0.25
 haste_classic <- 0.30
-suppression   <- 0.03    # crit lost against a level 63 boss (Classic: 1.8% aura plus 1.2% from the level gap)
+suppression   <- sim_defaults$crit_suppression   # crit lost against a level 63 boss: 3% from the level gap plus 1.8% on aura crit
 landed        <- 1 - sim_defaults$miss - sim_defaults$dodge            # dual wield vs a boss, from behind
 crit_cap      <- 1 - sim_defaults$miss - sim_defaults$dodge - sim_defaults$glance
 yellow_cps    <- 1 / sim_defaults$bt_cd + 1 / sim_defaults$ww_cd       # a full Bloodthirst and Whirlwind rotation
@@ -53,7 +54,7 @@ That last one deserves a word. In Forever, each swing gives rage based on the we
 
 ## The Classic way
 
-In Classic we used a simple rule of thumb for Flurry's uptime:
+In Classic, the [Classic compendium](https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/) used a simple rule of thumb for Flurry's uptime:
 
 $$F_{up} = 1 - (1 - P(Crit))^A$$
 
@@ -61,7 +62,7 @@ where $A$ is the number of attacks in one Flurry window: 3 white swings, plus "a
 
 1. **$A = 4$ is a guess.** How many yellow attacks fit into a Flurry window depends on your weapon speeds and on Flurry itself, since a hasted window is shorter.
 2. **It counts swings, not time.** A hasted swing is shorter, so the share of *time* with Flurry up is lower than the share of *swings*.
-3. **It uses the crit on your character sheet.** Against a boss you lose about `r suppression * 100`% crit, and white crits can't go past the crit cap (`r round(crit_cap * 100, 1)`% for our dual wielder, since misses, dodges and glancing blows take up the rest of the attack table).
+3. **It uses the crit on your character sheet.** Against a boss you lose about `r suppression * 100`% crit (as measured on the [Classic warrior wiki](https://github.com/magey/classic-warrior/wiki/Crit-aura-suppression)), and white crits can't go past the crit cap (`r round(crit_cap * 100, 1)`% for our dual wielder, since misses, dodges and glancing blows take up the rest of the attack table).
 4. **It treats every attack the same**, when white crits and yellow crits don't work the same way: only white swings use up charges.
 
 ## A better model: counting charges
@@ -98,7 +99,8 @@ To make sure the maths is right, we can run the same warrior through the fight s
 flurry_check <- cached_sim("flurry_check", deps = list(sim_defaults, forever_mh, forever_oh, crit_cap, haste_forever), {
 set.seed(60)
 fr <- function(hand, dmg, speed) (if (hand == "MH") forever_mh else forever_oh) * speed
-p_check <- modifyList(sim_defaults, list(fight_len = 600, ubw_chance = 0, hs_threshold = 1e4, bt_cost = 1e4, ww_cost = 1e4, anger_rps = 0))
+p_check <- modifyList(sim_defaults, list(fight_len = 600, ubw_chance = 0, hs_threshold = 1e4, bt_cost = 1e4, ww_cost = 1e4, anger_rps = 0,
+                                         crit_suppression = 0))   # the crit here is the crit per swing
 flurry_check <- map_dfr(c(0.05, 0.15, 0.25, 0.35), function(c) {
   on  <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c)))$rps)
   off <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c, flurry_haste = 0)))$rps)
@@ -164,7 +166,7 @@ crit_rage <- function(dps, s) {
   d <- 0.01
   forever <- base_rpm * (fl(s + d)$swing_mult - fl(s)$swing_mult)
   # Classic: rage follows white damage, which goes up with crit directly and with Flurry's extra swings
-  cl <- function(x) classic_rps(dps) / (1 + 0.30) * (1 + eff_crit(x)) * fl(x, haste_classic)$swing_mult * landed * 60
+  cl <- function(x) classic_rps(dps) / (1 + crit_boss) * (1 + eff_crit(x)) * fl(x, haste_classic)$swing_mult * landed * 60
   tibble(forever = forever, classic = cl(s + d) - cl(s))
 }
 ```

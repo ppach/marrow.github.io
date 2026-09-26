@@ -17,14 +17,14 @@
 .sig-widget .sig-legend b { display:inline-block; width:18px; height:3px; vertical-align:middle; margin:0 4px 0 10px; }
 </style>
 <h4>Build your own rage curve</h4>
-<p class="sig-sub">Move the four knobs and watch the curve, and the spare rage at each phase, change. The grey dashed line is the sigmoid used in this chapter.</p>
+<p class="sig-sub">Move the four knobs and watch the curve, and the spare rage at each phase, change. Everything is extra rage per minute compared with Forever today, so Forever today is the zero line. The grey dashed line is the sigmoid used in this chapter.</p>
 <div class="sig-controls">
   <div><label>Floor, F <span id="sig-F-v"></span></label><input id="sig-F" type="range" step="0.1"></div>
   <div><label>Ceiling, C <span id="sig-C-v"></span></label><input id="sig-C" type="range" step="0.1"></div>
   <div><label>Midpoint, m <span id="sig-m-v"></span></label><input id="sig-m" type="range" step="0.5"></div>
-  <div><label>Width, w <span id="sig-w-v"></span></label><input id="sig-w" type="range" step="0.1"></div>
+  <div><label>Width, w <span id="sig-w-v"></span></label><input id="sig-w" type="range" step="0.01"></div>
 </div>
-<svg id="sig-plot" viewBox="0 0 640 330" role="img" aria-label="Rage per second against weapon DPS"></svg>
+<svg id="sig-plot" viewBox="0 0 640 330" role="img" aria-label="Extra rage per minute against weapon DPS"></svg>
 <div class="sig-legend"><b style="background:#2c7fb8"></b>Your curve<b style="background:#9a9a9a"></b>Ours<b style="background:#555;height:1px"></b>Core rotation cost</div>
 <table id="sig-table"></table>
 <button id="sig-reset" type="button">Reset to ours</button>
@@ -33,46 +33,59 @@
 (function () {
   var cfg = window.SIG_CFG;
   var el = function (id) { return document.getElementById(id); };
-  var knobs = { F: [3, 12], C: [8, 24], m: [40, 75], w: [0.5, 15] };
+  // The knobs work in extra rage per minute over Forever today (F and C), and in weapon DPS (m and w).
+  var extra = function (rps) { return (rps - cfg.base) * 60; };
+  var ours = { F: extra(cfg.ours.F), C: extra(cfg.ours.C), m: cfg.ours.m, w: cfg.ours.w };
+  var costX = extra(cfg.cost);
+  var climb = Math.max(ours.C - ours.F, 10);
+  var knobs = { F: [Math.round(-2 * climb), Math.round(2 * climb)], C: [0, Math.round(4 * climb)], m: [40, 75], w: [0.5, 15] };
   Object.keys(knobs).forEach(function (k) {
-    var s = el("sig-" + k); s.min = knobs[k][0]; s.max = knobs[k][1]; s.value = cfg.ours[k];
+    var s = el("sig-" + k); s.min = knobs[k][0]; s.max = knobs[k][1]; s.value = ours[k];
     s.addEventListener("input", draw);
   });
   el("sig-reset").addEventListener("click", function () {
-    Object.keys(knobs).forEach(function (k) { el("sig-" + k).value = cfg.ours[k]; }); draw();
+    Object.keys(knobs).forEach(function (k) { el("sig-" + k).value = ours[k]; }); draw();
   });
   function sig(d, p) { return p.F + (p.C - p.F) / (1 + Math.exp(-(d - p.m) / p.w)); }
-  var W = 640, H = 330, L = 48, R = 16, T = 12, B = 36, x0 = 35, x1 = 80, y0 = 0, y1 = 25;
-  function X(d) { return L + (d - x0) / (x1 - x0) * (W - L - R); }
-  function Y(r) { return T + (1 - (r - y0) / (y1 - y0)) * (H - T - B); }
-  function path(p) {
-    var s = "";
-    for (var d = x0; d <= x1 + 1e-9; d += 0.25) s += (s ? "L" : "M") + X(d).toFixed(1) + "," + Y(Math.min(Math.max(sig(d, p), y0), y1)).toFixed(1);
-    return s;
+  function niceStep(span) {
+    var raw = span / 5, mag = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / mag;
+    return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
   }
+  var W = 640, H = 330, L = 52, R = 16, T = 12, B = 36, x0 = 35, x1 = 80;
   function draw() {
     var p = {}; Object.keys(knobs).forEach(function (k) { p[k] = parseFloat(el("sig-" + k).value); });
-    el("sig-F-v").textContent = p.F.toFixed(1) + " rage/sec";
-    el("sig-C-v").textContent = p.C.toFixed(1) + " rage/sec";
+    el("sig-F-v").textContent = (p.F >= 0 ? "+" : "") + p.F.toFixed(0) + " rage/min";
+    el("sig-C-v").textContent = (p.C >= 0 ? "+" : "") + p.C.toFixed(0) + " rage/min";
     el("sig-m-v").textContent = p.m.toFixed(1) + " weapon DPS";
     el("sig-w-v").textContent = p.w.toFixed(1) + " weapon DPS";
+    // the y axis always includes zero (Forever today) and fits both curves and the rotation cost
+    var lo = Math.min(0, p.F, p.C, ours.F), hi = Math.max(p.F, p.C, ours.C, costX);
+    var step = niceStep(hi - lo), y0 = Math.floor(lo / step) * step, y1 = Math.ceil((hi + 0.08 * (hi - lo)) / step) * step;
+    var X = function (d) { return L + (d - x0) / (x1 - x0) * (W - L - R); };
+    var Y = function (r) { return T + (1 - (r - y0) / (y1 - y0)) * (H - T - B); };
+    var path = function (q) {
+      var s = "";
+      for (var d = x0; d <= x1 + 1e-9; d += 0.25) s += (s ? "L" : "M") + X(d).toFixed(1) + "," + Y(sig(d, q)).toFixed(1);
+      return s;
+    };
     var g = "";
-    for (var r = 0; r <= y1; r += 5) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(r) + '" y2="' + Y(r) + '" stroke="#e6e6e6"/><text x="' + (L - 6) + '" y="' + (Y(r) + 4) + '" font-size="11" text-anchor="end" fill="#777">' + r + '</text>';
+    for (var r = y0; r <= y1 + 1e-9; r += step) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(r) + '" y2="' + Y(r) + '" stroke="' + (Math.abs(r) < 1e-9 ? "#bbb" : "#e6e6e6") + '"/><text x="' + (L - 6) + '" y="' + (Y(r) + 4) + '" font-size="11" text-anchor="end" fill="#777">' + Math.round(r) + '</text>';
     for (var d = 40; d <= 80; d += 10) g += '<text x="' + X(d) + '" y="' + (H - B + 16) + '" font-size="11" text-anchor="middle" fill="#777">' + d + '</text>';
     cfg.phases.forEach(function (ph) {
       g += '<line x1="' + X(ph.dps) + '" x2="' + X(ph.dps) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="#c8c8c8" stroke-dasharray="2,3"/>' +
            '<text x="' + (X(ph.dps) + 3) + '" y="' + (T + 10) + '" font-size="10" fill="#888">' + ph.phase + '</text>';
     });
-    g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(cfg.cost) + '" y2="' + Y(cfg.cost) + '" stroke="#555" stroke-dasharray="1,2"/>';
-    g += '<path d="' + path(cfg.ours) + '" fill="none" stroke="#9a9a9a" stroke-width="2" stroke-dasharray="6,4"/>';
+    g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(costX) + '" y2="' + Y(costX) + '" stroke="#555" stroke-dasharray="1,2"/>';
+    g += '<path d="' + path(ours) + '" fill="none" stroke="#9a9a9a" stroke-width="2" stroke-dasharray="6,4"/>';
     g += '<path d="' + path(p) + '" fill="none" stroke="#2c7fb8" stroke-width="3"/>';
     g += '<text x="' + ((L + W - R) / 2) + '" y="' + (H - 4) + '" font-size="12" text-anchor="middle" fill="#444">Main-hand weapon DPS</text>';
-    g += '<text transform="translate(12,' + ((T + H - B) / 2) + ') rotate(-90)" font-size="12" text-anchor="middle" fill="#444">Rage per second from white hits</text>';
+    g += '<text transform="translate(12,' + ((T + H - B) / 2) + ') rotate(-90)" font-size="12" text-anchor="middle" fill="#444">Extra rage per minute vs Forever today</text>';
     el("sig-plot").innerHTML = g;
-    var rows = "<tr><th>Phase</th><th>Rage per second</th><th>Spare rage per minute</th><th>Change from ours</th></tr>";
+    var rows = "<tr><th>Phase</th><th>Extra rage per minute</th><th>Spare rage per minute after the core rotation</th><th>Change from ours</th></tr>";
     cfg.phases.forEach(function (ph) {
-      var r = sig(ph.dps, p), o = sig(ph.dps, cfg.ours), spare = Math.max(r - cfg.cost, 0) * 60;
-      rows += "<tr><td>" + ph.phase + "</td><td>" + r.toFixed(1) + "</td><td>" + spare.toFixed(0) + "</td><td>" + (r - o >= 0 ? "+" : "") + ((r - o) * 60).toFixed(0) + " rage/min</td></tr>";
+      var raw = sig(ph.dps, p), r = Math.round(raw), spare = Math.max(Math.round(raw - costX), 0),
+          dv = Math.round(raw - sig(ph.dps, ours)) || 0;   // || 0 turns -0 into 0
+      rows += "<tr><td>" + ph.phase + "</td><td>" + (r > 0 ? "+" : "") + r + "</td><td>" + spare + "</td><td>" + (dv > 0 ? "+" : "") + dv + " rage/min</td></tr>";
     });
     el("sig-table").innerHTML = rows;
   }

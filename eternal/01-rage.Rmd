@@ -18,6 +18,10 @@ ubw_rate <- sum(ubw5$ubw_procs) / sum(ubw5$landed_white)   # Unbridled Wrath pro
 meta     <- yaml::read_yaml("data/logs/metadata.yaml")
 
 conv <- function(lvl) 0.0091107836 * lvl^2 + 3.225598133 * lvl + 4.2652911
+# Classic (1.12) rage per point of damage, divided by C. Kalgan's blue post (2006), ClassicSim and WarriorSim
+# all use 7.5. The Classic compendium used 15, which gave Classic twice its real rage.
+classic_k <- 7.5
+source("data/fight_sim.R")  # for the crit suppression against a boss, shared with the fight simulator
 
 # Speed and hand for each swing: the posted weapon speed nearest to the measured swing interval,
 # and main vs off hand from the rate (off-hand rates are about half the main-hand ones).
@@ -34,14 +38,25 @@ obs <- swings %>% filter(!capped) %>%
   left_join(cl %>% select(file, lo = mean_gain, speed, hand), by = "file", relationship = "many-to-many") %>%
   filter(abs(gain - lo) <= 0.2) %>%
   left_join(weapons, by = c("file", "speed")) %>%
-  mutate(classic = 15 * damage / conv(level),
+  mutate(classic = classic_k * damage / conv(level),
          group   = paste0(character, ", ", hand, " ", speed))
 
 fmt_p <- function(p) format.pval(p, digits = 2, eps = 1e-10)
 
+# The measured Forever rates, used by the later chapters: rage per second of weapon speed for each hand.
+forever_mh <- with(filter(obs, hand == "Main hand"), mean(gain / speed))
+forever_oh <- with(filter(obs, hand == "Off hand"),  mean(gain / speed))
+forever_dw <- forever_mh + forever_oh          # no talents
+# Rage per second of weapon speed for every logged swing, which the simulations draw from
+forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
+                      OH = with(filter(obs, hand == "Off hand"),  gain / speed))
+# With Dual Wield Specialization 5/5 (+100% off-hand rage), which every dual-wield Fury build takes
+forever_dw_tal <- forever_mh + forever_talents$oh_rage_mult * forever_oh
+
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "3.0.0",  "2026-09-25", "Classic's rage formula corrected to 7.5 x damage / C, from Kalgan's blue post, ClassicSim and WarriorSim (it was 15, copied from the Classic compendium). Every Classic comparison halves: at level 60 with the logged weapons, Classic now gives less rage than Forever, not more. The level 60 comparison also takes off the 4.8% crit lost against a boss. None of the Forever findings change.",
   "2.3.0",  "2026-09-24", "Haste doesn't change rage per swing: every hasted swing under Berserking or Fishliver Oil (which gives about 10% attack speed in Forever) gave the full rate x weapon speed, so haste raises rage per second. New logs from Budder (3.6 two-hander, Unbridled Wrath 1/5 and 2/5) and Ceece (2.8 one-hander, 3.7 two-hander) match the rates and the Unbridled Wrath bug.",
   "2.2.0",  "2026-09-24", "Unbridled Wrath doesn't use procs per minute: the chance per landed white hit is the same for weapons from 1.8 to 3.8 speed, main hand, off hand and two-handers alike.",
   "2.1.1",  "2026-09-24", "The developers confirmed the Unbridled Wrath bug and said the fix will come in a future beta build (forever-bugs issue #105).",
@@ -56,10 +71,10 @@ changelog <- tribble(
 
 ## Base hypothesis: the Classic formula
 
-A white hit is a normal auto attack (so not an ability like Heroic Strike). In Classic, it's pretty well documented that the rage from a white hit depended on the damage of that hit. The Classic compendium used that formula:
+A white hit is a normal auto attack (so not an ability like Heroic Strike). In Classic, it's pretty well documented that the rage from a white hit depended on the damage of that hit:
 
 \begin{equation}
-Rage = \frac{D}{C} \times 15
+Rage = \frac{D}{C} \times 7.5
 \end{equation}
 
 Where:
@@ -67,7 +82,7 @@ Where:
 - $Rage$ is the rage that one white hit gives.
 - $D$ is the damage of that hit.
 - $C$ is the rage conversion value, basically a constant that increases with your level. At level 60 it is about 230, and at level 15 it is about 55.
-- 15 is a fixed number from the game.
+- 7.5 is a fixed number from the game. Blizzard gave it in a [blue post by Kalgan](https://www.bluetracker.gg/wow/topic/eu-en/83678537-the-new-rage-formula-by-kalgan/) when they changed the formula for The Burning Crusade, and both Classic simulators, [WarriorSim](https://github.com/GuybrushGit/WarriorSim) and [ClassicSim](https://github.com/timhul/ClassicSim), use it. The [Classic compendium](https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/) used 15, which gave Classic twice as much rage as it really had, and earlier versions of this book copied that.
 
 The game calculates $C$ from your level, $Lvl$:
 
@@ -75,7 +90,7 @@ The game calculates $C$ from your level, $Lvl$:
 C = 0.0091107836 \times Lvl^2 + 3.225598133 \times Lvl + 4.2652911
 \end{equation}
 
-Example: You are a level 15 warrior and hit a mob for 110 damage. The formula gives $110 / 55 \times 15 = 30$ rage.
+Example: You are a level 15 warrior and hit a mob for 110 damage. The formula gives $110 / 55 \times 7.5 = 15$ rage.
 
 This formula makes three predictions for World of Warcraft: Forever:
 
@@ -144,11 +159,11 @@ Wherever we can, we test each finding twice: once against what Classic predicts,
 ```{r}
 by_group <- obs %>% group_by(group) %>% filter(n() >= 10)
 
-# 1. Damage: slope of rage on damage, against Classic's slope (15 / C) and against zero.
+# 1. Damage: slope of rage on damage, against Classic's slope (7.5 / C) and against zero.
 dmg <- by_group %>% group_modify(~ {
   f  <- summary(lm(gain ~ damage, data = .x))$coefficients
   b  <- f["damage", "Estimate"]; se <- f["damage", "Std. Error"]; df <- nrow(.x) - 2
-  cs <- mean(15 / conv(.x$level))
+  cs <- mean(classic_k / conv(.x$level))
   tibble(slope = b, classic_slope = cs,
          p_classic = 2 * pt(-abs((b - cs) / se), df), p_zero = 2 * pt(-abs(b / se), df))
 })
@@ -179,7 +194,7 @@ classic_gap <- 1 - conv(15) / conv(16)
 
 tribble(
   ~Finding, ~`Idea tested (null hypothesis)`, ~`p-value`, ~Verdict,
-  "1. Damage does not change rage", "Classic: rage rises by 15 / C for each point of damage",
+  "1. Damage does not change rage", "Classic: rage rises by 7.5 / C for each point of damage",
     paste("largest of", nrow(dmg), "groups:", fmt_p(max(dmg$p_classic))), "Classic rejected",
   "1. Damage does not change rage", "Forever: damage has no effect on rage",
     paste("smallest of", nrow(dmg), "groups:", fmt_p(min(dmg$p_zero))), "See note below",
@@ -213,7 +228,7 @@ lv_obs <- lv %>% group_by(level) %>%
   summarise(mean = mean(gain), lo = mean - 1.96 * sd(gain) / sqrt(n()), hi = mean + 1.96 * sd(gain) / sqrt(n()),
             n = n(), .groups = "drop") %>%
   mutate(game = "Forever (logs)")
-lv_classic <- tibble(level = c(15, 16), mean = 15 * d_ref / conv(level), game = "Classic (formula)")
+lv_classic <- tibble(level = c(15, 16), mean = classic_k * d_ref / conv(level), game = "Classic (formula)")
 ```
 
 ```{r fig.cap="Levels 15 and 16, with the same weapon and the same hit. Classic (grey) drops by about 6% in a single level, while the logs (blue, with 95% intervals too narrow to see) don't move.", fig.height=3.5}
@@ -230,7 +245,7 @@ The two levels we have logs for barely show anything, so here's the same compari
 
 ```{r fig.cap="How much rage the same 1.8-speed main-hand hit is worth at each level. In Classic (grey) it's worth less and less as you level, because C keeps growing, while in Forever (blue) it stays the same. The dots are the logs, and the circle is where both games value the hit the same.", fig.height=4}
 curve <- tibble(level = seq(10, 60, by = 0.25)) %>%
-  mutate(Classic = 15 * d_ref / conv(level),
+  mutate(Classic = classic_k * d_ref / conv(level),
          Forever = mean(lv$gain))
 seen <- range(obs$level)
 cross <- curve$level[which.min(abs(curve$Classic - curve$Forever))]
@@ -250,7 +265,7 @@ ggplot(curve, aes(level)) +
   labs(x = "Level", y = "Rage for one swing", colour = NULL)
 ```
 
-In Classic, that hit is worth `r round(15 * d_ref / conv(15), 1)` rage at level 15 but only `r round(15 * d_ref / conv(60), 1)` at level 60 (`r round((1 - conv(15) / conv(60)) * 100)`% less), and the two games value it the same at around level `r round(cross)` - below that Classic gives more for this hit, and above it Forever does. This doesn't mean Classic warriors were starved for rage at 60, though: by then your hits do far more than `r round(median(lv$damage))` damage, and that extra damage is what makes up for the shrinking conversion. In Forever, on the other hand, damage doesn't count at all, so hitting harder doesn't get you any more rage.
+In Classic, that hit is worth `r round(classic_k * d_ref / conv(15), 1)` rage at level 15 but only `r round(classic_k * d_ref / conv(60), 1)` at level 60 (`r round((1 - conv(15) / conv(60)) * 100)`% less), and the two games value it the same at around level `r round(cross)` - below that Classic gives more for this hit, and above it Forever does. At level 60, though, your hits do far more than `r round(median(lv$damage))` damage, and that extra damage is what makes up for the shrinking conversion (the [Scaling chapter](#scaling) works out how much). In Forever, on the other hand, damage doesn't count at all, so hitting harder doesn't get you any more rage.
 
 ## Classic versus Forever
 
@@ -337,7 +352,7 @@ We can't know the exact gear of "a level 60 warrior", so instead of picking one 
 These are the priors we used:
 
 - **Attack power**: around 1200, usually somewhere between 900 and 1500, which is roughly a fury warrior in early raid gear.
-- **Crit chance**: around 30% (the same number the Classic compendium used), usually between 21% and 39%.
+- **Crit chance**: around 30% on the character sheet (the same number the Classic compendium used), usually between 21% and 39%. Against a boss three levels above you, you lose `r sim_defaults$crit_suppression * 100`% of that, as measured on the [Classic warrior wiki](https://github.com/magey/classic-warrior/wiki/Crit-aura-suppression).
 - **Boss armor**: a boss with Sunder Armor and Faerie Fire up takes about 75% of full damage, so we use a range of roughly 65% to 83%.
 - **Weapon damage**: taken from the logs. Each simulated swing starts from a real hit with that weapon in that hand, and then we add the damage from the extra attack power you'd have at 60 (in Classic, that's 1 damage for every 14 attack power, for each second of weapon speed).
 - **The Forever rates**: drawn from the posterior in the section above.
@@ -379,9 +394,9 @@ sim <- setups %>% crossing(draws) %>%
          log_damage = map_dbl(hit, "damage"), log_ap = map_dbl(hit, "ap"),
          # Classic: 1 extra damage for every 14 attack power, for each second of weapon speed.
          hit_damage = pmax(log_damage + hm * (ap - log_ap) / 14 * speed, 1) * armor,
-         is_crit = runif(n()) < crit,
+         is_crit = runif(n()) < crit - sim_defaults$crit_suppression,   # crit on the character sheet, less the boss suppression
          damage = hit_damage * if_else(is_crit, 2, 1),
-         Classic = 15 * damage / C60,
+         Classic = classic_k * damage / C60,
          Forever = rate * speed + rnorm(n(), 0, sigma))
 ```
 
@@ -414,8 +429,8 @@ Rage per swing is a bit misleading when comparing weapons, since slow weapons sw
 
 ```{r}
 per_sec <- sim %>%
-  mutate(crit_mult = 1 + crit,  # the average of 1x and 2x damage, at this crit chance
-         classic_ps = 15 * hit_damage * crit_mult / C60 / speed,
+  mutate(crit_mult = 1 + crit - sim_defaults$crit_suppression,  # the average of 1x and 2x damage, at the crit against a boss
+         classic_ps = classic_k * hit_damage * crit_mult / C60 / speed,
          forever_ps = rate) %>%
   group_by(setup, sim) %>%
   summarise(Classic = sum(classic_ps), Forever = sum(forever_ps), .groups = "drop")
@@ -439,7 +454,7 @@ So what actually changes for a level 60 warrior?
 
 - In Classic, better gear means more rage, since more attack power and more crits mean more damage. In Forever, your gear doesn't change the rage you get from white hits at all.
 - In Classic, your rage per second changes from fight to fight and from player to player, whereas in Forever it's basically fixed: about `r round(mean(post$rate[post$hand == "Main hand"]) + mean(post$rate[post$hand == "Off hand"]), 2)` for dual wield and `r round(mean(post$rate[post$hand == "Two-hand"]), 2)` for a two-hander.
-- The weapons in these logs are low-level ones, and real level 60 weapons hit a lot harder. That extra damage means more rage in Classic but not in Forever, so with actual level 60 weapons the gap would be even bigger than what these plots show.
+- The weapons in these logs are low-level ones, which is why Classic comes out behind here: its rage follows damage, and these weapons don't hit very hard. Real level 60 weapons hit much harder, which means more rage in Classic but not in Forever. The [Scaling chapter](#scaling) follows a level 60 warrior through the gear phases, and finds Classic's rage catching up with Forever's partway through the raid phases.
 
 ## Haste {#haste}
 

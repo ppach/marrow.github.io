@@ -4,28 +4,50 @@
 # Keep this the last chapter. Add a row whenever the book uses someone's logs, data or analysis.
 contributors_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.3.0",  "2026-09-25", "Added How Damage Scales to where each contribution is used, and a list of the published sources the book relies on: Kalgan's blue post, the Classic warrior wiki's crit suppression testers, Bimmy's dual wield miss data, the Classic compendium and the forever-bugs tracker.",
+  "1.2.0",  "2026-09-25", "Added WarriorSim and ClassicSim, and the Classic warrior wiki under magey.",
   "1.1.0",  "2026-09-24", "Added elvenfresh, Ceece and Budder.",
   "1.0.0",  "2026-09-24", "First version."
 )
 contributors <- tribble(
   ~Contributor,                  ~Contribution,                                                                                   ~`Used in`,
-  "Tarch",                       "Eight combat logs with Unbridled Wrath at 1/5 to 4/5, dual wield and two-handed, recorded at every rank with the same character, weapons and mobs.", "Rage Generation, Known Bugs",
-  "Ryqenz (Zomd Aya)",           "Two combat logs with Unbridled Wrath at 5/5, dual wield and two-handed ([discussion #8](https://github.com/magey/forever-warrior/discussions/8), [#9](https://github.com/magey/forever-warrior/discussions/9), posted by kninib12a).", "Rage Generation, Known Bugs",
-  "Siax",                        "A dual wield combat log with Unbridled Wrath ([discussion #6](https://github.com/magey/forever-warrior/discussions/6), posted by Critthulu).", "Rage Generation, Known Bugs",
-  "elvenfresh (Hasterage)",     "A haste test with the Troll racial Berserking ([discussion #14](https://github.com/magey/forever-warrior/discussions/14)), which showed a hasted swing gives the full rage.", "Rage Generation, Flurry",
-  "Ceece",                       "Two combat logs with Fishliver Oil, a one-hander and a two-hander ([discussion #13](https://github.com/magey/forever-warrior/discussions/13)), which showed Fishliver Oil hastes swings and a hasted swing gives the full rage.", "Rage Generation, Flurry",
+  "Tarch",                       "Eight combat logs with Unbridled Wrath at 1/5 to 4/5, dual wield and two-handed, recorded at every rank with the same character, weapons and mobs.", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities, Known Bugs",
+  "Ryqenz (Zomd Aya)",           "Two combat logs with Unbridled Wrath at 5/5, dual wield and two-handed ([discussion #8](https://github.com/magey/forever-warrior/discussions/8), [#9](https://github.com/magey/forever-warrior/discussions/9), posted by kninib12a).", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities, Known Bugs",
+  "Siax",                        "A dual wield combat log with Unbridled Wrath ([discussion #6](https://github.com/magey/forever-warrior/discussions/6), posted by Critthulu).", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities, Known Bugs",
+  "elvenfresh (Hasterage)",     "A haste test with the Troll racial Berserking ([discussion #14](https://github.com/magey/forever-warrior/discussions/14)), which showed a hasted swing gives the full rage.", "Rage Generation, How Damage Scales, Flurry",
+  "Ceece",                       "Two combat logs with Fishliver Oil, a one-hander and a two-hander ([discussion #13](https://github.com/magey/forever-warrior/discussions/13)), which showed Fishliver Oil hastes swings and a hasted swing gives the full rage.", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities",
   "Budder (Budder Pinda)",       "Two combat logs with a 3.6 speed two-hander and Unbridled Wrath at 1/5 and 2/5 ([discussion #10](https://github.com/magey/forever-warrior/discussions/10), [#11](https://github.com/magey/forever-warrior/discussions/11), posted by budder3).", "Rage Generation, Known Bugs",
   "Nooch",                       "A combat log with 1.3 speed daggers, used as a check on the Unbridled Wrath proc rate.", "Rage Generation",
-  "magey",                       "The [forever-warrior](https://github.com/magey/forever-warrior) repository: the log guidelines and metadata format, the testing questions (including whether Unbridled Wrath uses procs per minute), and the first analysis of the Unbridled Wrath logs.", "Rage Generation, Known Bugs",
+  "magey",                       "The [forever-warrior](https://github.com/magey/forever-warrior) repository: the log guidelines and metadata format, the testing questions (including whether Unbridled Wrath uses procs per minute), and the first analysis of the Unbridled Wrath logs. The [Classic warrior wiki](https://github.com/magey/classic-warrior/wiki), for the attack table, crit suppression and Windfury Totem.", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities, Known Bugs",
+  "GuybrushGit ([WarriorSim](https://github.com/GuybrushGit/WarriorSim))", "The Classic warrior simulator we check our fight simulator against: the rage formula, rage from dodges, rage refunds, the Heroic Strike queue, Deep Wounds and Windfury Totem.", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities",
+  "timhul ([ClassicSim](https://github.com/timhul/ClassicSim))", "A second Classic simulator, used as a cross-check on the same mechanics.", "Rage Generation, How Damage Scales, Rage Design Proposals",
   "Bored (Fight Club Discord)",  "The [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml), used for the cost of the core rotation.", "Rage Design Proposals",
-  "Chris Baldwin ([talentsforever.com](https://talentsforever.com))", "Every talent and ability tooltip from the beta client, with the Classic versions to compare (CC BY 4.0), and the most popular Fury build, which the simulations use.", "Rage Design Proposals, Flurry, Abilities"
+  "Chris Baldwin ([talentsforever.com](https://talentsforever.com))", "Every talent and ability tooltip from the beta client, with the Classic versions to compare (CC BY 4.0), and the most popular Fury build, which the simulations use.", "How Damage Scales, Rage Design Proposals, Flurry, Abilities"
+)
+sources <- tribble(
+  ~Source,                                                                                  ~`What we use`,                                                                                   ~`Used in`,
+  "Kalgan (Blizzard), [The new Rage formula](https://www.bluetracker.gg/wow/topic/eu-en/83678537-the-new-rage-formula-by-kalgan/), 2006, via Blue Tracker", "Classic's rage formula, 7.5 x damage / C.", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities",
+  "The testers behind the Classic warrior wiki's [crit suppression page](https://github.com/magey/classic-warrior/wiki/Crit-aura-suppression): magey, theta, Pyte, Toraque, dmzor, WatchYourSixx, ShadowPanther and Puffymuffins", "The 4.8% crit lost against a boss.", "Rage Generation, How Damage Scales, Rage Design Proposals, Flurry, Abilities",
+  "Bimmy, on the Classic warrior wiki's [attack table page](https://github.com/magey/classic-warrior/wiki/Attack-table)", "The flat 19% dual wield miss penalty, which sets the miss chance of yellow attacks, and of off-hand swings while Heroic Strike is queued.", "How Damage Scales, Rage Design Proposals, Flurry, Abilities",
+  "Marrow's [Compendium of Dragonslaying](https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/) (Classic)", "The Classic rules of thumb we compare against: Flurry's uptime, and the attack power where Bloodthirst beats Execute.", "Flurry, Abilities",
+  "The developers, on the [forever-bugs tracker](https://github.com/ClassicWoWCommunity/forever-bugs/issues/105)", "Confirming the Unbridled Wrath bug and its coming fix, which is why the simulations use the tooltip's 60%.", "How Damage Scales, Rage Design Proposals, Known Bugs"
 )
 ```
 
 This book is built on other people's logs, data and work. Thank you to everyone below. If you've contributed and aren't listed, or would like to be credited differently, let us know on the [forever-warrior](https://github.com/magey/forever-warrior) repository.
 
+The one-handed swings in the logs below set the Forever rage rates that every simulation in the book uses, so those logs feed every chapter with a simulation in it.
+
 ```{r}
 knitr::kable(contributors, caption = "Contributors, and where their work is used.")
+```
+
+## Sources
+
+Besides the people above, the book relies on these published sources:
+
+```{r}
+knitr::kable(sources, caption = "Published sources, and where they are used.")
 ```
 
 ## Changelog {#contributors-changelog}
