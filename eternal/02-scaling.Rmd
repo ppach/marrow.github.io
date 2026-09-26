@@ -219,8 +219,10 @@ That looks more intimidating than it is. Here's what each piece means:
 - $D(g)$ is your total damage per second.
 - $W(g)$ is the damage per second of your white swings.
 - $R(g)$ is how much rage you get per second: the dashed line in Figure \@ref(fig:scaling-blocks).
-- $\eta(\rho, g)$ (the Greek letter eta) is the height of the blocks: the damage per rage of whichever ability the $\rho$-th point of rage per second goes to.
-- The integral sign, $\int_0^{R}$, just means "add up": take the value of every point of rage per second, from the first one ($\rho = 0$) to the last one you have ($\rho = R$), and add them together. That's the filled area. Since the blocks are flat, it's the same as adding up width × height for each filled block.
+- $\rho$ (the Greek letter rho, which looks a bit like a p) is a position along the bottom axis of Figure \@ref(fig:scaling-blocks): how many points of rage per second we've counted so far.
+- $\eta(\rho, g)$ (the Greek letter eta) is the height of the blocks at that position: the damage per rage of whichever ability that point of rage goes to.
+- $d\rho$ (read "d-rho") is the width of a very thin slice of the bottom axis, a sliver of rage per second. So $\eta(\rho, g)\, d\rho$ is a thin strip, its height times its width: the damage that sliver of rage buys.
+- The integral sign, $\int_0^{R}$, means "add up all the strips", from the first one ($\rho = 0$) to the last one you have ($\rho = R$). Together they make the filled area. Since the blocks are flat, it's the same as adding up width × height for each filled block.
 
 This is a model of an *average* second of fighting: it knows nothing about cooldowns lining up badly, lucky streaks of crits or rage piling up at the cap. So before we lean on it, we should check it against the fight simulator, which plays every swing out:
 
@@ -253,18 +255,30 @@ The formula lands within `r round(max(abs(check$diff)) * 100, 1)`% of the simula
 
 Now for the real question: what happens to $D$ when $g$ goes up? Look at Equation \@ref(eq:scaling-d) again. Gear shows up in three places: in the white damage $W(g)$, in the height of the blocks $\eta(\rho, g)$, and in where the filling stops, $R(g)$.
 
-How much $D$ changes for a small change in $g$ is its derivative, $dD/dg$. Taking the derivative of an integral whose end point also moves is a standard piece of calculus called the Leibniz rule, and it splits the answer into exactly the three effects we'd expect:
+### Two words from calculus
+
+To answer that, we need two ideas from calculus. Both are simpler than they sound.
+
+- A **differential** is a very small change in something. We write it with a $d$ in front: $dg$ is a tiny improvement to your gear (say, a tiny bit more weapon DPS), and $dD$ is the tiny change in your damage that comes with it. The $d\rho$ in Equation \@ref(eq:scaling-d) is the same idea: a tiny sliver of rage per second.
+- A **derivative** is one small change divided by another: how much one thing moves for each bit that another thing moves. $dD/dg$ reads "the change in damage per change in gear". If $dD/dg = 4$, then one more point of weapon DPS gives you about 4 more damage per second. It's the slope of the damage curve: steep where upgrades are worth a lot, flat where they aren't. When something doesn't change with gear at all, its derivative is 0.
+
+You'll also see a curly $\partial$ in place of $d$. It means the same thing, a small change, but with everything else held still. $\partial \eta / \partial g$ asks how much taller a block gets when your gear improves, *without* moving where your rage runs out.
+
+### What a better weapon does to the formula
+
+Taking the derivative of Equation \@ref(eq:scaling-d) needs one standard rule of calculus, the Leibniz rule, because gear changes both what's inside the integral (the heights) and where it stops (the rage income). It splits the answer into exactly three effects:
 
 \begin{equation}
 \frac{dD}{dg} = \underbrace{\frac{dW}{dg}}_{\text{bigger white hits}} + \underbrace{\int_0^{R} \frac{\partial \eta}{\partial g}\, d\rho}_{\text{every point of rage buys more}} + \underbrace{\eta(R, g) \times \frac{dR}{dg}}_{\text{more points of rage}}
 (\#eq:scaling-dd)
 \end{equation}
 
-In words:
+Here's each piece, one at a time:
 
-1. **Bigger white hits.** Your swings hit harder. Same in both games.
-2. **Every point of rage buys more.** Bloodthirst scales with attack power, Whirlwind and Heroic Strike with the weapon too, so every block gets taller, and all the rage you already had is now worth more. Same in both games.
-3. **More points of rage.** Your rage income goes up by $dR/dg$, and each extra point is worth the height of the block where your rage currently runs out, $\eta(R, g)$.
+- $\frac{dD}{dg}$, on the left, is what we're after: how much more damage per second you get for a small upgrade.
+- **First term, $\frac{dW}{dg}$: bigger white hits.** How much your white damage per second goes up. Your swings hit harder, so this is always positive. Same in both games.
+- **Second term, $\int_0^{R} \frac{\partial \eta}{\partial g}\, d\rho$: every point of rage buys more.** Inside the integral, $\frac{\partial \eta}{\partial g}$ is how much taller each block gets with better gear: Bloodthirst scales with attack power, and Whirlwind and Heroic Strike with the weapon too. The integral adds that up over all the rage you already have, from $0$ to $R$. In the blocks picture, it's the extra area you get by raising the filled blocks, without filling any more of them. Same in both games.
+- **Third term, $\eta(R, g) \times \frac{dR}{dg}$: more points of rage.** It has two parts, multiplied. $\frac{dR}{dg}$ is how much your rage income goes up with better gear. $\eta(R, g)$ is the height of the block exactly where your rage runs out, which is what each new point of rage buys, since new rage always goes to the next ability in line. In the blocks picture, it's the extra area you get by filling a little further to the right.
 
 The third term is where the two games part ways. In Classic, rage comes from damage, so $dR/dg = 7.5 / C \times$ (the extra white damage per second), which is always positive. **In Forever, rage doesn't depend on damage at all, so $dR/dg = 0$ and the whole third term disappears.**
 
@@ -338,14 +352,16 @@ side_cross <- approx(side$income[side$game == "Classic"], dps_line, xout = edges
 ```
 
 ```{r scaling-side, fig.cap=paste0("Where your rage runs out as your gear gets better. The shaded bands are the rage blocks from Figure \\@ref(fig:scaling-blocks) stacked up: the first ", round(edges$end[1], 1), " rage per second goes to Bloodthirst, the next up to ", round(edges$end[2], 1), " to Whirlwind, and anything above that to Heroic Strike. Forever's rage (blue) is the same at every phase, just past the core rotation. Classic's (grey) climbs with gear: it can't afford every Whirlwind until about ", round(side_cross), " weapon DPS, and then moves on into Heroic Strike."), fig.height=4.2}
-y_top <- max(side$income) + 1
+y_top <- max(side$income) + 1.5
 ggplot(side, aes(dps, income, colour = game)) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 0, ymax = edges$end[1], fill = "#fdd0a2", alpha = 0.5) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = edges$end[1], ymax = edges$end[2], fill = "#c7e9c0", alpha = 0.6) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = edges$end[2], ymax = y_top, fill = "#dadaeb", alpha = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 0, ymax = edges$end[1], fill = "#fcbba1", alpha = 0.6) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = edges$end[1], ymax = edges$end[2], fill = "#c6dbef", alpha = 0.7) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = edges$end[2], ymax = y_top, fill = "#fdd0a2", alpha = 0.5) +
   annotate("text", x = min(dps_line) + 0.5, y = c(edges$end[1] / 2, mean(edges$end[1:2]), (edges$end[2] + y_top) / 2),
            label = c("Bloodthirst", "Whirlwind", "Heroic Strike"), hjust = 0, size = 3.5, colour = "grey30") +
-  phase_marks(y_top) +
+  geom_vline(data = phases, aes(xintercept = dps), colour = "grey75", linetype = "dotted") +
+  geom_text(data = phases, aes(x = dps, y = 0.15, label = phase), inherit.aes = FALSE,
+            angle = 90, hjust = 0, vjust = -0.4, size = 3, colour = "grey40") +
   geom_line(linewidth = 1.3) +
   geom_text(data = ~ .x %>% group_by(game) %>% slice_max(dps), aes(label = game), hjust = 1, vjust = -0.8, size = 3.5) +
   scale_colour_manual(values = game_colours, guide = "none") +
@@ -417,22 +433,32 @@ dws_gain <- function(g, ph) {
 f_without <- ladder("Forever", p2_dps, tal = no_dws)$income
 ```
 
-```{r scaling-dws, fig.cap=paste0("Rage per second with and without Dual Wield Specialization, over the rage blocks from Figure ", "\\@ref(fig:scaling-blocks)", ". In Forever (blue), the talent lifts the whole line by ", sprintf("%.1f", dws_gain("Forever", "Phase 2")), " rage per second, from inside the Whirlwind band to just past the core rotation. Without it, Forever would get less rage than Classic at every phase. In Classic (grey), it only adds a little rage, through its bigger off-hand hits."), fig.height=4.4}
-y_top_dws <- max(dws_side$income) + 1
-ggplot(dws_side, aes(dps, income, colour = game, linetype = dws)) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 0, ymax = edges$end[1], fill = "#fdd0a2", alpha = 0.5) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = edges$end[1], ymax = edges$end[2], fill = "#c7e9c0", alpha = 0.6) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = edges$end[2], ymax = y_top_dws, fill = "#dadaeb", alpha = 0.6) +
-  annotate("text", x = min(dps_line) + 0.5, y = c(edges$end[1] / 2, mean(edges$end[1:2]), (edges$end[2] + y_top_dws) / 2),
-           label = c("Bloodthirst", "Whirlwind", "Heroic Strike"), hjust = 0, size = 3.5, colour = "grey30") +
-  phase_marks(y_top_dws) +
-  geom_line(linewidth = 1.2) +
-  geom_text(data = ~ .x %>% group_by(game, dws) %>% slice_max(dps) %>% ungroup() %>%
-              mutate(label = paste0(game, if_else(dws == "Without", ", without", ""))),
-            aes(label = label), hjust = 1, vjust = -0.7, size = 3.2, show.legend = FALSE) +
+```{r scaling-dws, fig.cap=paste0("What Dual Wield Specialization adds to your rage per second (the shaded band between the two lines), in each game. The dashed horizontal line is the ", sprintf("%.1f", edges$end[2]), " rage per second that Bloodthirst and Whirlwind use. In Forever, the talent adds ", sprintf("%.1f", dws_gain("Forever", "Phase 2")), " rage per second at every phase, which is what lifts Forever's rage from below that line to just above it. In Classic, it adds only a little, through its bigger off-hand hits."), fig.height=4.4, fig.width=9}
+dws_wide <- dws_side %>%
+  mutate(dws = if_else(dws == "Without", "without", "with")) %>%
+  pivot_wider(names_from = dws, values_from = income)
+# The size of the gap, written in the middle of Forever's wide band and just below Classic's thin one
+dws_label <- tibble(game = games, x = c(66, 62),
+                    y = c(approx(dws_wide$dps[dws_wide$game == "Classic"], dws_wide$without[dws_wide$game == "Classic"], xout = 59)$y - 0.75,
+                          mean(unlist(dws_wide[dws_wide$game == "Forever", c("with", "without")]))),
+                    label = c(sprintf("+%.1f to %.1f rage per second", dws_gain("Classic", "Pre-BiS"), dws_gain("Classic", "Phase 4")),
+                              sprintf("+%.1f rage per second", dws_gain("Forever", "Phase 2"))))
+ggplot(dws_wide, aes(dps)) +
+  geom_vline(data = phases, aes(xintercept = dps), colour = "grey85", linetype = "dotted") +
+  geom_text(data = phases, aes(x = dps, y = 0.15, label = phase), angle = 90, hjust = 0, vjust = -0.4,
+            size = 2.8, colour = "grey55") +
+  geom_hline(yintercept = edges$end[2], linetype = "dashed", colour = "grey35") +
+  geom_text(data = tibble(game = "Classic", dps = min(dps_line), y = edges$end[2]),
+            aes(y = y, label = "Bloodthirst + Whirlwind"), hjust = 0, vjust = -0.6, size = 3, colour = "grey35") +
+  geom_ribbon(aes(ymin = without, ymax = with, fill = game), alpha = 0.3) +
+  geom_line(data = dws_side, aes(y = income, colour = game, linetype = dws), linewidth = 1.2) +
+  geom_text(data = dws_label, aes(x = x, y = y, label = label), size = 3.4, fontface = "bold") +
+  facet_wrap(~ game, ncol = 2) +
   scale_colour_manual(values = game_colours, guide = "none") +
-  scale_linetype_manual(values = c("With Dual Wield Specialization" = "solid", "Without" = "dashed")) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0))) +
+  scale_fill_manual(values = game_colours, guide = "none") +
+  scale_linetype_manual(values = c("With Dual Wield Specialization" = "solid", "Without" = "22"),
+                        guide = guide_legend(override.aes = list(colour = "grey30"))) +
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.08))) +
   labs(x = "Main-hand weapon DPS", y = "Rage per second", linetype = NULL) +
   theme(legend.position = "bottom")
 ```
