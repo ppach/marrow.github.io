@@ -111,7 +111,7 @@ btdmg_slam <- as_tibble(cbind(ap_vals, btdmg)) %>%
         mutate(dpr = damage/30)
 
 rage_gen <- function(D){
-        rage_gen <- ((D/230.6) * 15)
+        rage_gen <- ((D/230.6) * 7.5)
         return(rage_gen)
 }
 
