@@ -39,7 +39,12 @@ sim_defaults <- list(
   priority = "bt_first",  # or "ww_first"
   execute_at = NA,        # seconds into the fight when the boss reaches 20% health (NA: no execute phase)
   exec_cost = 15, exec_base = 600, exec_per_rage = 15,   # rank 5, the same in both games
-  ubw_rage = 1
+  ubw_rage = 1,
+  # Off unless switched on (the Rage on Crit chapter):
+  crit_rage_mult = 1,     # a white crit gives this many times the rage of a normal hit (Forever after the 30 Sep 2026
+                          # change: 1.75). Classic's rage already grows with a crit's damage, so it stays at 1 there.
+  flurry_rage = 0,        # extra rage from each white swing that lands while Flurry speeds it up (a design option)
+  extra_haste = 1         # attack speed from outside Flurry, e.g. 1.03 for weapon enchants
 )
 
 # Forever 17/34/0: Dual Wield Specialization 5/5 (+25% off-hand damage, +100% off-hand rage, +10% off-hand
@@ -83,6 +88,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
   next_mh <- runif(1, 0, p$mh_speed); next_oh <- runif(1, 0, p$oh_speed)
   bt_ready <- 0; ww_ready <- 0; gcd_ready <- 0
   flurry <- 0; hs_queued <- FALSE; in_execute <- FALSE
+  hasted <- c(MH = FALSE, OH = FALSE)   # whether each hand's current swing timer was sped up by Flurry
   wf_ready <- 0                     # Windfury's internal cooldown
   dw_end <- -Inf; dw_next <- Inf    # Deep Wounds: when the bleed ends, and when it next ticks
   crit <- p$crit - p$crit_suppression
@@ -91,6 +97,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
   n <- c(bt = 0, ww = 0, hs = 0, exec = 0, wf = 0)
   dmg <- c(white = 0, hs = 0, bt = 0, ww = 0, exec = 0, dw = 0)
   exec_rage <- numeric(0)   # rage spent on each Execute
+  hs_t <- numeric(0)        # when each Heroic Strike went off
   tr <- if (trace) list() else NULL
 
   hand_mult <- function(hand) if (hand == "OH") 0.5 * p$oh_dmg_mult else 1
@@ -130,7 +137,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
       hs_queued <<- FALSE
       if (rage >= p$hs_cost) {
         # Heroic Strike replaces the white swing: it costs rage, rolls as a yellow attack, and gives no rage.
-        rage <<- rage - p$hs_cost; n["hs"] <<- n["hs"] + 1
+        rage <<- rage - p$hs_cost; n["hs"] <<- n["hs"] + 1; hs_t <<- c(hs_t, t)
         d <- yellow(base_dmg(speed, hand, ap_bonus) + p$hs_bonus * p$armor)
         dmg["hs"] <<- dmg["hs"] + d
         if (d == 0) refund(p$hs_cost)
@@ -149,7 +156,8 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     is_crit <- !is_glance && runif(1) < crit / (1 - miss - p$dodge - p$glance)
     d <- base_dmg(speed, hand, ap_bonus) * (if (is_glance) p$glance_dmg else if (is_crit) 2 else 1)
     dmg["white"] <<- dmg["white"] + d
-    add_rage(rage_fn(hand, d, speed) * (if (hand == "OH") p$oh_rage_mult else 1))
+    add_rage(rage_fn(hand, d, speed) * (if (hand == "OH") p$oh_rage_mult else 1) * (if (is_crit) p$crit_rage_mult else 1) +
+             (if (hasted[[hand]]) p$flurry_rage else 0))
     if (runif(1) < p$ubw_chance) add_rage(p$ubw_rage)
     if (is_crit) on_crit()
     TRUE
@@ -161,8 +169,9 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     wf_ready <<- t + p$wf_icd; n["wf"] <<- n["wf"] + 1
     swing("MH", p$wf_ap)
     haste <- if (flurry > 0) 1 + p$flurry_haste else 1
+    hasted[["MH"]] <<- flurry > 0
     if (flurry > 0) flurry <<- flurry - 1
-    next_mh <<- t + p$mh_speed / haste
+    next_mh <<- t + p$mh_speed / (haste * p$extra_haste)
   }
 
   while (t < p$fight_len) {
@@ -216,7 +225,8 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
       if (nxt > t) next
       speed <- if (hand == "MH") p$mh_speed else p$oh_speed
       landed <- swing(hand)
-      haste <- if (flurry > 0) 1 + p$flurry_haste else 1
+      haste <- (if (flurry > 0) 1 + p$flurry_haste else 1) * p$extra_haste
+      hasted[[hand]] <- flurry > 0
       if (flurry > 0) flurry <- flurry - 1
       if (hand == "MH") next_mh <- t + speed / haste else next_oh <- t + speed / haste
       if (hand == "MH" && landed) windfury()
@@ -235,7 +245,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
                         dps_white = dmg[["white"]] / p$fight_len, dps_hs = dmg[["hs"]] / p$fight_len,
                         dps_bt = dmg[["bt"]] / p$fight_len, dps_ww = dmg[["ww"]] / p$fight_len,
                         dps_dw = dmg[["dw"]] / p$fight_len,
-                        dps_exec = dmg[["exec"]] / p$fight_len, exec_n = n[["exec"]], exec_rage = list(exec_rage),
+                        dps_exec = dmg[["exec"]] / p$fight_len, exec_n = n[["exec"]], exec_rage = list(exec_rage), hs_t = list(hs_t),
                         dpr_bt = if (spent[["bt"]] > 0) dmg[["bt"]] / spent[["bt"]] else NA_real_,
                         dpr_ww = if (spent[["ww"]] > 0) dmg[["ww"]] / spent[["ww"]] else NA_real_)
   if (trace) attr(out, "trace") <- do.call(rbind, tr)

@@ -120,7 +120,7 @@ Damage = \left(\text{weapon DPS} + \frac{AP}{14}\right) \times \text{weapon spee
 - **AP / 14 × weapon speed** is what attack power adds: 1 damage for every 14 attack power, for each second of weapon speed.
 - **armor** is the share of the damage the boss's armor lets through, about `r sim_defaults$armor * 100`% with Sunder Armor and Faerie Fire up.
 
-This is the Classic formula, and we assume Forever uses the same one (the logs haven't settled that yet: see the open questions in the Rage Generation chapter). What matters here is its shape. Every piece is either added or multiplied by a fixed number, so **the damage of a swing grows in a straight line with your gear**, in both games.
+This is the Classic formula, and we assume Forever uses the same one. The logs agree with its attack power part (attack power adds damage at the Classic rate), but the logged hits come out lower than the formula gives, which is still an open question (see the open questions in the Rage Generation chapter). What matters here is its shape. Every piece is either added or multiplied by a fixed number, so **the damage of a swing grows in a straight line with your gear**, in both games.
 
 The rage that swing gives is where the two games split:
 
@@ -607,7 +607,7 @@ Windfury adds about the same to both games: `r sprintf("%.0f", wg("Forever")[1])
 ## What we can test, and what we can't yet
 
 - **Measured:** the rage per swing in Forever, and that it doesn't depend on damage, crits or level (from level 1 to 17). That a hasted swing gives the full rage.
-- **Assumed from Classic:** that a swing's damage follows the same formula in Forever (the logs don't settle how attack power adds damage yet), the attack table, and that the rage per swing stays the same up to level 60.
+- **Assumed from Classic:** that a swing's damage follows the same formula in Forever (the logs match how attack power adds damage, but the hits come out lower than the formula gives, which is still open), the attack table, and that the rage per swing stays the same up to level 60.
 - **From tooltips:** Bloodthirst, Whirlwind and Heroic Strike, which can't be learned in the beta yet.
 - **Our guesses:** the gear at each phase, the same in both games, and without world buffs, since Forever won't have them. In real Classic raids, world buffs made warriors hit much harder, so Classic's rage line in Figure \@ref(fig:scaling-side) would have started higher and climbed faster, and its damage would have bent upward sooner.
 

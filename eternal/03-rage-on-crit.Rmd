@@ -1,0 +1,677 @@
+# Rage on Crit {#rage-on-crit}
+
+```{r setup-crit, include=FALSE}
+# Reuses `conv`, `classic_k`, the Forever rates (`forever_mh`, `forever_oh`, `forever_draws`) and the fight simulator
+# from the Rage Generation chapter. This chapter is standalone: it uses the rage rules announced at the end of Sep 2026,
+# and the rest of the book still uses the rules from before.
+source("data/sim_cache.R")
+library(parallel)
+
+crit_changelog <- tribble(
+  ~version, ~date,        ~change,
+  "1.0.0",  "2026-10-01", "First version: three versions of Forever's rage (v0 before 30 September; v1, the 30 September change, where crits give 75% more rage and Dual Wield Specialization no longer adds off-hand rage; and v2, the fix Zirene announced, where crits give 100% more and the off hand 50% more) against Classic, at every crit, hit and attack power. Where the ceiling comes from, how long you wait between Heroic Strikes, an interactive map for your own gear, a check against Bored's rage spreadsheet, and two design ideas."
+)
+
+C60 <- conv(60)
+crit_wpn <- 58   # the phase 2 weapon from the How Damage Scales chapter, held fixed
+# The attack table against a level 63 boss with 300 weapon skill, with no hit or crit suppression (in-game tooltips,
+# Bored's spreadsheet): 27% white miss for a dual wielder and 8% for abilities before hit from gear, 6.5% dodge, and 40%
+# glancing blows at 65% damage. Windfury Totem is always up.
+crit_table <- function(hit) list(crit_suppression = 0, miss = 0.27 - hit, yellow_miss = max(0.08 - hit, 0),
+                                 dodge = 0.065, glance = 0.40, glance_dmg = 0.65, wf = TRUE)
+# Each version of the rage rules. Forever versions use the 17/34/0 Forever build; only the off-hand rage multiplier
+# (Dual Wield Specialization), the crit multiplier and the Flurry bonus change.
+#   v0: before 30 Sep 2026 (off hand x2, no crit bonus)
+#   v1: the 30 Sep change (crits x1.75, off hand x1)
+#   v2: the fix Zirene announced (crits x2, off hand x1.5; Dual Wield Specialization's hit only for the off hand,
+#       which is how the simulator already works)
+crit_versions <- list(
+  `Forever v0`             = list(game = "Forever", p = list(oh_rage_mult = 2, crit_rage_mult = 1)),
+  `Off hand x1, no crit bonus` = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1)),
+  `Forever v1`                = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1.75)),
+  `Forever v2`                 = list(game = "Forever", p = list(oh_rage_mult = 1.5, crit_rage_mult = 2)),
+  `Classic`                    = list(game = "Classic", p = list()),
+  `Crits x2, off hand x2`      = list(game = "Forever", p = list(oh_rage_mult = 2, crit_rage_mult = 2)),
+  `Flurry +1`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 1)),
+  `Flurry +2`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 2)),
+  `Flurry +3`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 3)),
+  `Flurry +4`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 4)),
+  `Flurry +5`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 5))
+)
+# Gear: every combination of attack power, crit (character sheet) and hit from gear. Forever's rage doesn't use
+# damage, so the design options only run at 2000 attack power; the three main versions run everywhere, to show it.
+full_ap  <- c("Forever v0", "Forever v1", "Forever v2", "Classic")
+main_models <- full_ap   # the four versions most figures compare
+crit_grid <- bind_rows(
+  expand_grid(model = full_ap, ap = seq(1000, 3000, 250), crit = seq(0.15, 0.45, 0.05), hit = seq(0, 0.15, 0.025)),
+  expand_grid(model = setdiff(names(crit_versions), full_ap), ap = 2000, crit = seq(0.15, 0.45, 0.05), hit = seq(0, 0.15, 0.025))
+) %>% mutate(across(c(crit, hit), ~ round(.x, 3)))
+# Three gear points, for the closer looks
+gear_points <- tribble(~point, ~ap, ~crit, ~hit,
+  "Early", 1250, 0.20, 0.05,
+  "Mid",   2000, 0.30, 0.075,
+  "Late",  2750, 0.40, 0.10)
+n_crit <- 60; crit_fight_len <- 600   # fights per gear point, and their length (long, so the opening matters little)
+bt_ww_need <- 6.8   # rage per second Bloodthirst and Whirlwind use when cast on cooldown (How Damage Scales chapter)
+```
+
+```{r crit-sims, include=FALSE}
+# functions go into the key as their code (deparse), so where the chapter sits in the merged book doesn't change it
+crit_res <- cached_sim("crit_grid", deps = list(crit_grid, crit_versions, deparse(crit_table), gear_points, n_crit, crit_fight_len, crit_wpn, classic_k, forever_draws, C60, sim_defaults, forever_talents, classic_talents), {
+  cl <- makeCluster(max(1, min(14, detectCores() - 2)))
+  on.exit(stopCluster(cl))
+  clusterCall(cl, setwd, getwd())
+  clusterExport(cl, c("crit_versions", "crit_table", "gear_points", "n_crit", "crit_fight_len", "crit_wpn", "classic_k", "forever_draws", "C60", "full_ap"), envir = environment())
+  invisible(clusterEvalQ(cl, { suppressMessages(library(tidyverse)); source("data/fight_sim.R") }))
+  rows <- split(crit_grid, seq_len(nrow(crit_grid)))
+  bind_rows(parLapplyLB(cl, rows, function(j) {
+    v <- crit_versions[[j$model]]
+    talents <- if (v$game == "Classic") classic_talents else forever_talents
+    p <- modifyList(modifyList(modifyList(sim_defaults, talents), crit_table(j$hit)),
+                    c(list(ap = j$ap, crit = j$crit, fight_len = crit_fight_len), v$p))
+    rage_fn <- if (v$game == "Classic") function(hand, dmg, speed) classic_k * dmg / C60
+               else function(hand, dmg, speed) sample(forever_draws[[hand]], 1) * speed
+    r <- map_dfr(seq_len(n_crit), function(i) { set.seed(900 + i); simulate_fight(rage_fn, crit_wpn, p) })
+    gaps <- unlist(lapply(r$hs_t, diff))   # seconds between one Heroic Strike and the next
+    # keep every gap only at the three gear points (Forever's options stand in at any attack power)
+    keep <- any(abs(gear_points$crit - j$crit) < 1e-9 & abs(gear_points$hit - j$hit) < 1e-9 &
+                (gear_points$ap == j$ap | !(j$model %in% full_ap)))
+    tibble(j, rps = mean(r$rps), dps = mean(r$total_dps), bt = mean(r$bt_pm), ww = mean(r$ww_pm), hs = mean(r$hs_pm),
+           starved = mean(r$starved_share), wasted = mean(r$wasted_pm),
+           gap_med = median(gaps), gap_p90 = unname(quantile(gaps, 0.9)), gaps = list(if (keep) gaps else NULL))
+  }))
+})
+
+# Bored's spreadsheet (75% Crit Rage Mod tab), and our simulator with its assumptions swapped for ours one at a time
+sheet_rows <- tribble(~row, ~hit, ~exp, ~crit, ~sheet_rps,
+  "No hit, 25% crit",                 0.00, 0.00, 0.25, 6.355,
+  "9% hit, 30% crit",                 0.09, 0.00, 0.30, 7.398,
+  "12% hit, 6% expertise, 40% crit",  0.12, 0.06, 0.40, 8.727,
+  "18% hit, 6% expertise, 45% crit",  0.18, 0.06, 0.45, 9.551)
+sheet_steps <- list(
+  `Our simulator, the sheet's assumptions, no Heroic Strike` = function(r) list(hs_threshold = 1e6),
+  `... with Heroic Strike` = function(r) list(),
+  `... Windfury with a 1.5 sec cooldown` = function(r) list(wf_icd = 1.5),
+  `... no extra 3% attack speed` = function(r) list(wf_icd = 1.5, extra_haste = 1),
+  `... our miss table` = function(r) list(wf_icd = 1.5, extra_haste = 1, miss = 0.27 - r$hit, yellow_miss = max(0.08 - r$hit, 0), dodge = 0.065 - r$exp),
+  `... Anger Management` = function(r) list(wf_icd = 1.5, extra_haste = 1, miss = 0.27 - r$hit, yellow_miss = max(0.08 - r$hit, 0), dodge = 0.065 - r$exp, anger_rps = 1 / 3),
+  `... a 2.0 speed off hand (our assumptions)` = function(r) list(wf_icd = 1.5, extra_haste = 1, miss = 0.27 - r$hit, yellow_miss = max(0.08 - r$hit, 0), dodge = 0.065 - r$exp, anger_rps = 1 / 3, oh_speed = 2.0)
+)
+sheet_res <- cached_sim("crit_sheet", deps = list(sheet_rows, lapply(sheet_steps, deparse), sim_defaults, forever_talents), {
+  fixed_rates <- function(hand, dmg, speed) (if (hand == "MH") 3.46 else 1.73) * speed   # the sheet's base rage values
+  expand_grid(i = seq_len(nrow(sheet_rows)), step = names(sheet_steps)) %>%
+    mutate(rps = map2_dbl(i, step, function(ii, s) {
+      r <- sheet_rows[ii, ]
+      # the sheet: tooltip misses (27.6% / 8.6% before hit), 6.6% dodge, no crit suppression, Windfury on every
+      # attack, 3% attack speed from enchants, a 2.7 speed off hand, no Anger Management
+      p <- modifyList(modifyList(sim_defaults, forever_talents),
+                      list(miss = 0.276 - r$hit, yellow_miss = max(0.086 - r$hit, 0), dodge = 0.066 - r$exp, crit = r$crit,
+                           crit_suppression = 0, anger_rps = 0, wf = TRUE, wf_icd = 0, extra_haste = 1.03, oh_speed = 2.7,
+                           oh_rage_mult = 1, crit_rage_mult = 1.75, ap = 1300, fight_len = 600))
+      p <- modifyList(p, sheet_steps[[s]](r))
+      mean(map_dbl(1:60, function(k) { set.seed(900 + k); simulate_fight(fixed_rates, 58, p)$rps }))
+    })) %>% mutate(row = sheet_rows$row[i])
+})
+```
+
+```{r crit-helpers, include=FALSE}
+crit_res <- crit_res %>% mutate(across(c(crit, hit), ~ round(.x, 3)))
+# One value from the grid. Forever's versions don't depend on attack power, so they're read at 2000.
+gv <- function(model, crit, hit, ap = 2000, col = "rps") {
+  if (model != "Classic") ap <- 2000
+  x <- crit_res[[col]][crit_res$model == model & crit_res$ap == ap & abs(crit_res$crit - crit) < 1e-9 & abs(crit_res$hit - hit) < 1e-9]
+  stopifnot(length(x) == 1); x
+}
+f2 <- function(x) sprintf("%.2f", x); f1 <- function(x) sprintf("%.1f", x); f0 <- function(x) sprintf("%.0f", x)
+pc  <- function(x) paste0(round(x * 100, 1), "%")   # 6.5%, 27%
+pc0 <- function(x) paste0(round(x * 100), "%")
+gp <- split(gear_points, gear_points$point)[gear_points$point]
+at_point <- function(model, pt, col = "rps") with(gp[[pt]], gv(model, crit, hit, ap, col))
+# The crit you need for Bloodthirst + Whirlwind at a given hit (at 2000 attack power)
+crit_needed <- function(model, hit) {
+  d <- crit_res %>% filter(model == !!model, ap == 2000, abs(hit - !!hit) < 1e-9) %>% arrange(crit)
+  if (min(d$rps) >= bt_ww_need) return("under 15%")
+  if (max(d$rps) < bt_ww_need) return("over 45%")
+  pc0(approx(d$rps, d$crit, xout = bt_ww_need, ties = "ordered")$y)
+}
+# The crit where a version's crit bonus gives back the off-hand rage it took away, against v0 (Step 1's sum, without
+# Flurry, Windfury or Unbridled Wrath): oh is the version's off-hand multiplier, bonus its crit bonus (m - 1)
+be_crit <- function(oh, bonus, hit = 0.075) {
+  land_oh <- 1 - max(0.27 - hit - forever_talents$oh_hit_bonus, 0) - 0.065
+  (2 - oh) * forever_oh * land_oh / (bonus * (forever_mh + oh * forever_oh))
+}
+v2_gain <- crit_res %>% filter(ap == 2000, model %in% c("Forever v0", "Forever v2")) %>% select(model, crit, hit, rps) %>%
+  pivot_wider(names_from = model, values_from = rps) %>% with(range(`Forever v2` - `Forever v0`))
+# The most crit a swing can have: whatever is left of the attack table after misses, dodges and glancing blows
+crit_cap <- function(hit, hand) 1 - pmax(0.27 - hit - (if (hand == "OH") forever_talents$oh_hit_bonus else 0), 0) - 0.065 - 0.40
+
+# How the 1-in-10 wait compares with today's rule at the same rage per second: fit today's waits against its rage per
+# second, then take each version's typical (median) ratio to that fit, within the range today's rule covers
+drought_fit <- with(filter(crit_res, model == "Forever v1", ap == 2000), loess(log(gap_p90) ~ rps, span = 0.75))
+drought_ratio <- function(model) {
+  d <- filter(crit_res, model == !!model, ap == 2000)
+  median(d$gap_p90 / exp(predict(drought_fit, newdata = d)), na.rm = TRUE)
+}
+drought_cmp <- function(model) {
+  r <- drought_ratio(model)
+  if (abs(r - 1) < 0.05) sprintf("within %.0f%% of", ceiling(abs(r - 1) * 100)) else sprintf("%.0f%% %s than", abs(r - 1) * 100, if (r > 1) "longer" else "shorter")
+}
+drought_cmp_range <- function(models) {
+  r <- (map_dbl(models, drought_ratio) - 1) * 100
+  sprintf("between %.0f%% %s and %.0f%% %s", abs(min(r)), if (min(r) < 0) "shorter" else "longer", abs(max(r)), if (max(r) < 0) "shorter" else "longer")
+}
+
+crit_cols <- c(`Forever v0` = "#9ecae1", `Forever v1` = "#4292c6", `Forever v2` = "#08306b", `Classic` = "grey45",
+               `Classic (1250 AP)` = "grey70", `Classic (2000 AP)` = "grey45", `Crits x2, off hand x2` = "#756bb1")
+crit_labs <- c(`Forever v0` = "Forever v0: before\n(off hand x2, no crit bonus)", `Forever v1` = "Forever v1: 30 September\n(crits x1.75, off hand x1)",
+               `Forever v2` = "Forever v2: the coming fix\n(crits x2, off hand x1.5)",
+               `Classic` = "Classic\n(7.5 x damage / C)", `Crits x2, off hand x2` = "Crits give 200%,\noff hand x2")
+blues <- c("#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b")
+# One continuous colour scale for every rage-per-second map, so the same colour means the same rage in each
+rps_range <- range(crit_res$rps[crit_res$model %in% main_models])
+rps_fill <- scale_fill_gradientn(colours = blues, limits = rps_range, name = "Rage per second",
+                                 guide = guide_colourbar(barwidth = unit(14, "lines"), title.position = "top"))
+# Interactive 3D view (plotly): one scene per set of rules, side by side like the maps. Crit and hit are on the floor,
+# the value is the height and the colour (the same continuous scale as the maps), contour lines are projected onto the
+# floor, and a slider sets attack power for all three. Forever's surfaces don't change with attack power; Classic's does.
+crit3d <- function(col, ztitle, colours, cmin, cmax, step, zcap = Inf, plane = NULL, plane_name = NULL, fmt = ".2f", unit = "") {
+  ms <- main_models
+  scenes <- c("scene", "scene2", "scene3", "scene4")
+  aps <- sort(unique(crit_res$ap[crit_res$model == "Classic"]))
+  crits <- sort(unique(crit_res$crit)); hits <- sort(unique(crit_res$hit))
+  cscale <- map2(seq(0, 1, length.out = length(colours)), colours, ~ list(.x, .y))
+  p <- plotly::plot_ly()
+  for (a in aps) for (k in seq_along(ms)) {
+    d <- crit_res %>% filter(model == ms[k], ap == a) %>% transmute(crit, hit, v = pmin(.data[[col]], zcap))
+    zm <- d %>% pivot_wider(names_from = crit, values_from = v) %>% arrange(hit) %>% select(as.character(crits)) %>% as.matrix()
+    p <- p %>% plotly::add_surface(x = crits * 100, y = hits * 100, z = zm, scene = scenes[k], name = ms[k],
+      colorscale = cscale, cmin = cmin, cmax = cmax, showscale = k == length(ms), visible = a == 2000,
+      colorbar = list(title = list(text = ztitle), len = 0.5, thickness = 14, y = 0.62, x = 0.92),
+      contours = list(z = list(show = TRUE, start = cmin, end = cmax, size = step, color = "#525252", width = 1,
+                               project = list(z = TRUE))),
+      hovertemplate = paste0(ms[k], "<br>Crit %{x}%<br>Hit %{y}%<br>%{z:", fmt, "}", unit, "<extra></extra>"))
+  }
+  if (!is.null(plane)) for (k in seq_along(ms)) p <- p %>% plotly::add_surface(x = range(crits) * 100, y = range(hits) * 100,
+      z = matrix(plane, 2, 2), scene = scenes[k], showscale = FALSE, opacity = 0.35,
+      colorscale = list(list(0, "#d7301f"), list(1, "#d7301f")), hovertemplate = paste0(plane_name, "<extra></extra>"))
+  steps <- lapply(seq_along(aps), function(i) list(method = "restyle", label = as.character(aps[i]),
+    args = list("visible", as.list(c(rep(seq_along(aps) == i, each = length(ms)), rep(TRUE, if (!is.null(plane)) length(ms) else 0))))))
+  scene <- function(x0, x1, y0, y1) list(domain = list(x = c(x0, x1), y = c(y0, y1)),
+    xaxis = list(title = "Crit (%)"), yaxis = list(title = "Hit (%)"), zaxis = list(title = "", range = c(0, cmax * 1.05)),
+    camera = list(eye = list(x = 1.6, y = -1.5, z = 0.8)), aspectmode = "manual", aspectratio = list(x = 1.2, y = 1, z = 0.7))
+  # one scene per set of rules, in a 2 x 2 grid, with its name above it
+  x0 <- c(0, 0.45, 0, 0.45); y1 <- c(1, 1, 0.55, 0.55)
+  titles <- lapply(seq_along(ms), function(k) list(text = paste0("<b>", ms[k], "</b>"), x = x0[k] + 0.01, y = y1[k],
+    xref = "paper", yref = "paper", showarrow = FALSE, xanchor = "left", yanchor = "top", font = list(size = 14)))
+  p %>% plotly::layout(scene = scene(x0[1], x0[1] + 0.44, y1[1] - 0.42, y1[1]), scene2 = scene(x0[2], x0[2] + 0.44, y1[2] - 0.42, y1[2]),
+    scene3 = scene(x0[3], x0[3] + 0.44, y1[3] - 0.42, y1[3]), scene4 = scene(x0[4], x0[4] + 0.44, y1[4] - 0.42, y1[4]),
+    annotations = titles, showlegend = FALSE,
+    sliders = list(list(active = which(aps == 2000) - 1, currentvalue = list(prefix = "Attack power: "), steps = steps,
+                        y = 0.06, len = 0.88, pad = list(t = 10))),
+    margin = list(l = 0, r = 0, t = 30, b = 0))
+}
+# Interactive versions of the crit x hit map (Figure 4.2), built in plotly so the sliders can drive all three panels:
+# the same colours, white steps of 0.5 rage per second, dashed Bloodthirst + Whirlwind line and 5-10% hit band.
+map_models <- main_models
+map_z <- function(m, ap = 2000) crit_res %>% filter(model == m, ap == !!ap) %>% transmute(crit, hit, rps) %>%
+  pivot_wider(names_from = crit, values_from = rps) %>% arrange(hit) %>% select(-hit) %>% as.matrix()
+crit_map_base <- function(top = 1) {
+  crits <- sort(unique(crit_res$crit)) * 100; hits <- sort(unique(crit_res$hit)) * 100
+  cscale <- map2(seq(0, 1, length.out = length(blues)), blues, ~ list(.x, .y))
+  xs <- c("x", "x2", "x3", "x4"); ys <- c("y", "y2", "y3", "y4")
+  p <- plotly::plot_ly()
+  for (k in seq_along(map_models)) {
+    zm <- map_z(map_models[k])
+    p <- p %>%
+      plotly::add_trace(type = "heatmap", x = crits, y = hits, z = zm, xaxis = xs[k], yaxis = ys[k],
+        colorscale = cscale, zmin = rps_range[1], zmax = rps_range[2], zsmooth = "best", showscale = k == length(map_models),
+        colorbar = list(title = list(text = "Rage per<br>second"), thickness = 14, len = 0.7, y = top / 2 + 0.1),
+        hovertemplate = paste0(map_models[k], "<br>Crit %{x}%<br>Hit %{y}%<br>%{z:.2f} rage per second<extra></extra>")) %>%
+      plotly::add_trace(type = "contour", x = crits, y = hits, z = zm, xaxis = xs[k], yaxis = ys[k],
+        contours = list(coloring = "none", start = 5, end = 12, size = 0.5), line = list(color = "white", width = 0.6),
+        showscale = FALSE, hoverinfo = "skip") %>%
+      plotly::add_trace(type = "contour", x = crits, y = hits, z = zm, xaxis = xs[k], yaxis = ys[k],
+        contours = list(coloring = "none", start = bt_ww_need, end = bt_ww_need, size = 1),
+        line = list(color = "black", width = 2.5, dash = "dash"), showscale = FALSE, hoverinfo = "skip")
+  }
+  # 2 x 2 grid: columns at x = 0-0.42 and 0.48-0.90, rows filling the space from `top` down to the sliders
+  h <- (top - 0.26) / 2
+  rows <- list(c(top - 0.03 - h, top - 0.05), c(0.2, 0.2 + h - 0.09))
+  axis_x <- function(d0, d1, anchor, title = "Crit (%)") list(domain = c(d0, d1), anchor = anchor, title = title, range = range(crits))
+  axis_y <- function(anchor, row, title = "") list(anchor = anchor, title = title, domain = rows[[row]], range = range(hits))
+  band <- function(xr, yr) lapply(c(5, 10), function(h) list(type = "line", xref = xr, yref = yr, x0 = min(crits), x1 = max(crits),
+    y0 = h, y1 = h, line = list(color = "white", width = 1.5, dash = "dot")))
+  titles <- lapply(seq_along(map_models), function(k) list(text = paste0("<b>", map_models[k], "</b>"), x = c(0.21, 0.69, 0.21, 0.69)[k],
+    y = rows[[c(1, 1, 2, 2)[k]]][2], xref = "paper", yref = "paper", showarrow = FALSE, xanchor = "center", yanchor = "bottom"))
+  p %>% plotly::layout(
+    xaxis = axis_x(0, 0.42, "y", ""), xaxis2 = axis_x(0.48, 0.90, "y2", ""), xaxis3 = axis_x(0, 0.42, "y3"), xaxis4 = axis_x(0.48, 0.90, "y4"),
+    yaxis = axis_y("x", 1, "Hit from gear (%)"), yaxis2 = axis_y("x2", 1), yaxis3 = axis_y("x3", 2, "Hit from gear (%)"), yaxis4 = axis_y("x4", 2),
+    shapes = c(band("x", "y"), band("x2", "y2"), band("x3", "y3"), band("x4", "y4")), annotations = titles, showlegend = FALSE,
+    margin = list(l = 60, r = 10, t = 10, b = 10)) %>%
+    plotly::config(displayModeBar = FALSE)
+}
+# Option A: crit and hit sliders move a marker to your gear on all three maps, and a line above reads out your rage
+crit_map_pick <- function(crit0 = 30, hit0 = 7.5) {
+  crits <- sort(unique(crit_res$crit)) * 100; hits <- sort(unique(crit_res$hit)) * 100
+  p <- crit_map_base(top = 0.9)
+  for (k in seq_along(map_models)) p <- p %>% plotly::add_trace(type = "scatter", mode = "markers", x = crit0, y = hit0,
+    xaxis = c("x", "x2", "x3", "x4")[k], yaxis = c("y", "y2", "y3", "y4")[k], hoverinfo = "skip",
+    marker = list(symbol = "circle-open", size = 18, color = "#d7301f", line = list(width = 3)))
+  steps <- function(v) lapply(v, function(x) list(method = "skip", label = as.character(x), args = list()))
+  # plotly adds these to the panel titles already in the layout; the readout is the last one, which the script below fills in
+  ann <- list(list(text = "", x = 0, y = 1, xref = "paper", yref = "paper", showarrow = FALSE,
+    xanchor = "left", yanchor = "top", align = "left", font = list(size = 13)))
+  p <- p %>% plotly::layout(annotations = ann, sliders = list(
+    list(active = which(crits == crit0) - 1, currentvalue = list(prefix = "Crit: ", suffix = "%"), steps = steps(crits),
+         x = 0, len = 0.43, y = 0.09, pad = list(t = 0)),
+    list(active = which(abs(hits - hit0) < 1e-9) - 1, currentvalue = list(prefix = "Hit from gear: ", suffix = "%"), steps = steps(hits),
+         x = 0.48, len = 0.43, y = 0.09, pad = list(t = 0))))
+  n_base <- 3 * length(map_models)
+  htmlwidgets::onRender(p, "
+    function(el, x, d) {
+      var state = {c: d.c0, h: d.h0};
+      function update() {
+        var ci = d.crits.indexOf(state.c), hi = d.hits.indexOf(state.h);
+        var parts = d.models.map(function(m, k) {
+          var v = d.z[k][hi][ci];
+          return m + ' <b>' + v.toFixed(2) + '</b> ' + (v >= d.need ? '&#10003;' : '&#10007;');
+        });
+        var ann = el.layout.annotations.slice();
+        ann[ann.length - 1] = Object.assign({}, ann[ann.length - 1], {text: '<b>Your rage per second</b> at ' + state.c + '% crit and ' + state.h + '% hit<br>' +
+          parts.join(' &#183; ')});
+        var xs = d.markers.map(function() { return [state.c]; }), ys = d.markers.map(function() { return [state.h]; });
+        Plotly.update(el, {x: xs, y: ys}, {annotations: ann}, d.markers);
+      }
+      el.on('plotly_sliderchange', function(e) {
+        var v = parseFloat(e.step.label);
+        if (e.slider._index === 0) state.c = v; else state.h = v;
+        update();
+      });
+      update();
+    }", data = list(c0 = crit0, h0 = hit0, crits = crits, hits = hits, models = map_models, need = bt_ww_need,
+                    z = lapply(map_models, map_z), markers = n_base + seq_along(map_models) - 1))
+}
+contour_theme <- theme(strip.text = element_text(face = "bold"), legend.position = "bottom",
+                       panel.spacing.x = unit(1.4, "lines"), panel.grid = element_blank())
+hit_band <- annotate("rect", xmin = -Inf, xmax = Inf, ymin = 0.05, ymax = 0.10, fill = NA, colour = "white",
+                     linewidth = 0.7, linetype = "dotted")
+```
+
+*Version `r crit_changelog$version[1]` (`r crit_changelog$date[1]`). **Model only, built on announcements:** the rules in this chapter were announced at the end of September 2026 and haven't been logged yet. This chapter is standalone: the rest of the book still uses the rules from before. See the [changelog](#crit-changelog).*
+
+On 30 September 2026, Blizzard's [Class Deep Dive for priests and warriors](https://worldofwarcraft.blizzard.com/en-us/news/24301514) announced a new rage formula for Forever: "Critical strike will now give 75% more Rage than non-critical strikes." At the same time, Dual Wield Specialization stopped doubling the off hand's rage. Until then, a crit gave exactly the same rage as a normal hit (that was one of the findings of the [Rage Generation chapter](#rage)), so this was the first time Forever's rage depended on anything your gear does other than how often you land a swing.
+
+Shortly after, Zirene, one of Forever's developers, [posted on X](https://x.com/Zirene/status/2105700347557867695) that warriors' testing had been thrown off by a bug: Dual Wield Specialization was giving 10% hit to every attack, not just the off hand's. With that fixed, crits will give 100% more rage, and Dual Wield Specialization will give the off hand 50% more rage.
+
+So there are now three versions of Forever's rage to compare, plus Classic:
+
+- **Forever v0**, the rules before 30 September: the off hand gets double rage from Dual Wield Specialization, and crits give no extra.
+- **Forever v1**, the 30 September change: crits give 75% more, and the off hand gets no bonus.
+- **Forever v2**, the coming fix: crits give 100% more (twice a normal swing's rage), and the off hand gets 50% more.
+- **Classic**, where rage comes from damage: 7.5 times the damage, divided by a constant for your level.
+
+This chapter asks what each one does to a Fury warrior. How much rage do you have, and how does it grow with crit, hit and attack power? Is there a ceiling? And does it change how the rotation *feels*, beyond the averages? We'll build it up from a single swing, check our numbers against the community's rage spreadsheet, and end with what the comparison says about the design.
+
+## What changed
+
+Not everything in our simulations comes from an announcement, so here's where each change comes from:
+
+```{r}
+tribble(~Change, ~`Where it comes from`, ~`In our simulations`,
+  "v1: a crit gives 75% more rage than a normal hit", "Blizzard's announcement (30 Sep)", "Yes",
+  "v1: Dual Wield Specialization no longer adds off-hand rage", "Reported by testers (Bored's spreadsheet, 30 Sep update); the announcement lists only the off-hand hit", "Yes",
+  "v2: a crit gives 100% more rage, and Dual Wield Specialization gives the off hand 50% more", "Zirene, one of Forever's developers, on X", "Yes",
+  "Dual Wield Specialization's 10% hit applied to every attack (a bug, being fixed)", "Zirene, on X", "No: our simulator gives the hit to the off hand only, as the tooltip says",
+  "Rage from dealing damage is normalised to weapon speed", "Blizzard's announcement; it matches what our logs found", "Yes, as in the rest of the book",
+  "No hit or crit suppression against bosses", "The in-game tooltips, as used in Bored's spreadsheet", "Yes",
+  "Flurry's attack speed is 5% lower than Classic's", "Blizzard's announcement", "Yes, 25% (already in the book)",
+  "Rage from damage taken ignores armor and absorbs", "Blizzard's announcement", "No: our warrior isn't taking hits",
+  "Bloodthirst no longer heals", "Blizzard's announcement", "No effect on damage") %>%
+  knitr::kable(caption = "The changes behind this chapter, and where each one comes from.")
+```
+
+Blizzard also said they're still tracking down bugs in the beta's rage generation, and Zirene's post is an example, so some of this may still move.
+
+## Our warrior
+
+Our warrior is the one from the rest of the book: level 60, dual wielding a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand and a `r sprintf('%.1f', sim_defaults$oh_speed)` speed off hand (both a phase 2 weapon, `r crit_wpn` DPS), with the 17/34/0 Fury build. What's different in this chapter:
+
+- **The boss is level 63,** and we have no weapon skill from gear or race. Before any hit from gear, `r pc(0.27)` of white swings miss (it's high because dual wielding adds 19%), and `r pc(0.08)` of abilities do. `r pc(0.065)` are dodged, and `r pc(0.40)` of white swings are glancing blows, which do `r pc(0.65)` damage and can't crit.
+- **No hit or crit suppression.** In Classic, a boss three levels above you took away 1% of your hit and some of your crit. The Forever tooltips don't, so we don't either.
+- **Windfury Totem is always up** (a 20% chance of an extra main-hand swing, as in WarriorSim).
+- **Gear is three numbers:** attack power from 1000 to 3000, crit on the character sheet from 15% to 45%, and hit from gear from 0% to 15%. Most warriors will have **5 to 10% hit**, and the plots mark that range.
+- **Heroic Strike is queued at `r sim_defaults$hs_threshold` rage**, as in the rest of the book.
+
+Each combination of gear is played `r n_crit` times, in fights of `r crit_fight_len / 60` minutes, under every version of the rules.
+
+The Forever rage per swing comes from the combat logs shared by Tarch, Ryqenz (Zomd Aya), Siax, Budder, Ceece and elvenfresh. The attack table and Windfury follow GuybrushGit's [WarriorSim](https://github.com/GuybrushGit/WarriorSim). The comparison at the end of the chapter, and the no-suppression attack table, come from Bored's [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml) (with thanks to Mikasax and Char), and the v2 rules from Zirene. Everyone is credited in the [Contributors](#contributors) chapter.
+
+## Step 1: one swing
+
+In Forever, a swing that lands gives a fixed amount of rage for each second of weapon speed: about `r f2(forever_mh)` for the main hand and `r f2(forever_oh)` for the off hand, whatever the swing's damage. So a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand gives `r f1(forever_mh * sim_defaults$mh_speed)` rage a swing. Since a slower weapon also swings less often, the speed cancels out, and **each hand gives a fixed amount of rage per second**, as long as it lands.
+
+The versions change that in two ways: how much extra the off hand gets from Dual Wield Specialization, and how much extra a crit gives.
+
+```{r}
+tribble(~Version, ~`Off hand's rage (Dual Wield Specialization)`, ~`A crit's rage`,
+  "Forever v0", "x2", "x1 (no bonus)",
+  "Forever v1", "x1 (no bonus)", "x1.75",
+  "Forever v2", "x1.5", "x2") %>%
+  knitr::kable(caption = "The two things that change between the Forever versions.")
+```
+
+To see how they trade off, call $L$ the share of your swings that land, and $c$ the share that crit (every crit is a swing that lands, so $c$ is part of $L$). If a crit gives $m$ times a normal swing's rage, then the rage of an average swing, as a share of a normal one, is
+
+$$
+\underbrace{L}_{\text{every landed swing}} \; + \; \underbrace{(m - 1)\,c}_{\text{the extra from crits}}
+$$
+
+With `r pc(0.30)` crit and `r pc(0.075)` hit, `r pc0(1 - (0.27 - 0.075) - 0.065)` of your main-hand swings land, so v1's crit bonus ($m = 1.75$) adds `r pc0(0.75 * 0.30 / (1 - (0.27 - 0.075) - 0.065))` to your main hand's rage, and v2's ($m = 2$) adds `r pc0(0.30 / (1 - (0.27 - 0.075) - 0.065))`.
+
+Both new versions take some of the off hand's rage away compared with v0 and give crits a bonus instead. Setting the crit bonus on both hands equal to the off-hand rage that's gone shows the crit where each one breaks even with v0:
+
+- **v1** takes away all of the off hand's bonus, so it only gets back to v0 at about **`r pc0(be_crit(1, 0.75))` crit**.
+- **v2** takes away only half of it, and gives a bigger crit bonus, so it passes v0 at about **`r pc0(be_crit(1.5, 1))` crit**, below the lowest crit in our gear range.
+
+This sum leaves out Flurry, Windfury and Unbridled Wrath, which the simulations include. Flurry and Unbridled Wrath matter here: more crits mean more Flurry, so more swings, and every version gets that.
+
+## Step 2: how much rage you have
+
+Figure \@ref(fig:crit-lines) shows the full simulation, at `r pc(0.075)` hit, across every crit level. The dashed line is the `r bt_ww_need` rage per second that Bloodthirst and Whirlwind use when you press them on cooldown (from the [How Damage Scales chapter](#scaling)): below it, you can't keep both on cooldown, let alone Heroic Strike.
+
+```{r crit-lines, fig.cap=paste0("Rage per second against crit, at 7.5% hit from gear, from the full fight simulation. v1 starts well below v0 and only catches it at the top of the crit range; v2 is above v0 everywhere and keeps climbing with crit. Classic's rage depends on attack power, so it's shown at two levels. The dashed line is the ", bt_ww_need, " rage per second that Bloodthirst and Whirlwind use."), fig.height=4.8}
+d <- bind_rows(
+  crit_res %>% filter(model %in% c("Forever v0", "Forever v1", "Forever v2"), ap == 2000),
+  crit_res %>% filter(model == "Classic", ap %in% c(1250, 2000)) %>% mutate(model = paste0("Classic (", ap, " AP)"))
+) %>% filter(abs(hit - 0.075) < 1e-9)
+ends <- d %>% filter(crit == max(crit))
+ggplot(d, aes(crit, rps, colour = model)) +
+  geom_hline(yintercept = bt_ww_need, linetype = "dashed", colour = "grey30") +
+  annotate("text", x = 0.45, y = bt_ww_need, label = "Bloodthirst + Whirlwind", hjust = 1, vjust = 1.6, size = 3.2, colour = "grey30") +
+  geom_line(linewidth = 1.2) + geom_point(size = 1.6) +
+  ggrepel::geom_text_repel(data = ends, aes(label = model), hjust = 0, nudge_x = 0.01, direction = "y", size = 3.3,
+                           segment.colour = "grey70", min.segment.length = 0, xlim = c(0.455, NA), show.legend = FALSE) +
+  scale_colour_manual(values = crit_cols, guide = "none") +
+  scale_x_continuous(labels = pc, breaks = seq(0.15, 0.45, 0.05), limits = c(0.15, 0.55), expand = expansion(mult = c(0.02, 0))) +
+  labs(x = "Crit (character sheet)", y = "Rage per second")
+```
+
+```{r}
+steps <- c("Forever v0", "Off hand x1, no crit bonus", "Forever v1", "Forever v2")
+step_tbl <- expand_grid(Gear = gear_points$point, version = steps) %>%
+  mutate(rps = map2_dbl(version, Gear, ~ at_point(.x, .y)), dps = map2_dbl(version, Gear, ~ at_point(.x, .y, "dps")),
+         starved = map2_dbl(version, Gear, ~ at_point(.x, .y, "starved"))) %>%
+  group_by(Gear) %>% mutate(vs = dps / dps[version == "Forever v0"] - 1) %>% ungroup()
+step_tbl %>% mutate(Gear = paste0(Gear, ": ", gp[Gear] %>% map_chr(~ sprintf("%s crit, %s hit", pc(.x$crit), paste0(.x$hit * 100, "%")))),
+                    version = recode(version, `Off hand x1, no crit bonus` = "v1, first half: the off hand loses its bonus",
+                                     `Forever v1` = "v1: ... and crits give 175%", `Forever v2` = "v2: off hand x1.5, crits give 200%")) %>%
+  transmute(Gear, Rules = version, `Rage per second` = f2(rps),
+            `Damage vs v0` = ifelse(version == "Forever v0", "", sprintf("%+.1f%%", vs * 100)),
+            `Time waiting for rage for Bloodthirst` = pc(starved)) %>%
+  knitr::kable(caption = "Each version at three gear points (at 2000 attack power; attack power doesn't change Forever's rage). v1's two halves are shown separately: losing the off-hand bonus costs a lot of rage, and the crit bonus gives some of it back.")
+```
+
+At early gear, v1's loss of the off-hand bonus costs `r f1(at_point("Forever v0", "Early") - at_point("Off hand x1, no crit bonus", "Early"))` rage per second, and its crit bonus gives back `r f1(at_point("Forever v1", "Early") - at_point("Off hand x1, no crit bonus", "Early"))` of it; by late gear it gives back `r f1(at_point("Forever v1", "Late") - at_point("Off hand x1, no crit bonus", "Late"))`, almost all of it. So **v1 took rage from fresh level 60s and gave it back as they geared up.**
+
+**v2 has more rage than v0 at every gear point**: `r sprintf("%+.1f", at_point("Forever v2", "Early") - at_point("Forever v0", "Early"))` rage per second at early gear, `r sprintf("%+.1f", at_point("Forever v2", "Mid") - at_point("Forever v0", "Mid"))` at mid gear and `r sprintf("%+.1f", at_point("Forever v2", "Late") - at_point("Forever v0", "Late"))` at late gear, and across the whole grid it's ahead by `r f2(v2_gain[1])` to `r f2(v2_gain[2])`. It keeps half of the off-hand bonus, which holds the floor up, and its bigger crit bonus makes rage grow with gear on top of that.
+
+## Step 3: crit and hit together
+
+Crit isn't the only thing that matters. Hit makes more of your swings land, and a swing has to land to crit, so hit raises both parts of the sum in Step 1. Figure \@ref(fig:crit-contour) shows rage per second over every combination of the two, like a map where darker means more rage.
+
+```{r crit-contour, fig.cap=paste0("Rage per second for every combination of crit and hit from gear, at 2000 attack power. Darker means more rage, and the thin white lines are steps of 0.5 rage per second. The black dashed line is ", bt_ww_need, " rage per second, what Bloodthirst and Whirlwind use: gear below and to the left of it can't keep both on cooldown. The white dotted box is 5 to 10% hit, where most warriors will be. Under v0 and v2 almost any gear is above the line; under v1, the line runs through the middle of the usual gear."), fig.height=8.4, fig.width=10}
+d <- crit_res %>% filter(ap == 2000, model %in% main_models) %>%
+  mutate(model = factor(model, main_models))
+ggplot2::ggplot(d, aes(crit, hit)) +
+  geom_raster(aes(fill = rps), interpolate = TRUE) +
+  geom_contour(aes(z = rps), breaks = seq(5, 12, 0.5), colour = "white", linewidth = 0.25, alpha = 0.7) +
+  geom_contour(aes(z = rps), breaks = bt_ww_need, colour = "black", linewidth = 0.9, linetype = "dashed") +
+  hit_band +
+  facet_wrap(~ model, nrow = 2, labeller = as_labeller(crit_labs)) +
+  rps_fill +
+  scale_x_continuous(labels = pc, breaks = c(0.2, 0.3, 0.4)) +
+  scale_y_continuous(labels = pc) +
+  coord_cartesian(xlim = c(0.15, 0.45), ylim = c(0, 0.15), expand = FALSE) +
+  labs(x = "Crit (character sheet)", y = "Hit from gear") + contour_theme
+```
+
+```{r}
+tibble(hit = c(0, 0.05, 0.075, 0.10)) %>%
+  mutate(`Hit from gear` = paste0(hit * 100, "%"),
+         `Forever v0` = map_chr(hit, ~ crit_needed("Forever v0", .x)),
+         `Forever v1` = map_chr(hit, ~ crit_needed("Forever v1", .x)),
+         `Forever v2` = map_chr(hit, ~ crit_needed("Forever v2", .x)),
+         `Classic (2000 AP)` = map_chr(hit, ~ crit_needed("Classic", .x))) %>%
+  select(-hit) %>%
+  knitr::kable(caption = paste0("The crit you need to make the ", bt_ww_need, " rage per second Bloodthirst and Whirlwind use, at each level of hit."))
+```
+
+Under v0, the dashed line only clipped the corner: almost any gear covered the rotation. **Under v1, it runs through the middle of the usual gear**: with `r pc(0.05)` hit you need about `r crit_needed("Forever v1", 0.05)` crit to keep Bloodthirst and Whirlwind going, and with `r pc(0.10)` hit about `r crit_needed("Forever v1", 0.10)`. **Under v2, it's back in the corner**: only with no hit at all do you need more than 15% crit (`r crit_needed("Forever v2", 0)`). In v1 and v2, hit is worth rage twice: once for the swings it lands, and again for the crits those swings can have.
+
+Figure \@ref(fig:crit-map-pick) puts your own gear on the map. Set your crit and hit with the sliders: a red ring marks your gear on all four maps, and the line above reads out your rage per second under each version.
+
+```{r crit-map-pick, fig.cap=paste0("Figure \\@ref(fig:crit-contour) with your gear on it. Move the crit and hit sliders, and the red ring moves on all four maps, while the line above reads out your rage per second under each version. A tick means it covers the ", bt_ww_need, " rage per second that Bloodthirst and Whirlwind use (the dashed line). At 2000 attack power."), out.width="100%", fig.height=7.5}
+crit_map_pick()
+```
+
+## Step 4: attack power doesn't matter, and there's a ceiling
+
+### Attack power
+
+In Classic, rage came from damage, so attack power gave you rage too. In Forever, rage per swing doesn't depend on damage at all, and no version changes that: a crit gives 1.75 or 2 times the *rage* of a normal swing, not rage based on its damage. Figure \@ref(fig:crit-ap) shows it.
+
+```{r crit-ap, fig.cap="Rage per second for every combination of attack power and crit, at 7.5% hit. In every Forever version, the colour and the thin white lines (steps of 0.5 rage per second) run straight across: going from 1000 to 3000 attack power changes nothing, and only crit moves your rage. In Classic, rage climbs with attack power as well as crit, because it comes from damage.", fig.height=8.4, fig.width=10}
+d <- crit_res %>% filter(model %in% main_models, abs(hit - 0.075) < 1e-9) %>%
+  mutate(model = factor(model, main_models))
+ggplot2::ggplot(d, aes(ap, crit)) +
+  geom_raster(aes(fill = rps), interpolate = TRUE) +
+  geom_contour(aes(z = rps), breaks = seq(5, 12, 0.5), colour = "white", linewidth = 0.25, alpha = 0.7) +
+  geom_contour(aes(z = rps), breaks = bt_ww_need, colour = "black", linewidth = 0.9, linetype = "dashed") +
+  facet_wrap(~ model, nrow = 2, labeller = as_labeller(crit_labs)) +
+  rps_fill +
+  scale_x_continuous(breaks = c(1500, 2000, 2500)) +
+  scale_y_continuous(labels = pc) +
+  coord_cartesian(xlim = c(1000, 3000), ylim = c(0.15, 0.45), expand = FALSE) +
+  labs(x = "Attack power", y = "Crit (character sheet)") + contour_theme
+ap_spread <- crit_res %>% filter(model %in% main_models) %>% group_by(model, crit, hit) %>%
+  summarise(s = max(rps) - min(rps), .groups = "drop") %>% group_by(model) %>% summarise(s = max(s))
+```
+
+Across the whole grid, attack power moves Forever's rage by `r f2(max(ap_spread$s[ap_spread$model != "Classic"]))` rage per second in every version, which is to say not at all, and Classic's by up to `r f1(ap_spread$s[ap_spread$model == "Classic"])`. This is why Forever's rage can't run away the way Classic's did: in Classic, every upgrade made you hit harder, which gave you more rage, which let you hit harder again. In Forever, only crit and hit can give you more rage, and both run into a ceiling.
+
+### The ceiling
+
+Every line in Figure \@ref(fig:crit-lines) flattens out after about 35% crit, Classic's included. That isn't a rule anyone wrote. It comes from the attack table.
+
+Every white swing gets exactly one result from a single roll: a miss, a dodge, a glancing blow, a crit or a normal hit. Those shares have to add up to 100%. Against a level 63 boss, `r pc(0.40)` of white swings are glancing blows, which can't crit, so a white swing can crit at most
+
+$$
+c_{\max} \; = \; 1 \; - \; \text{miss} \; - \; \text{dodge} \; - \; \underbrace{0.40}_{\text{glancing}}
+$$
+
+of the time. Past that, more crit on your character sheet doesn't give a single extra crit on a white swing, so it gives no more rage either.
+
+```{r}
+tibble(hit = c(0, 0.05, 0.075, 0.10, 0.15)) %>%
+  transmute(`Hit from gear` = paste0(hit * 100, "%"), `Main hand` = pc(crit_cap(hit, "MH")), `Off hand` = pc(crit_cap(hit, "OH"))) %>%
+  knitr::kable(caption = "The most a white swing can crit against a level 63 boss, at each level of hit. The off hand has more room, because Dual Wield Specialization gives it 10% more hit.")
+```
+
+With `r pc(0.075)` hit, the main hand can't crit more than `r pc(crit_cap(0.075, "MH"))` of the time. v1's break-even point from Step 1, about `r pc0(be_crit(1, 0.75))`, is above that, which is why v1 only just catches up with v0 at the top of the range. v2 passes v0 long before the ceiling, so it has room to grow. The ceiling also moves up with hit: every 1% of hit gives 1% more room for crits.
+
+So every version already has a cap. It's set by the attack table, not by the formula, and it sits near the top of the gear we expect.
+
+## Step 5: how it feels
+
+Averages hide something every Fury warrior knows: rage comes in streaks. You can get four Heroic Strikes in a row, then none for a minute. Heroic Strikes per minute can't tell those two apart, so we'll look at the **time between one Heroic Strike and the next**. (The *average* time between them is just 60 divided by the number per minute, so it tells us nothing new. What we need is how spread out those waits are.)
+
+We'll use one number for the bad streaks: the **1-in-10 wait**, the wait that 1 in 10 gaps between Heroic Strikes is longer than. If it's 20 seconds, then 9 times out of 10, your next Heroic Strike comes within 20 seconds of the last one.
+
+```{r crit-p90, fig.cap="The long waits: 1 in 10 gaps between Heroic Strikes is longer than this, for every combination of crit and hit, at 2000 attack power. Darker means longer droughts (waits of 60 seconds or more all share the darkest colour). v1 is the darkest: in the usual hit range, below about 30% crit, 1 in 10 waits is 50 seconds or more. v2 is the lightest of the Forever versions.", fig.height=8.4, fig.width=10}
+d <- crit_res %>% filter(ap == 2000, model %in% main_models) %>%
+  mutate(model = factor(model, main_models), gap_p90 = pmin(gap_p90, 60))
+ggplot2::ggplot(d, aes(crit, hit)) +
+  geom_raster(aes(fill = gap_p90), interpolate = TRUE) +
+  hit_band +
+  facet_wrap(~ model, nrow = 2, labeller = as_labeller(crit_labs)) +
+  scale_fill_gradientn(colours = c("#fee6ce", "#fdae6b", "#fd8d3c", "#d94801", "#7f2704"), limits = c(0, 60),
+                       breaks = seq(0, 60, 15), labels = c(seq(0, 45, 15), "60 or more"),
+                       name = "Seconds (1 in 10 waits is longer than this)",
+                       guide = guide_colourbar(barwidth = unit(14, "lines"), title.position = "top")) +
+  scale_x_continuous(labels = pc, breaks = c(0.2, 0.3, 0.4)) +
+  scale_y_continuous(labels = pc) +
+  coord_cartesian(xlim = c(0.15, 0.45), ylim = c(0, 0.15), expand = FALSE) +
+  labs(x = "Crit (character sheet)", y = "Hit from gear") + contour_theme
+```
+
+Figure \@ref(fig:crit-p90-3d) shows the same thing in 3D, with attack power on the slider. Here the height and colour are the 1-in-10 wait, so higher and darker is worse, and the contour lines underneath are steps of 10 seconds. Forever's waits don't change with attack power, but Classic's fall as attack power climbs, because more damage means more rage.
+
+```{r crit-p90-3d, fig.cap="The 1-in-10 wait between Heroic Strikes (height and colour, capped at 120 seconds) by crit and hit (the floor), with attack power on the slider, for each version. Higher and darker is a longer drought.", out.width="100%", fig.height=9}
+crit3d("gap_p90", "1-in-10 wait (sec)", colours = c("#fee6ce", "#fdae6b", "#fd8d3c", "#d94801", "#7f2704"),
+       cmin = 0, cmax = 120, step = 10, zcap = 120, fmt = ".0f", unit = " sec")
+```
+
+Figure \@ref(fig:crit-wait) zooms in on our three gear points. Each line shows how likely it is that your next Heroic Strike has come within a given number of seconds of the last one.
+
+```{r crit-wait, fig.cap="How long until your next Heroic Strike, at three gear points. Each line is the chance that the next Heroic Strike has gone off within x seconds of the last one: higher and further left is steadier. Where a line crosses the dotted line, 9 in 10 waits are shorter than that. v1 is the lowest Forever line at early gear; v2 is the highest Forever line at every gear point.", fig.height=5, fig.width=10}
+pts <- gear_points %>% mutate(label = sprintf("%s: %d AP, %s crit, %s hit", point, ap, pc(crit), paste0(hit * 100, "%")))
+wait_models <- main_models
+d <- pts %>% mutate(curves = pmap(list(point, ap, crit, hit), function(pt, a, cr, h) {
+  map_dfr(wait_models, function(m) {
+    g <- crit_res$gaps[crit_res$model == m & crit_res$ap == a &
+                       abs(crit_res$crit - cr) < 1e-9 & abs(crit_res$hit - h) < 1e-9][[1]]
+    x <- seq(0, 120, 0.5); tibble(model = m, x = x, share = map_dbl(x, ~ mean(g <= .x)))
+  })
+})) %>% unnest(curves) %>% mutate(label = factor(label, pts$label), model = factor(model, main_models))
+ggplot(d, aes(x, share, colour = model)) +
+  geom_hline(yintercept = 0.9, linetype = "dotted", colour = "grey50") +
+  geom_line(linewidth = 1.1) +
+  facet_wrap(~ label, nrow = 1) +
+  scale_colour_manual(values = crit_cols, labels = crit_labs, name = NULL) +
+  scale_y_continuous(labels = pc, limits = c(0, 1), expand = expansion(mult = c(0, 0.04))) +
+  scale_x_continuous(breaks = c(0, 30, 60, 90), limits = c(0, 120), expand = expansion(mult = c(0, 0.02))) +
+  labs(x = "Seconds since the last Heroic Strike", y = "Chance the next one has come by now") +
+  theme(legend.position = "bottom", panel.spacing.x = unit(1.4, "lines"), strip.text = element_text(face = "bold")) +
+  guides(colour = guide_legend(nrow = 2))
+```
+
+```{r}
+expand_grid(Gear = gear_points$point, Rules = wait_models) %>%
+  mutate(hs = map2_dbl(Rules, Gear, ~ at_point(.x, .y, "hs")), med = map2_dbl(Rules, Gear, ~ at_point(.x, .y, "gap_med")),
+         p90 = map2_dbl(Rules, Gear, ~ at_point(.x, .y, "gap_p90"))) %>%
+  transmute(Gear, Rules, `Heroic Strikes per minute` = f1(hs), `Typical wait (median)` = paste(f0(med), "sec"),
+            `1-in-10 wait` = paste(f0(p90), "sec")) %>%
+  knitr::kable(caption = "Heroic Strikes and the waits between them at the three gear points.")
+```
+
+What stands out:
+
+- **v1 made the early game streakier.** Heroic Strikes still came in bunches, about `r f0(at_point("Forever v1", "Mid", "gap_med"))` seconds apart at mid gear, but the droughts between them grew: at early gear, 1 in 10 waits was longer than `r f0(at_point("Forever v1", "Early", "gap_p90"))` seconds, against `r f0(at_point("Forever v0", "Early", "gap_p90"))` under v0.
+- **v2 is the steadiest Forever version at every gear point.** Its 1-in-10 wait is `r f0(at_point("Forever v2", "Early", "gap_p90"))` seconds at early gear, `r f0(at_point("Forever v2", "Mid", "gap_p90"))` at mid gear and `r f0(at_point("Forever v2", "Late", "gap_p90"))` at late gear, and it Heroic Strikes `r f1(at_point("Forever v2", "Mid", "hs"))` times a minute at mid gear, against `r f1(at_point("Forever v0", "Mid", "hs"))` under v0.
+- **Classic is streaky at early gear too**, but gets steadier fast, because at high attack power it's queueing Heroic Strike almost every swing.
+
+## What else could work
+
+v1's problem was the early game: a fresh level 60 had too little rage for the core rotation, and long droughts between Heroic Strikes. Its strengths were worth keeping: rage that grows with your gear, and stops growing at a natural ceiling. v2 keeps both and raises the floor. To see where it sits among other ways of doing that, here are two other ideas, as illustrations rather than proposals (the [Rage Design Proposals chapter](#rage-proposals) looks at the wider question of how rage should grow with gear):
+
+- **Extra rage while Flurry is up.** In place of the crit bonus, every white swing that lands while Flurry is speeding it up gives a flat 1 to 5 extra rage, with the off hand at no bonus. It's still driven by crit (Flurry starts on a crit), and it ties rage to haste, which suits Fury.
+- **Crits give 200%, and the off hand keeps its full bonus.** v0 plus v2's crit bonus: the most generous version.
+
+```{r crit-options, fig.cap=paste0("Rage per second against crit at 7.5% hit, for v1, v2 and the two ideas (orange: extra rage while Flurry is up; purple: crits give 200% and the off hand keeps its full bonus), with Classic for comparison. The dashed line is the ", bt_ww_need, " rage per second that Bloodthirst and Whirlwind use."), fig.height=4.8}
+opt_models <- c("Forever v1", "Forever v2", paste0("Flurry +", 1:5), "Crits x2, off hand x2")
+d <- bind_rows(crit_res %>% filter(model %in% opt_models, ap == 2000),
+               crit_res %>% filter(model == "Classic", ap %in% c(1250, 2000)) %>% mutate(model = paste0("Classic (", ap, " AP)"))) %>%
+  filter(abs(hit - 0.075) < 1e-9)
+opt_cols <- c(crit_cols, setNames(colorRampPalette(c("#fdd0a2", "#d94801"))(5), paste0("Flurry +", 1:5)))
+ends <- d %>% filter(crit == max(crit))
+ggplot(d, aes(crit, rps, colour = model)) +
+  geom_hline(yintercept = bt_ww_need, linetype = "dashed", colour = "grey30") +
+  geom_line(linewidth = 1.1) + geom_point(size = 1.4) +
+  ggrepel::geom_text_repel(data = ends, aes(label = model), hjust = 0, nudge_x = 0.01, direction = "y", size = 3.1,
+                           segment.colour = "grey70", min.segment.length = 0, xlim = c(0.455, NA), show.legend = FALSE) +
+  scale_colour_manual(values = opt_cols, guide = "none") +
+  scale_x_continuous(labels = pc, breaks = seq(0.15, 0.45, 0.05), limits = c(0.15, 0.58), expand = expansion(mult = c(0.02, 0))) +
+  labs(x = "Crit (character sheet)", y = "Rage per second")
+```
+
+```{r}
+expand_grid(Rules = c("Forever v0", opt_models), crit = c(0.15, 0.30, 0.45)) %>%
+  mutate(rps = map2_dbl(Rules, crit, ~ gv(.x, .y, 0.075)), p90 = map2_dbl(Rules, crit, ~ gv(.x, .y, 0.075, col = "gap_p90"))) %>%
+  bind_rows(expand_grid(Rules = c("Classic (1250 AP)", "Classic (2000 AP)"), crit = c(0.15, 0.30, 0.45)) %>%
+              mutate(rps = map2_dbl(Rules, crit, ~ gv("Classic", .y, 0.075, ap = if (grepl("1250", .x)) 1250 else 2000)),
+                     p90 = map2_dbl(Rules, crit, ~ gv("Classic", .y, 0.075, ap = if (grepl("1250", .x)) 1250 else 2000, col = "gap_p90")))) %>%
+  mutate(v = paste0(f2(rps), " (", f0(pmin(p90, 999)), " sec)")) %>% select(Rules, crit, v) %>%
+  pivot_wider(names_from = crit, values_from = v, names_glue = "{round(crit * 100)}% crit") %>%
+  knitr::kable(caption = "Rage per second at 7.5% hit, and in brackets the 1-in-10 wait between Heroic Strikes, for each version.")
+```
+
+What these show:
+
+- **v2 sits between Flurry +4 and the most generous idea.** At `r pc(0.075)` hit it runs from `r f2(gv("Forever v2", 0.15, 0.075))` to `r f2(gv("Forever v2", 0.45, 0.075))` rage per second, between Classic at 1250 attack power (`r f2(gv("Classic", 0.15, 0.075, ap = 1250))` to `r f2(gv("Classic", 0.45, 0.075, ap = 1250))`) and at 2000 (`r f2(gv("Classic", 0.15, 0.075))` to `r f2(gv("Classic", 0.45, 0.075))`).
+- **Keeping the full off-hand bonus overshoots.** Crits at 200% with the off hand at double gives `r f2(gv("Crits x2, off hand x2", 0.15, 0.075))` to `r f2(gv("Crits x2, off hand x2", 0.45, 0.075))`, almost exactly Classic at 2000 attack power. A fresh level 60 would start with the rage of a well-geared Classic warrior, which leaves little room to grow. v2's half bonus lands lower.
+- **Every version flattens after about 35% crit.** That's the attack table's ceiling from Step 4, not the formulas: none of them caps any harder than another.
+- **The droughts follow how much rage you have, more than how it arrives.** Across the whole grid, at the same rage per second as v1, v0 (no crit bonus at all, so the steadiest rage) has a 1-in-10 wait `r drought_cmp("Forever v0")` v1's, v2's is `r drought_cmp("Forever v2")` v1's, and the Flurry options' are `r drought_cmp_range(paste0("Flurry +", 2:5))` it. So the main way to shorten the droughts is more rage, which is what v2 does.
+
+In other words, the real choice is **how high the floor should be**: how much rage a fresh level 60 has before crit adds anything. The crit bonus then adds growth on top of that, up to the attack table's ceiling. v1 set the floor too low; v2 raises it with half of the off-hand bonus, and its bigger crit bonus still leaves room to grow.
+
+## Checking against Bored's spreadsheet
+
+Bored's [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml), which the community uses to plan rage, added v1 on 30 September. It works out rage per second with a formula, where we play out fights, so the two make a good check on each other. The spreadsheet's formula, for each hand, is
+
+$$
+\text{base rage} \times (1 + 0.75\,\text{crit}) \times (1 - \text{miss} - \text{dodge}) \times \text{attack speed} \times \text{Windfury},
+$$
+
+plus Unbridled Wrath. Our version of that formula matches every row of the spreadsheet. Our simulator, given the spreadsheet's assumptions and no Heroic Strike, comes out close to it, and a little above at high crit (the last paragraph of this section explains why). The other differences come from the assumptions, and Table \@ref(tab:crit-sheet) swaps them for ours one at a time. (This check uses v1, the version the spreadsheet models.)
+
+```{r crit-sheet}
+sheet_res %>% mutate(step = factor(step, names(sheet_steps))) %>% select(row, step, rps) %>%
+  mutate(rps = f2(rps)) %>% pivot_wider(names_from = row, values_from = rps) %>%
+  bind_rows(tibble(step = "The spreadsheet", !!!setNames(as.list(sprintf("%.2f", sheet_rows$sheet_rps)), sheet_rows$row)), .) %>%
+  rename(` ` = step) %>%
+  knitr::kable(caption = "Rage per second in Bored's spreadsheet, and in our simulator as we swap the spreadsheet's assumptions for ours one at a time (each row keeps the changes above it).")
+```
+
+```{r, include=FALSE}
+sr <- function(step, row) sheet_res$rps[sheet_res$step == step & sheet_res$row == sheet_rows$row[row]]
+st <- names(sheet_steps)
+step_gap <- function(a, b, row) sr(st[b], row) - sr(st[a], row)
+```
+
+- **Heroic Strike** makes the biggest difference, and more the better your gear (`r f1(step_gap(1, 2, 1))` rage per second in the first column, `r f1(step_gap(1, 2, 4))` in the last). In Forever, Heroic Strike replaces a white swing, and that swing's rage is lost. The spreadsheet counts that as part of Heroic Strike's cost (22 rage each, not 12), where we count it as rage you never got. Both are right; they just book it in different places.
+- **Anger Management**, which we include and the spreadsheet leaves out (it notes it's worth 20 rage a minute): `r sprintf("%+.1f", step_gap(5, 6, 1))` rage per second.
+- **The extra 3% attack speed** from enchants, which the spreadsheet includes and we don't: about `r sprintf("%+.1f", mean(map_dbl(1:4, ~ step_gap(3, 4, .x))))` rage per second.
+- **Windfury's cooldown, the miss table** (the tooltips' 27.6% white miss against our 27%) **and the off hand's speed** each move it by less than 0.1.
+
+So at low gear, our assumptions land almost exactly on the spreadsheet (`r f2(sr(st[7], 1))` against `r sprintf("%.2f", sheet_rows$sheet_rps[1])`), with Anger Management making up for the attack speed. At high gear we come out lower, almost all of it from Heroic Strike.
+
+Two smaller things in the spreadsheet are worth knowing about. It applies the crit bonus only to swings that land, but on the attack table, crit is a share of *all* swings, so it undercounts crit rage a little. That's why our simulator, with the spreadsheet's assumptions, comes out a little above it at high crit. And it takes Flurry as up 80% of the time, where in the simulation Flurry's uptime grows with crit (well below 80% at 25% crit, about 80% at 45%). Neither changes the picture.
+
+## What we can test, and what we can't yet
+
+- **Announced, not yet logged:** the crit bonus. Our logs from before 30 September found crits gave no extra rage. Under v2, the first new logs should show a crit giving twice a normal swing's rage, in both hands.
+- **Announced, not yet logged:** the off-hand bonus from Dual Wield Specialization (none in v1, 50% in v2), and the fix to its hit, which should then apply only to the off hand. It needs level 24 to test.
+- **Measured:** the rage per swing for each hand, that it doesn't depend on damage, and that a hasted swing gives the full rage (the [Rage Generation chapter](#rage)).
+- **Assumed:** the attack table against a level 63 boss with no suppression (from the tooltips), that Windfury swings give rage like any other swing, and Windfury itself, since it needs a shaman in the group.
+- **Our guesses:** the gear ranges, and the rotation, with Heroic Strike queued at `r sim_defaults$hs_threshold` rage.
+
+The most useful logs for this chapter would be a level 20 dual wielder hitting a target dummy or mobs of the same level, with crits marked, so we can read the crit bonus straight off the rage gains, as the Rage Generation chapter did for normal hits.
+
+## Conclusion
+
+1. **v1 traded early rage for growth.** Losing Dual Wield Specialization's off-hand bonus cost a lot of rage, and the crit bonus gave it back only as crit grew: fresh level 60s ended up with less rage than under v0, and well-geared warriors about where they were.
+2. **v2 raises the floor and keeps the growth.** With half the off-hand bonus and crits at twice a normal swing's rage, it has more rage than v0 everywhere in our grid (`r f2(v2_gain[1])` to `r f2(v2_gain[2])` rage per second more), and still `r f1(gv("Forever v2", 0.45, 0.075) - gv("Forever v2", 0.15, 0.075))` more at 45% crit than at 15% (at 7.5% hit).
+3. **Crit and hit are now your rage stats.** In v1, the usual 5 to 10% hit needed roughly `r crit_needed("Forever v1", 0.10)` to `r crit_needed("Forever v1", 0.05)` crit just to keep Bloodthirst and Whirlwind on cooldown. In v2, almost any gear covers it. Either way, hit counts twice: for the swings it lands, and the crits those swings can have.
+4. **Attack power still gives no rage**, in every version, and that's why Forever's rage can't run away like Classic's did. v2 lands between a Classic warrior at 1250 and at 2000 attack power.
+5. **There's already a ceiling.** A white swing can't crit more than the attack table leaves room for (about `r pc(crit_cap(0.075, "MH"))` for the main hand at 7.5% hit), so every version flattens out after about 35% crit.
+6. **v2 also fixes the feel.** v1 made the droughts between Heroic Strikes much longer at low gear; v2 has the shortest of the three Forever versions at every gear point (`r f0(at_point("Forever v2", "Early", "gap_p90"))` seconds for the 1-in-10 wait at early gear, against `r f0(at_point("Forever v1", "Early", "gap_p90"))` in v1 and `r f0(at_point("Forever v0", "Early", "gap_p90"))` in v0).
+7. **The real lever is the floor.** The design ideas show that how rage arrives matters much less than how much there is. Give early warriors enough rage, and crit can add growth on top, up to the ceiling. That's the shape v2 has.
+
+These simulations are simplified, and they rest on announcements and tooltips we can't check yet, so the exact numbers are there to illustrate what's happening, not to predict it. The shapes are the part to take away.
+
+## Changelog {#crit-changelog}
+
+```{r}
+crit_changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "Rage on Crit chapter versions, newest first.")
+```

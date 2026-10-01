@@ -9,7 +9,8 @@
 # The code should set its own seed, so a re-run gives the same result. To force every simulation to
 # re-run, delete data/sim_cache/.
 
-sim_code_hash <- function() unname(tools::md5sum(c("data/fight_sim.R", "data/flurry.R")))
+# Hash the lines, not the file bytes, so a change in line endings (git on Windows) does not count as a code change
+sim_code_hash <- function() rlang::hash(lapply(c("data/fight_sim.R", "data/flurry.R"), readLines))
 
 cached_sim <- function(name, deps, code) {
   dir.create("data/sim_cache", showWarnings = FALSE)
