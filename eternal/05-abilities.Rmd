@@ -4,6 +4,7 @@
 # Reuses `phases`, `C60`, `forever_draws`, `n_fights` and the fight simulator from the earlier chapters.
 abilities_changelog <- tribble(
   ~version, ~date,        ~change,
+  "3.0.0",  "2026-10-28", "Today's rules, from Blizzard's 1 Oct development notes and hotfixes: Bloodthirst is back to 45% of attack power (plus 48), so it's a little stronger than Classic's rather than much weaker, and the attack power where it beats Execute drops below Classic's. Whirlwind hits with both weapons without a talent and costs 22 with Raging Blows. Forever's rage now grows with crit, so its Executes grow a little with gear, and both games cap rage at 100.",
   "2.0.0",  "2026-09-25", "Classic's rage corrected to 7.5 x damage / C (it was 15), and the simulator now follows WarriorSim and ClassicSim for crit suppression, rage refunds, the Heroic Strike queue and Deep Wounds. Forever now does more damage than Classic until phase 4, putting Whirlwind first helps Forever and costs Classic a little (as damage per rage predicts), and at pre-BiS Classic affords fewer Executes than Forever.",
   "1.3.0",  "2026-09-24", "Execute with and without Improved Execute, the attack power where Bloodthirst matches a 30 rage Execute (2000 in Classic, as in the Classic compendium, and about 2430 in Forever), and the comparison across attack power up to 3000.",
   "1.2.1",  "2026-09-24", "Clearer table and explanation of how much rage an Execute can use and still beat Bloodthirst per point of rage.",
@@ -36,14 +37,14 @@ cast_damage <- function(p, ability, dps, n) {
   hand_hit <- function(speed, mult) (dps * speed + p$ap / 14 * p$wpn_norm) * p$armor * mult
   if (ability == "Bloodthirst") return(roll((p$bt_ap * p$ap + p$bt_flat) * p$armor))
   d <- roll(hand_hit(p$mh_speed, 1))
-  if (p$raging_blows) d <- d + roll(hand_hit(p$oh_speed, 0.5 * p$oh_dmg_mult))
+  if (p$ww_offhand) d <- d + roll(hand_hit(p$oh_speed, 0.5 * p$oh_dmg_mult))
   d
 }
 ```
 
-*Version `r abilities_changelog$version[1]` (`r abilities_changelog$date[1]`). **Model only:** Bloodthirst needs level 40 and Whirlwind level 36, and the beta is capped at 20, so nothing here has been checked in logs yet. The numbers come from the beta client's tooltips, read by [talentsforever.com](https://talentsforever.com).*
+*Version `r abilities_changelog$version[1]` (`r abilities_changelog$date[1]`). **Model only:** Bloodthirst needs level 40 and Whirlwind level 36, and the beta is capped at 30, so nothing here has been checked in logs yet. The numbers come from the beta client's tooltips, read by [talentsforever.com](https://talentsforever.com), with the Warrior changes from Blizzard's 1 Oct development notes and hotfixes.*
 
-The [Classic compendium](https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/) compared abilities by their damage per rage: how much damage you get for each point of rage you spend. That's even more important in Forever, where rage is a fixed income that gear can't raise, so every point has to go where it does the most damage. This chapter starts with the two abilities at the heart of a Fury rotation, Bloodthirst and Whirlwind, and both of them changed.
+The [Classic compendium](https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/) compared abilities by their damage per rage: how much damage you get for each point of rage you spend. That's even more important in Forever, where most of your rage is a fixed income that only crit can raise, so every point has to go where it does the most damage. This chapter starts with the two abilities at the heart of a Fury rotation, Bloodthirst and Whirlwind, and both of them changed.
 
 Unlike the Classic compendium, we won't give one damage per rage number for each ability. A single cast can miss, hit or crit, a fight is made of a few dozen casts, and your gear changes over the phases, so we look at the whole range of outcomes and let the simulations do the averaging.
 
@@ -53,20 +54,20 @@ Unlike the Classic compendium, we won't give one damage per rage number for each
 tribble(
   ~Ability,       ~Classic,                                         ~Forever,
   "Bloodthirst",  "45% of attack power, and heals you for 10-20 on your next 5 hits",
-                  "35% of attack power + 48 (rank 4), and 10% movement speed for 10 sec",
+                  "45% of attack power + 48 (rank 4), and 10% movement speed for 10 sec",
   "Whirlwind",    "Main-hand weapon damage, to up to 4 enemies",
-                  "The same, and with Raging Blows (Fury, row 4) it also hits with the off hand",
+                  "Damage from both weapons, to up to 4 enemies",
   "Cost and cooldown", "Bloodthirst 30 rage, 6 sec. Whirlwind 25 rage, 10 sec",
-                  "The same"
-) %>% knitr::kable(caption = "Bloodthirst and Whirlwind in the two games, from the beta client's tooltips (via talentsforever.com).")
+                  "The same, but Raging Blows (Fury, row 4) takes 3 rage off Whirlwind, so 22 in the popular build"
+) %>% knitr::kable(caption = "Bloodthirst and Whirlwind in the two games, from the beta client's tooltips (via talentsforever.com) and Blizzard's 1 Oct development notes.")
 ```
 
-So Bloodthirst lost a big chunk of its attack power scaling (45% down to 35%, with a small flat bonus to make up for it early on), while Whirlwind gained a whole second hit for dual wielders. The off-hand hit should be affected by the usual half damage for off-hand attacks, and by Dual Wield Specialization's +25% off-hand damage, which the most popular Fury build takes anyway.
+So Bloodthirst keeps Classic's attack power scaling and gets a small flat bonus on top, which makes it a little stronger than Classic's at any attack power. (For most of September the beta had it at 35%, and earlier versions of this chapter were built on that; the 1 Oct rework put it back to 45%.) Whirlwind changed much more: it hits with both weapons, with no talent needed, and Raging Blows makes it 3 rage cheaper. The off-hand hit should be affected by the usual half damage for off-hand attacks, and by Dual Wield Specialization's +25% off-hand damage, which the most popular Fury build takes anyway.
 
 A few things we're assuming, since the tooltips don't say:
 
 - **Whirlwind uses a normalised weapon speed** (2.4 for one-handers) for its attack power bonus, like Classic did, for both hands.
-- **The Raging Blows hit rolls separately**, so the main hand can crit while the off hand misses.
+- **Whirlwind's off-hand hit rolls separately**, so the main hand can crit while the off hand misses.
 - **Yellow attacks** miss `r sim_defaults$yellow_miss * 100`% of the time (they don't get the dual wield penalty), get dodged `r sim_defaults$dodge * 100`% of the time, and crit for `r sim_defaults$crit_mult_yellow`x damage (double damage, plus Impale 2/2) on a separate roll.
 
 We'll use the same warrior as the rest of the book, a level 60 dual wielder against a boss, with the popular 17/34/0 build in each game. Since both abilities scale with attack power, and Whirlwind with the weapon too, we need gear for each phase. The gear is the same as in the [Scaling chapter](#scaling): the weapon DPS for each phase, with our rough guesses for attack power and crit, which are not measured values:
@@ -92,7 +93,7 @@ expand_grid(game = c("Classic", "Forever"), ability = c("Bloodthirst", "Whirlwin
 })
 ```
 
-```{r fig.cap="Average damage per rage of one cast with phase 2 gear, from 20,000 simulated casts of each ability, going from Classic (grey) to Forever (blue). Bloodthirst gets worse and Whirlwind gets much better, so they swap places.", fig.height=2.8}
+```{r fig.cap="Average damage per rage of one cast with phase 2 gear, from 20,000 simulated casts of each ability, going from Classic (grey) to Forever (blue). Bloodthirst gets a little better and Whirlwind much better, so they swap places.", fig.height=2.8}
 cast_means <- casts %>% group_by(game, ability) %>% summarise(mean = mean(dpr), .groups = "drop")
 ggplot2::ggplot(cast_means, aes(mean, ability)) +   # values on the x axis, so it starts at 0 instead
   geom_segment(data = pivot_wider(cast_means, names_from = game, values_from = mean),
@@ -118,7 +119,7 @@ cast_summary %>%
   knitr::kable(caption = "Damage per rage of single casts with phase 2 gear.")
 ```
 
-With phase 2 gear, Bloodthirst goes from about `r round(cs("Classic", "Bloodthirst", "mean"))` damage per rage in Classic to `r round(cs("Forever", "Bloodthirst", "mean"))` in Forever, while Whirlwind goes the other way, from `r round(cs("Classic", "Whirlwind", "mean"))` to `r round(cs("Forever", "Whirlwind", "mean"))`. **In Classic, Bloodthirst was the better use of rage. In Forever it's Whirlwind, by a wide margin.**
+With phase 2 gear, Bloodthirst goes from about `r round(cs("Classic", "Bloodthirst", "mean"))` damage per rage in Classic to `r round(cs("Forever", "Bloodthirst", "mean"))` in Forever, thanks to its flat bonus, while Whirlwind jumps from `r round(cs("Classic", "Whirlwind", "mean"))` to `r round(cs("Forever", "Whirlwind", "mean"))`, with a second hit and a lower cost. **In Classic, Bloodthirst was the better use of rage. In Forever it's Whirlwind, by a wide margin.**
 
 Forever's Whirlwind is also more reliable. A Classic Whirlwind or any Bloodthirst does nothing `r (sim_defaults$yellow_miss + sim_defaults$dodge) * 100`% of the time (a miss or a dodge), while Forever's Whirlwind only does nothing when *both* hits miss, which is about `r round(cs("Forever", "Whirlwind", "miss") * 100, 1)`% of casts.
 
@@ -160,7 +161,7 @@ dpr_phase <- ability_sims %>% group_by(game, phase) %>%
 dp <- function(g, ph, col) dpr_phase[[col]][dpr_phase$game == g & dpr_phase$phase == ph]
 ```
 
-In Classic, Bloodthirst stays ahead at every phase, by a fairly steady `r round(min((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` to `r round(max((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` damage per rage. In Forever it's the other way round from the start, and the gap grows with every phase, since Raging Blows means Whirlwind gets two weapons' worth out of each weapon upgrade: even at pre-BiS, Whirlwind gets `r round(dp("Forever", "Pre-BiS", "ww") / dp("Forever", "Pre-BiS", "bt"), 1)` times Bloodthirst's damage per rage, and by phase 4 it's `r round(dp("Forever", "Phase 4", "ww") / dp("Forever", "Phase 4", "bt"), 1)` times. Even with all the luck of a single fight, Whirlwind comes out ahead in `r round(min(dpr_phase$ww_wins[dpr_phase$game == "Forever"]) * 100)`% or more of Forever fights at every phase, against `r round(max(dpr_phase$ww_wins[dpr_phase$game == "Classic"]) * 100)`% or fewer in Classic.
+In Classic, Bloodthirst stays ahead at every phase, by a fairly steady `r round(min((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` to `r round(max((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` damage per rage. In Forever it's the other way round from the start, and the gap grows with every phase, since Whirlwind gets two weapons' worth out of each weapon upgrade: even at pre-BiS, Whirlwind gets `r round(dp("Forever", "Pre-BiS", "ww") / dp("Forever", "Pre-BiS", "bt"), 1)` times Bloodthirst's damage per rage, and by phase 4 it's `r round(dp("Forever", "Phase 4", "ww") / dp("Forever", "Phase 4", "bt"), 1)` times. Even with all the luck of a single fight, Whirlwind comes out ahead in `r round(min(dpr_phase$ww_wins[dpr_phase$game == "Forever"]) * 100)`% or more of Forever fights at every phase, against `r round(max(dpr_phase$ww_wins[dpr_phase$game == "Classic"]) * 100)`% or fewer in Classic.
 
 ## What it means for a whole fight
 
@@ -197,7 +198,7 @@ sh <- function(ph, g) ability_sims %>% filter(phase == ph, game == g) %>%
   summarise(bt = median(dps_bt / total_dps), ww = median(dps_ww / total_dps))
 ```
 
-Bloodthirst still does more damage per second than Whirlwind in both games, simply because it comes off cooldown more often (every 6 seconds, against 10). But the balance shifts a lot: in Classic, Bloodthirst makes up about `r round(sh("Phase 2", "Classic")$bt * 100)`% of a phase 2 warrior's damage and Whirlwind `r round(sh("Phase 2", "Classic")$ww * 100)`%, while in Forever it's `r round(sh("Phase 2", "Forever")$bt * 100)`% and `r round(sh("Phase 2", "Forever")$ww * 100)`%. The totals tell a story of their own: Forever does more damage than Classic at pre-BiS (`r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Pre-BiS"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Pre-BiS"]))`), and Classic only catches up by phase 4. That's rage again: early on, a Classic warrior's hits are too small to pay for every Bloodthirst and Whirlwind (look at the casts per minute), while Forever's rage is the same from the first day. The [Scaling chapter](#scaling) follows this through every phase.
+Bloodthirst still does more damage per second than Whirlwind in both games, simply because it comes off cooldown more often (every 6 seconds, against 10). But the balance shifts a lot: in Classic, Bloodthirst makes up about `r round(sh("Phase 2", "Classic")$bt * 100)`% of a phase 2 warrior's damage and Whirlwind `r round(sh("Phase 2", "Classic")$ww * 100)`%, while in Forever it's `r round(sh("Phase 2", "Forever")$bt * 100)`% and `r round(sh("Phase 2", "Forever")$ww * 100)`%. The totals tell a story of their own: Forever does more damage than Classic at pre-BiS (`r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Pre-BiS"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Pre-BiS"]))`), and Classic closes most of the gap by phase 4 (`r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Phase 4"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Phase 4"]))`). That's rage again: early on, a Classic warrior's hits are too small to pay for every Bloodthirst and Whirlwind (look at the casts per minute), while Forever's rage covers both from the first day. The [Scaling chapter](#scaling) follows this through every phase.
 
 ## Should Whirlwind come first?
 
@@ -233,13 +234,13 @@ ps <- function(g, ph, col) prio_summary[[col]][prio_summary$Game == g & prio_sum
 
 The two games go opposite ways, just as damage per rage says they should. Putting Whirlwind first is a small gain in Forever (`r sprintf("%+.1f%%", ps("Forever", "Phase 2", "mean") * 100)` at phase 2) and a small loss in Classic (`r sprintf("%+.1f%%", ps("Classic", "Phase 2", "mean") * 100)`). The order decides which ability gets the rage when there isn't enough for both, and that should be the one that does more with it: Whirlwind in Forever, Bloodthirst in Classic.
 
-The effect is small because rage is only short some of the time. In Forever, where rage doesn't change with gear, the gain stays small at every phase (`r sprintf("%+.1f%%", ps("Forever", "Pre-BiS", "mean") * 100)` at pre-BiS, `r sprintf("%+.1f%%", ps("Forever", "Phase 2", "mean") * 100)` at phase 2 and `r sprintf("%+.1f%%", ps("Forever", "Phase 4", "mean") * 100)` at phase 4). In Classic the loss is biggest at pre-BiS (`r sprintf("%+.1f%%", ps("Classic", "Pre-BiS", "mean") * 100)`), when rage is shortest, and fades by phase 4 (`r sprintf("%+.1f%%", ps("Classic", "Phase 4", "mean") * 100)`), when there's nearly enough for both. Where the order would matter more is if rage turned out tighter than we think, for example while Unbridled Wrath is bugged, or before a warrior has Dual Wield Specialization. Then, in Forever, Whirlwind would be the better place for it.
+The effect is small because rage is only short some of the time. In Forever, where rage only grows with crit, the gain stays small at every phase (`r sprintf("%+.1f%%", ps("Forever", "Pre-BiS", "mean") * 100)` at pre-BiS, `r sprintf("%+.1f%%", ps("Forever", "Phase 2", "mean") * 100)` at phase 2 and `r sprintf("%+.1f%%", ps("Forever", "Phase 4", "mean") * 100)` at phase 4). In Classic the loss is biggest at pre-BiS (`r sprintf("%+.1f%%", ps("Classic", "Pre-BiS", "mean") * 100)`), when rage is shortest, and fades by phase 4 (`r sprintf("%+.1f%%", ps("Classic", "Phase 4", "mean") * 100)`), when there's nearly enough for both. Where the order would matter more is if rage turned out tighter than we think, for example if Unbridled Wrath's fix doesn't hold, or before a warrior has Dual Wield Specialization. Then, in Forever, Whirlwind would be the better place for it.
 
 Also, the pairing only helps so much: after the first different decision, the two fights drift apart, so a single pair of fights can still go either way (Whirlwind first wins about `r round(ps("Forever", "Phase 2", "wins") * 100)`% of them). The effect only shows up clearly over hundreds of fights.
 
 ## Execute
 
-Execute is the one ability here that didn't change: the beta's tooltip matches Classic's exactly. At rank 5 it costs `r sim_defaults$exec_cost` rage, does `r sim_defaults$exec_base` damage, and turns every extra point of rage you have into `r sim_defaults$exec_per_rage` more damage, but it can only be used once the boss is below 20% health. Improved Execute (Fury, row 4) is the same in both games too: at 2/2 it brings the cost down to `r sim_defaults$exec_cost - 5`. The most popular Fury build skips it, but many warriors who care about the execute phase take it, so we'll show both. What changed is everything around Execute: how strong Bloodthirst is next to it, and how much rage you have when you press it.
+Execute is the one ability here that didn't change: the beta's tooltip matches Classic's exactly. At rank 5 it costs `r sim_defaults$exec_cost` rage, does `r sim_defaults$exec_base` damage, and turns every extra point of rage you have into `r sim_defaults$exec_per_rage` more damage, but it can only be used once the boss is below 20% health. Improved Execute (Fury, row 4) is the same in both games too: at 2/2 it brings the cost down to `r sim_defaults$exec_cost - 5`. The most popular Fury build takes one point (3 rage off), and warriors who care about the execute phase take both, so we'll show 0/2 and 2/2. What changed is everything around Execute: how strong Bloodthirst is next to it, and how much rage you have when you press it.
 
 ### Execute's damage per rage
 
@@ -262,7 +263,7 @@ ggplot(exec_curve, aes(rage, dpr)) +
   annotate("text", x = 31, y = 58, label = "Bloodthirst's cost (30 rage)", hjust = 0, size = 3, colour = "grey45") +
   scale_colour_manual(values = game_colours, labels = function(g) paste(g, "Bloodthirst (2000 AP)")) +
   scale_linetype_manual(values = c(`0/2` = "dashed", `2/2` = "solid"), labels = function(t) paste("Execute,", t, "Improved Execute")) +
-  scale_x_continuous(limits = c(0, 135)) +
+  scale_x_continuous(limits = c(0, 105)) +
   labs(x = "Rage spent on one Execute", y = "Damage per rage", colour = NULL, linetype = NULL) +
   theme(legend.position = "bottom", legend.box = "vertical")
 ```
@@ -273,7 +274,7 @@ The first `r sim_defaults$exec_cost` rage (or `r sim_defaults$exec_cost - 5` wit
 
 The Classic compendium answered this with one number. Bloodthirst costs 30 rage, so the first moment you can choose between the two is at 30 rage. With Improved Execute, a 30 rage Execute does 600 + (30 - 10) x 15 = 900 damage, and Bloodthirst does 900 at **2000 attack power** (45% of 2000). Above that, Bloodthirst beats even the cheapest Execute you'd choose instead of it. That's still right, and it's where the Classic lines cross at 30 rage in the plot above.
 
-In Forever, Bloodthirst is 35% of attack power plus 48, so it needs more attack power to get to the same 900 damage:
+In Forever, Bloodthirst is 45% of attack power plus 48, so it gets to the same 900 damage with a little less attack power:
 
 ```{r}
 ap_match <- function(game, cut) {
@@ -303,14 +304,14 @@ even_curve <- expand_grid(game = c("Classic", "Forever"), talent = names(imp_exe
 ```
 
 ```{r fig.cap="The most rage an Execute can use and still do more damage per rage than Bloodthirst, across attack power. Below a line, Execute is the more efficient of the two; above it, Bloodthirst is. The dots are where each line reaches Bloodthirst's 30 rage cost (the attack power in the table above): past them, Bloodthirst beats every Execute you'd choose instead of it.", fig.height=4.2}
-cap_lines <- tibble(game = c("Classic", "Forever"), cap = c(classic_talents$rage_cap, forever_talents$rage_cap))
+# Both games cap rage at 100 now that Boundless Rage is gone from Forever
+stopifnot(classic_talents$rage_cap == forever_talents$rage_cap)
 ggplot(even_curve %>% filter(even <= 140), aes(ap, even, colour = game, linetype = talent)) +
-  geom_hline(yintercept = 30, linetype = "dotted", colour = "grey50") +
-  geom_hline(data = cap_lines, aes(yintercept = cap, colour = game), linetype = "dotted", alpha = 0.6, show.legend = FALSE) +
+  geom_hline(yintercept = c(30, forever_talents$rage_cap), linetype = "dotted", colour = "grey50") +
   geom_line(linewidth = 0.9) +
   geom_point(data = match_tbl %>% transmute(game = Game, talent, ap, even = 30), size = 2.5) +
-  annotate("text", x = 3000, y = c(30, classic_talents$rage_cap, forever_talents$rage_cap),
-           label = c("Bloodthirst's cost (30)", "Classic cap (100)", "Forever cap (130)"),
+  annotate("text", x = 3000, y = c(30, forever_talents$rage_cap),
+           label = c("Bloodthirst's cost (30)", paste0("Rage cap (", forever_talents$rage_cap, ")")),
            hjust = 1, vjust = -0.4, size = 3, colour = "grey45") +
   scale_colour_manual(values = game_colours) +
   scale_linetype_manual(values = c(`0/2` = "dashed", `2/2` = "solid"), labels = function(t) paste(t, "Improved Execute")) +
@@ -335,7 +336,7 @@ expand_grid(ap = c(1000, 1500, 2000, 2500, 3000), game = c("Classic", "Forever")
 A few things stand out:
 
 - **Improved Execute matters a lot for this comparison.** Without it, Bloodthirst catches up `r round(am("Classic", "2/2") - am("Classic", "0/2"))` attack power earlier in Classic and `r round(am("Forever", "2/2") - am("Forever", "0/2"))` earlier in Forever, since the same 600 base damage costs 5 more rage.
-- **In Forever, the whole picture moves about `r round(am("Forever", "2/2") - am("Classic", "2/2"))` attack power to the right.** Bloodthirst's lower attack power scaling means Execute stays ahead for longer: at 2000 attack power, where the two are even at 30 rage in Classic, a Forever Execute with Improved Execute still beats Bloodthirst up to about `r round(exec_even(bt_raw_dpr("Forever", 2000), 5))` rage.
+- **In Forever, the whole picture moves about `r round(am("Classic", "2/2") - am("Forever", "2/2"))` attack power to the left.** Bloodthirst's flat 48 means it catches Execute a little sooner: at 2000 attack power, where the two are even at 30 rage in Classic, a Forever Bloodthirst already beats a 30 rage Execute with Improved Execute (they'd be even at about `r round(exec_even(bt_raw_dpr("Forever", 2000), 5))` rage). Before 1 October, with Bloodthirst at 35%, it went the other way, by about 430 attack power.
 - **Where you actually are on this plot depends on your attack power.** Our rough guesses for pre-BiS to phase 4 elsewhere in this chapter run from `r min(gear$ap)` to `r max(gear$ap)`, which is on the low side; well-buffed raiders can go well past 2000, which is where the choice between the two starts to matter. Keep in mind this only compares the two per point of rage: Execute can only be used once the boss is below 20% health.
 
 ### Execute in a fight
@@ -357,7 +358,7 @@ exec_window <- 0.2 * sim_defaults$fight_len
 exec_each <- exec_sims %>% select(game, phase, talent, exec_rage) %>% unnest(exec_rage)
 ```
 
-```{r fig.cap="Execute damage per second during the execute phase, at each phase of gear, with and without Improved Execute. The dots are the typical fight, and the lines cover the middle 90% of fights. In Classic, Execute damage keeps growing with gear; in Forever it barely moves.", fig.height=3.8}
+```{r fig.cap="Execute damage per second during the execute phase, at each phase of gear, with and without Improved Execute. The dots are the typical fight, and the lines cover the middle 90% of fights. In Classic, Execute damage grows fast with gear; in Forever it grows more slowly.", fig.height=3.8}
 exec_sims %>% mutate(exec_phase_dps = dps_exec * sim_defaults$fight_len / exec_window) %>%
   group_by(game, phase, talent) %>%
   summarise(med = median(exec_phase_dps), lo = quantile(exec_phase_dps, 0.05), hi = quantile(exec_phase_dps, 0.95), .groups = "drop") %>%
@@ -389,16 +390,16 @@ exec_summary %>% arrange(talent, phase, game) %>%
 ex <- function(g, ph, col, tl = "0/2") exec_summary[[col]][exec_summary$game == g & exec_summary$phase == ph & exec_summary$talent == tl]
 ```
 
-Without Improved Execute, the typical Execute is only somewhat bigger in Classic: `r round(ex("Classic", "Phase 2", "rage_med"))` rage at phase 2, against `r round(ex("Forever", "Phase 2", "rage_med"))` in Forever, since pressing Execute every global cooldown keeps spending the rage as fast as it comes in. The difference is in how Classic's rage changes as it gears up. At pre-BiS it can only afford `r round(ex("Classic", "Pre-BiS", "per_min"), 1)` Executes a minute, against Forever's `r round(ex("Forever", "Pre-BiS", "per_min"), 1)`, but by phase 4 it fits in `r round(ex("Classic", "Phase 4", "per_min"), 1)`, and its big Executes get bigger (the top 5% use `r round(ex("Classic", "Phase 4", "rage_hi"))` rage or more at phase 4, against `r round(ex("Forever", "Phase 4", "rage_hi"))` in Forever). Forever looks the same at every phase, since its rage doesn't change with gear. From pre-BiS to phase 4, Classic's Execute damage grows by `r round((ex("Classic", "Phase 4", "exec_dps") / ex("Classic", "Pre-BiS", "exec_dps") - 1) * 100)`%, against `r round((ex("Forever", "Phase 4", "exec_dps") / ex("Forever", "Pre-BiS", "exec_dps") - 1) * 100)`% in Forever.
+Without Improved Execute, the typical Execute uses about the same rage in both games (`r round(ex("Classic", "Phase 2", "rage_med"))` at phase 2 in Classic, `r round(ex("Forever", "Phase 2", "rage_med"))` in Forever), since pressing Execute every global cooldown keeps spending the rage as fast as it comes in. The difference is in how many you can afford, and how that changes as you gear up. At pre-BiS, Classic can only afford `r round(ex("Classic", "Pre-BiS", "per_min"), 1)` Executes a minute, against Forever's `r round(ex("Forever", "Pre-BiS", "per_min"), 1)`. By phase 4 Classic fits in `r round(ex("Classic", "Phase 4", "per_min"), 1)`, and Forever `r round(ex("Forever", "Phase 4", "per_min"), 1)`: Forever's rage grows too now, through crit, but more slowly. From pre-BiS to phase 4, Classic's Execute damage grows by `r round((ex("Classic", "Phase 4", "exec_dps") / ex("Classic", "Pre-BiS", "exec_dps") - 1) * 100)`%, against `r round((ex("Forever", "Phase 4", "exec_dps") / ex("Forever", "Pre-BiS", "exec_dps") - 1) * 100)`% in Forever.
 
-Improved Execute helps both games: `r round((ex("Forever", "Phase 2", "exec_dps", "2/2") / ex("Forever", "Phase 2", "exec_dps") - 1) * 100)`% to Forever's Execute damage at phase 2, and `r round((ex("Classic", "Phase 2", "exec_dps", "2/2") / ex("Classic", "Phase 2", "exec_dps") - 1) * 100)`% in Classic. A cheaper Execute can be pressed sooner after each one, so you get more of them (`r round(ex("Forever", "Phase 2", "per_min", "2/2"), 1)` a minute instead of `r round(ex("Forever", "Phase 2", "per_min"), 1)` in Forever), each carrying the full 600 base damage. Either way, Execute is one of the clearest places where Forever's flat rage shows up: in Classic, gear gave you more and bigger Executes, and in Forever it barely changes them.
+Improved Execute helps both games: `r round((ex("Forever", "Phase 2", "exec_dps", "2/2") / ex("Forever", "Phase 2", "exec_dps") - 1) * 100)`% to Forever's Execute damage at phase 2, and `r round((ex("Classic", "Phase 2", "exec_dps", "2/2") / ex("Classic", "Phase 2", "exec_dps") - 1) * 100)`% in Classic. A cheaper Execute can be pressed sooner after each one, so you get more of them (`r round(ex("Forever", "Phase 2", "per_min", "2/2"), 1)` a minute instead of `r round(ex("Forever", "Phase 2", "per_min"), 1)` in Forever), each carrying the full 600 base damage. Either way, Execute is one of the clearest places where the two games' rage differs: in Classic, gear gave you many more Executes, and in Forever it gives you a few more, only through crit.
 
 ## What to test
 
 Neither ability can be learned in the beta yet. Once they can, these are the things to check in the logs:
 
-1. **Bloodthirst's damage:** is it 35% of attack power plus 48 at rank 4? Hits against a mob with known armor, at a known attack power, would settle it.
-2. **Whirlwind's off-hand hit with Raging Blows:** does it do half damage, does Dual Wield Specialization's +25% apply, and does it roll separately from the main hand?
+1. **Bloodthirst's damage:** is it 45% of attack power plus 48 at rank 4? Hits against a mob with known armor, at a known attack power, would settle it.
+2. **Whirlwind's off-hand hit:** does it do half damage, does Dual Wield Specialization's +25% apply, and does it roll separately from the main hand? And does Raging Blows bring the cost to 22?
 3. **Whirlwind's speed:** does it use a normalised speed (2.4 for one-handers) or the weapon's real speed?
 4. **Crits:** do Bloodthirst and Whirlwind crits trigger Flurry (see the [Flurry chapter](#flurry))?
 

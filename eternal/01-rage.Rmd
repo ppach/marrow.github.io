@@ -50,12 +50,11 @@ forever_dw <- forever_mh + forever_oh          # no talents
 # Rage per second of weapon speed for every logged swing, which the simulations draw from
 forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
                       OH = with(filter(obs, hand == "Off hand"),  gain / speed))
-# With Dual Wield Specialization 5/5 (+100% off-hand rage), which every dual-wield Fury build takes
-forever_dw_tal <- forever_mh + forever_talents$oh_rage_mult * forever_oh
 
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "3.2.0",  "2026-10-28", "Added what changed in the game after these logs, from Blizzard's 1 Oct development notes and the 1 to 2 Oct hotfixes: crits now give twice a normal swing's rage, Dual Wield Specialization gives the off hand +50% rage (not +100%) and its hit moved to Furious Precision, Boundless Rage is gone, and Unbridled Wrath gives 1 rage per proc with two-handers too. The logged findings themselves don't change, since every log is from before 1 Oct. The level cap is now 30, so Dual Wield Specialization can be tested.",
   "3.1.0",  "2026-10-01", "Narrowed the attack power open question. As Nodrak pointed out, the mobs in the logs cast Demoralizing Shout on the warrior, but the logged attack power already includes the debuff, so it doesn't explain the gap. The logs show attack power adds damage at the Classic rate (0.28 damage per point on the Battle Axe, against 0.27); what's still open is that the hits start lower than the Classic formula gives.",
   "3.0.0",  "2026-09-25", "Classic's rage formula corrected to 7.5 x damage / C, from Kalgan's blue post, ClassicSim and WarriorSim (it was 15, copied from the Classic compendium). Every Classic comparison halves: at level 60 with the logged weapons, Classic now gives less rage than Forever, not more. The level 60 comparison also takes off the 4.8% crit lost against a boss. None of the Forever findings change.",
   "2.3.0",  "2026-09-24", "Haste doesn't change rage per swing: every hasted swing under Berserking or Fishliver Oil (which gives about 10% attack speed in Forever) gave the full rate x weapon speed, so haste raises rage per second. New logs from Budder (3.6 two-hander, Unbridled Wrath 1/5 and 2/5) and Ceece (2.8 one-hander, 3.7 two-hander) match the rates and the Unbridled Wrath bug.",
@@ -140,7 +139,7 @@ swings %>% filter(!capped) %>%
 ```
 
 1. **The Classic hypothesis doesn't hold.** How much damage a white swing does has nothing to do with how much rage it gives - within each group the damage can vary by 2 to 4 times while the rage stays exactly the same.
-2. **Crits don't give extra rage.** A crit gives the same rage as a normal hit, and so does a glancing blow.
+2. **Crits don't give extra rage.** A crit gives the same rage as a normal hit, and so does a glancing blow. (That was true in build 1.60.1, which all our logs come from. Since 1 October, a crit gives twice the rage of a normal hit: see [What changed after these logs](#rage-since-logs).)
 3. **Rage scales with weapon speed.** The time between swings in each group lines up with one of the posted weapon speeds, and the rage per swing is just that speed times a fixed rate:
    - main hand (one-handed): about **3.46 rage per second of speed**
    - off hand: about **1.73**, which is exactly half the main hand
@@ -362,7 +361,7 @@ Classic then uses its formula with the level 60 conversion value ($C = `r round(
 
 There's one big assumption in all of this: our Forever rates come from low-level characters, and we're assuming they don't change all the way up to 60. The logs now span a level 1 character (elvenfresh's haste test, 60 health) up to Ceece at level 17, and every one of them gives the same rates, which is a good sign, but nothing above 20 can be tested yet. So if the rates do turn out to change at higher levels, the Forever side of these plots will move.
 
-These plots also compare the two games **with no talents**, since that's what the logs measure. Talents change the picture quite a bit, mostly in Forever: Dual Wield Specialization now gives +100% off-hand rage and +10% off-hand hit (in Classic it only added off-hand damage), Anger Management gives 1 rage every 3 seconds, and Boundless Rage raises the cap to 130. The fight simulations in the later chapters include them.
+These plots also compare the two games **with no talents** and with the rules in our logs, where a crit gives no extra rage. Since 1 October that's changed (see [What changed after these logs](#rage-since-logs)): a crit gives twice the rage, so Forever's line would sit higher by about the share of swings that crit. Talents change the picture too, mostly in Forever: Dual Wield Specialization gives +50% off-hand rage (in Classic it only added off-hand damage), Furious Precision +10% off-hand hit, and Anger Management 1 rage every 3 seconds. The fight simulations in the later chapters include all of it.
 
 ```{r}
 n_sim <- 4000
@@ -453,7 +452,7 @@ per_sec %>% group_by(Setup = setup) %>%
 
 So what actually changes for a level 60 warrior?
 
-- In Classic, better gear means more rage, since more attack power and more crits mean more damage. In Forever, your gear doesn't change the rage you get from white hits at all.
+- In Classic, better gear means more rage, since more attack power and more crits mean more damage. In Forever, with the rules in these logs, your gear didn't change the rage you get from white hits at all. Since 1 October, crit does: a crit gives twice the rage, so more crit means more rage, though weapon damage and attack power still don't.
 - In Classic, your rage per second changes from fight to fight and from player to player, whereas in Forever it's basically fixed: about `r round(mean(post$rate[post$hand == "Main hand"]) + mean(post$rate[post$hand == "Off hand"]), 2)` for dual wield and `r round(mean(post$rate[post$hand == "Two-hand"]), 2)` for a two-hander.
 - The weapons in these logs are low-level ones, which is why Classic comes out behind here: its rage follows damage, and these weapons don't hit very hard. Real level 60 weapons hit much harder, which means more rage in Classic but not in Forever. The [Scaling chapter](#scaling) follows a level 60 warrior through the gear phases, and finds Classic's rage catching up with Forever's partway through the raid phases.
 
@@ -514,7 +513,7 @@ energize %>% filter(amount > 0) %>% mutate(Log = str_remove(file, "_092326.txt")
 ```
 
 - **Charge** gives 9 rage and **Bloodrage** gives 10 up front plus 1 per tick, same as in Classic.
-- **Unbridled Wrath** gives 1 rage per proc with one-handers but 2 with the two-hander, which fits the same pattern of two-handers getting more rage per event.
+- **Unbridled Wrath** gives 1 rage per proc with one-handers but 2 with the two-hander, which fits the same pattern of two-handers getting more rage per event. (Blizzard's 1 Oct notes take that away: two-handers get 1 rage per proc now too.)
 - **Unbridled Wrath procs a lot less often than its tooltip says** (a bug), and never off Heroic Strike or Cleave. There's a whole section on it below.
 - **Heroic Strike** hits don't give any rage, at least in the cases we checked.
 - **Misses, dodges and parries** on our own swings give little or no rage (though we only have a few of them).
@@ -607,14 +606,35 @@ It isn't PPM. The proc chance per hit is the same whatever the weapon speed: at 
 
 So once the fix lands, every weapon should get the same 60% chance per hit at 5/5, and faster weapons will get more procs per minute simply because they hit more often.
 
-Two more things stay the same as before: every proc gives 1 rage with one-handers and 2 with two-handers, at every rank, and none of the procs come from Heroic Strike or Cleave.
+Two more things stay the same as before: every proc gives 1 rage with one-handers and 2 with two-handers, at every rank, and none of the procs come from Heroic Strike or Cleave. Blizzard's 1 Oct notes say the proc chance has been fixed ("a lower-than-intended proc chance"), and that two-handers now get 1 rage per proc like everyone else; neither has been checked in logs yet.
+
+## What changed after these logs {#rage-since-logs}
+
+Every log in this chapter comes from beta build 1.60.1, before Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4) and the Warrior hotfixes of 1 and 2 October. Those changed several things about rage that our logs can't show yet:
+
+```{r}
+tribble(
+  ~Change,                                                                                   ~`Where it comes from`,
+  "A white crit gives twice the rage of a normal hit (100% more; it was 75% on 30 September, and nothing before that)", "Blizzard's notes, edited 2 Oct",
+  "Dual Wield Specialization: +50% off-hand rage at 5/5 (it was +100%). Its +10% off-hand hit moved to the new Furious Precision talent", "The hotfixed talent tree (the notes say the rage bonus was removed, but the tooltip gives back half of it)",
+  "Boundless Rage is gone, so the rage cap is 100 (it was 130 with the talent)",            "Blizzard's notes",
+  "Unbridled Wrath gives 1 rage per proc with two-handers too (it was 2)",                  "Blizzard's notes",
+  "Unbridled Wrath's proc chance fixed (BUG-1)",                                             "Blizzard's notes",
+  "Rage from damage taken: based on the attacker's expected health, not yours, counts crits and crushing blows, and ignores absorbs", "Blizzard's notes, 8 Oct"
+) %>% knitr::kable(caption = "Changes to rage since the logs in this chapter were recorded. None of them has been checked in logs yet.")
+```
+
+The first one matters most here. Our logs found that a crit gives exactly the same rage as a normal hit; since 1 October it gives twice as much, so rage per swing is no longer quite fixed: it's still rate × weapon speed, but doubled on a crit. The rest of the book uses these rules. The [Rage on Crit chapter](#rage-on-crit) works through what they do to a Fury warrior.
+
+The level cap went up to 30 on 1 October, which opens up Dual Wield Specialization, Furious Precision and Raging Blows for testing.
 
 ## Open questions
 
+- Check the new crit rule: does a white crit now give exactly twice a normal swing's rage?
 - Check whether the rates change above level 20. From level 1 to 17 they don't.
 - Figure out why hits are smaller than the Classic formula gives. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing, but the logged Battle Axe hits are only 69 to 88. Nodrak pointed out that the mobs in these logs cast Demoralizing Shout, which lowers the warrior's attack power, and they do: in Zomd's Battle Axe log, the Witchwing Slayers put it on Zomd over and over. But the attack power in the logs already includes the debuff (it drops from about 420 to 440 down to 375 to 400 while it's up), so the debuff doesn't explain the gap on its own. What the logs do show is that attack power adds damage at the Classic rate: across the logged hits, each point of attack power adds 0.28 damage (give or take 0.02) to a Battle Axe swing, where the Classic rule gives 0.27. It's the starting point that's off: the hits are lower than the Classic formula gives at any attack power. So the open question is the base of the formula (the weapon's damage, or a reduction we haven't found), not how attack power scales. Logs against mobs that don't shout, with the weapon's damage range posted, would settle it.
-- Keep checking new builds to see when [BUG-1](#bug-ubw) gets fixed.
-- Test Dual Wield Specialization, whose tooltip says it doubles off-hand rage at 5/5. It's in the fourth row of the Fury tree, so it needs level 24 or higher.
+- Check that [BUG-1](#bug-ubw) is fixed: Blizzard's notes say so, but no log since has shown 5/5 procing on 60% of hits.
+- Test Dual Wield Specialization, whose tooltip now says +50% off-hand rage at 5/5 (10% a rank), while Blizzard's notes say it lost its rage bonus. It's in the fourth row of the Fury tree, so it needs level 24 or higher, which the level 30 cap allows.
 - Test stances, and rage from damage taken, in a controlled setting.
 - Record mid-log hand swaps in the metadata, since one log shows both weapons being used in both hands.
 

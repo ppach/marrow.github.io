@@ -5,13 +5,17 @@
 #
 # Talents follow the most popular Fury build on talentsforever.com (17/34/0), in its Forever and
 # Classic versions: see `forever_talents` and `classic_talents` below, and data/talents/README.md.
+# Forever's rules are the ones in the game since the 1 to 2 Oct 2026 Warrior hotfixes (Blizzard's 1 Oct
+# development notes, and the hotfixed talent tree).
 #
 # This is not meant to be a full simulator. The Classic mechanics follow the two Classic simulators,
 # WarriorSim (github.com/GuybrushGit/WarriorSim) and ClassicSim (github.com/timhul/ClassicSim), and the
 # Classic warrior wiki (github.com/magey/classic-warrior/wiki), which we use to check our assumptions.
 # Where WarriorSim and ClassicSim disagree we follow WarriorSim, which is still maintained. Forever uses
-# the same mechanics, except where our logs show otherwise: rage per white swing, no rage from dodged
-# swings, no rage from Heroic Strike, and Unbridled Wrath only from landed white hits.
+# the same mechanics, except where our logs or Blizzard's notes show otherwise: rage per white swing, no rage
+# from dodged swings, no rage from Heroic Strike, Unbridled Wrath only from landed white hits (logs), and a
+# crit giving twice the rage, Whirlwind hitting with both weapons and a queued Heroic Strike no longer
+# raising off-hand hit (notes).
 
 sim_defaults <- list(
   fight_len = 180,        # seconds
@@ -22,12 +26,12 @@ sim_defaults <- list(
                             # talents, gear and buffs (Classic wiki, "Crit aura suppression"; WarriorSim)
   miss = 0.20,            # white miss chance for a dual wielder with some hit gear (before off-hand talents)
   dodge = 0.065, glance = 0.40, glance_dmg = 0.65,
-  yellow_miss = 0.01,     # without the dual wield penalty (19% lower than white): yellow attacks, and off-hand
-                          # swings while Heroic Strike is queued
+  yellow_miss = 0.01,     # without the dual wield penalty (19% lower than white): yellow attacks, and in Classic
+                          # off-hand swings while Heroic Strike is queued (`hs_oh_hit`)
   crit_mult_yellow = 2.2, # 2x, plus Impale 2/2
   wpn_norm = 2.4,         # normalised speed of a one-handed weapon, used by Whirlwind
   gcd = 1.5,
-  bt_cost = 30, bt_cd = 6, ww_cost = 25, ww_cd = 10,
+  bt_cost = 30, bt_cd = 6, ww_cd = 10,
   hs_cost = 12, hs_bonus = 157, # rank 9, with Improved Heroic Strike 3/3
   hs_threshold = 60,      # queue Heroic Strike when rage is at least this much
   refund = 0.80,          # share of the cost given back when Bloodthirst or Heroic Strike misses or is dodged
@@ -41,29 +45,36 @@ sim_defaults <- list(
   exec_cost = 15, exec_base = 600, exec_per_rage = 15,   # rank 5, the same in both games
   ubw_rage = 1,
   # Off unless switched on (the Rage on Crit chapter):
-  crit_rage_mult = 1,     # a white crit gives this many times the rage of a normal hit (Forever after the 30 Sep 2026
-                          # change: 1.75). Classic's rage already grows with a crit's damage, so it stays at 1 there.
   flurry_rage = 0,        # extra rage from each white swing that lands while Flurry speeds it up (a design option)
   extra_haste = 1         # attack speed from outside Flurry, e.g. 1.03 for weapon enchants
 )
 
-# Forever 17/34/0: Dual Wield Specialization 5/5 (+25% off-hand damage, +100% off-hand rage, +10% off-hand
-# hit), Anger Management (1 rage every 3 sec), Boundless Rage 3/3 (+30 max rage), Raging Blows
-# (Whirlwind also hits with the off hand), Flurry 25%, Unbridled Wrath 60% (tooltip), Bloodthirst
-# 35% of AP + 48 (rank 4). A dodged white swing gives no rage (logs).
+# Forever 17/34/0 (since the 1 Oct rework): Dual Wield Specialization 5/5 (+25% off-hand damage, +50% off-hand
+# rage), Furious Precision 3/3 (+10% off-hand hit), Anger Management (1 rage every 3 sec), Raging Blows (Whirlwind
+# costs 3 less), Flurry 25%, Unbridled Wrath 60% (tooltip), Bloodthirst 45% of AP + 48 (rank 4). No Boundless
+# Rage any more, so the cap is 100. Whirlwind hits with both weapons without a talent. A white crit gives twice
+# the rage of a normal hit (`crit_rage_mult`). A dodged white swing gives no rage (logs), and a queued Heroic
+# Strike no longer raises off-hand hit.
 forever_talents <- list(
-  oh_dmg_mult = 1.25, oh_rage_mult = 2, oh_hit_bonus = 0.10, anger_rps = 1 / 3, rage_cap = 130,
-  raging_blows = TRUE, flurry_haste = 0.25, flurry_charges = 3, ubw_chance = 0.60,
-  bt_ap = 0.35, bt_flat = 48, dodge_rage = 0
+  oh_dmg_mult = 1.25, oh_rage_mult = 1.5, oh_hit_bonus = 0.10, anger_rps = 1 / 3, rage_cap = 100,
+  ww_offhand = TRUE, ww_cost = 22, flurry_haste = 0.25, flurry_charges = 3, ubw_chance = 0.60,
+  bt_ap = 0.45, bt_flat = 48, dodge_rage = 0, crit_rage_mult = 2, hs_oh_hit = FALSE
 )
-# Classic 17/34/0: Dual Wield Specialization only adds damage, no Boundless Rage or Raging Blows,
-# Flurry 30%, Unbridled Wrath 40%, Bloodthirst 45% of AP. A dodged white swing gives the rage of 75% of an
-# average hit (WarriorSim).
+# Classic 17/34/0: Dual Wield Specialization only adds damage, Whirlwind only hits with the main hand, Flurry 30%,
+# Unbridled Wrath 40%, Bloodthirst 45% of AP. A dodged white swing gives the rage of 75% of an average hit
+# (WarriorSim). Classic's rage already grows with a crit's damage, so `crit_rage_mult` stays at 1.
 classic_talents <- list(
   oh_dmg_mult = 1.25, oh_rage_mult = 1, oh_hit_bonus = 0, anger_rps = 1 / 3, rage_cap = 100,
-  raging_blows = FALSE, flurry_haste = 0.30, flurry_charges = 3, ubw_chance = 0.40,
-  bt_ap = 0.45, bt_flat = 0, dodge_rage = 0.75
+  ww_offhand = FALSE, ww_cost = 25, flurry_haste = 0.30, flurry_charges = 3, ubw_chance = 0.40,
+  bt_ap = 0.45, bt_flat = 0, dodge_rage = 0.75, crit_rage_mult = 1, hs_oh_hit = TRUE
 )
+# Forever's rules before the 1 Oct rework (September 2026), which the Rage Design Proposals chapter was written
+# against: Dual Wield Specialization doubled off-hand rage and gave +10% off-hand hit, Boundless Rage 3/3 raised the
+# cap to 130, crits gave no extra rage, Bloodthirst was 35% of AP + 48, Whirlwind cost 25 (Raging Blows only gave it
+# the off-hand hit) and a queued Heroic Strike still raised off-hand hit.
+forever_sep_talents <- modifyList(forever_talents, list(
+  oh_rage_mult = 2, rage_cap = 130, crit_rage_mult = 1, bt_ap = 0.35, ww_cost = 25, hs_oh_hit = TRUE
+))
 sim_defaults <- modifyList(sim_defaults, forever_talents)
 
 # Rage for one landed white swing, before talents. `hand` is "MH" or "OH"; `dmg` is the landed damage
@@ -75,7 +86,7 @@ make_rage_models <- function(forever_rates, C60, scale_rps, hybrid_alpha, hybrid
   hand_share <- c(MH = 1 / 1.5, OH = 0.5 / 1.5)
   list(
     `Classic`              = function(hand, dmg, speed) k * dmg / C60,
-    `Forever (today)`      = function(hand, dmg, speed) forever_swing(hand, speed),
+    `Forever (September)`  = function(hand, dmg, speed) forever_swing(hand, speed),
     `Proposal: sigmoid`    = function(hand, dmg, speed) forever_swing(hand, speed) * scale_rps[["sigmoid"]],
     `Proposal: saturating` = function(hand, dmg, speed) forever_swing(hand, speed) * scale_rps[["saturating"]],
     `Proposal: hybrid`     = function(hand, dmg, speed) forever_swing(hand, speed) +
@@ -144,7 +155,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         return(d > 0)
       }
     }
-    miss <- if (hand == "OH") max((if (hs_queued) p$yellow_miss else p$miss) - p$oh_hit_bonus, 0) else p$miss
+    miss <- if (hand == "OH") max((if (hs_queued && p$hs_oh_hit) p$yellow_miss else p$miss) - p$oh_hit_bonus, 0) else p$miss
     roll <- runif(1)
     if (roll < miss) return(FALSE)
     if (roll < miss + p$dodge) {
@@ -212,12 +223,13 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         rage <- rage - p$ww_cost; spent["ww"] <- spent["ww"] + p$ww_cost; ww_ready <- t + p$ww_cd; gcd_ready <- t + p$gcd; n["ww"] <- n["ww"] + 1
         d <- yellow(ww_hit("MH", p$mh_speed))
         dmg["ww"] <- dmg["ww"] + d
-        if (p$raging_blows) dmg["ww"] <- dmg["ww"] + yellow(ww_hit("OH", p$oh_speed))
+        if (p$ww_offhand) dmg["ww"] <- dmg["ww"] + yellow(ww_hit("OH", p$oh_speed))
         if (d > 0) windfury()
       }
     }
     # Heroic Strike is queued as soon as there's enough rage, and goes off on the next main-hand swing if
-    # there's still enough to pay for it. While it's queued, off-hand swings lose the dual wield miss penalty.
+    # there's still enough to pay for it. In Classic, while it's queued, off-hand swings lose the dual wield miss
+    # penalty (`hs_oh_hit`); Forever took that out on 1 Oct.
     if (!in_execute && !hs_queued && rage >= p$hs_threshold + p$hs_cost) hs_queued <- TRUE
 
     for (hand in c("MH", "OH")) {

@@ -2,13 +2,14 @@
 
 ```{r setup-crit, include=FALSE}
 # Reuses `conv`, `classic_k`, the Forever rates (`forever_mh`, `forever_oh`, `forever_draws`) and the fight simulator
-# from the Rage Generation chapter. This chapter is standalone: it uses the rage rules announced at the end of Sep 2026,
-# and the rest of the book still uses the rules from before.
+# from the Rage Generation chapter, and `ladder` from the How Damage Scales chapter. v2 is the game's rage since the
+# 1 to 2 Oct 2026 hotfixes, which the rest of the book uses too.
 source("data/sim_cache.R")
 library(parallel)
 
 crit_changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.0.0",  "2026-10-28", "v2 is in the game: Blizzard's 1 Oct development notes give crits 100% more rage, and the hotfixed talent tree gives Dual Wield Specialization +50% off-hand rage, with its off-hand hit moved to Furious Precision. The rest of the book now uses v2. Every version is simulated on today's build otherwise (Bloodthirst at 45% of attack power, a 100 rage cap without Boundless Rage, Whirlwind for 22 rage with Raging Blows, and a queued Heroic Strike no longer raising off-hand hit), and the rage Bloodthirst and Whirlwind need comes from the How Damage Scales chapter's rage blocks.",
   "1.0.0",  "2026-10-01", "First version: three versions of Forever's rage (v0 before 30 September; v1, the 30 September change, where crits give 75% more rage and Dual Wield Specialization no longer adds off-hand rage; and v2, the fix Zirene announced, where crits give 100% more and the off hand 50% more) against Classic, at every crit, hit and attack power. Where the ceiling comes from, how long you wait between Heroic Strikes, an interactive map for your own gear, a check against Bored's rage spreadsheet, and two design ideas."
 )
 
@@ -19,12 +20,12 @@ crit_wpn <- 58   # the phase 2 weapon from the How Damage Scales chapter, held f
 # glancing blows at 65% damage. Windfury Totem is always up.
 crit_table <- function(hit) list(crit_suppression = 0, miss = 0.27 - hit, yellow_miss = max(0.08 - hit, 0),
                                  dodge = 0.065, glance = 0.40, glance_dmg = 0.65, wf = TRUE)
-# Each version of the rage rules. Forever versions use the 17/34/0 Forever build; only the off-hand rage multiplier
-# (Dual Wield Specialization), the crit multiplier and the Flurry bonus change.
+# Each version of the rage rules. Forever versions use today's 17/34/0 Forever build (Bloodthirst at 45%, a 100 rage
+# cap, Whirlwind for 22 rage); only the off-hand rage multiplier (Dual Wield Specialization), the crit multiplier and
+# the Flurry bonus change, so the versions differ in their rage and nothing else.
 #   v0: before 30 Sep 2026 (off hand x2, no crit bonus)
 #   v1: the 30 Sep change (crits x1.75, off hand x1)
-#   v2: the fix Zirene announced (crits x2, off hand x1.5; Dual Wield Specialization's hit only for the off hand,
-#       which is how the simulator already works)
+#   v2: the game since the 1 to 2 Oct hotfixes, as Zirene announced (crits x2, off hand x1.5)
 crit_versions <- list(
   `Forever v0`             = list(game = "Forever", p = list(oh_rage_mult = 2, crit_rage_mult = 1)),
   `Off hand x1, no crit bonus` = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1)),
@@ -52,7 +53,8 @@ gear_points <- tribble(~point, ~ap, ~crit, ~hit,
   "Mid",   2000, 0.30, 0.075,
   "Late",  2750, 0.40, 0.10)
 n_crit <- 60; crit_fight_len <- 600   # fights per gear point, and their length (long, so the opening matters little)
-bt_ww_need <- 6.8   # rage per second Bloodthirst and Whirlwind use when cast on cooldown (How Damage Scales chapter)
+# rage per second Bloodthirst and Whirlwind use when cast on cooldown (the How Damage Scales chapter's rage blocks)
+bt_ww_need <- round(ladder("Forever", crit_wpn)$blocks$end[2], 1)
 ```
 
 ```{r crit-sims, include=FALSE}
@@ -164,7 +166,7 @@ drought_cmp_range <- function(models) {
 crit_cols <- c(`Forever v0` = "#9ecae1", `Forever v1` = "#4292c6", `Forever v2` = "#08306b", `Classic` = "grey45",
                `Classic (1250 AP)` = "grey70", `Classic (2000 AP)` = "grey45", `Crits x2, off hand x2` = "#756bb1")
 crit_labs <- c(`Forever v0` = "Forever v0: before\n(off hand x2, no crit bonus)", `Forever v1` = "Forever v1: 30 September\n(crits x1.75, off hand x1)",
-               `Forever v2` = "Forever v2: the coming fix\n(crits x2, off hand x1.5)",
+               `Forever v2` = "Forever v2: today, since 1 Oct\n(crits x2, off hand x1.5)",
                `Classic` = "Classic\n(7.5 x damage / C)", `Crits x2, off hand x2` = "Crits give 200%,\noff hand x2")
 blues <- c("#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b")
 # One continuous colour scale for every rage-per-second map, so the same colour means the same rage in each
@@ -297,17 +299,19 @@ hit_band <- annotate("rect", xmin = -Inf, xmax = Inf, ymin = 0.05, ymax = 0.10, 
                      linewidth = 0.7, linetype = "dotted")
 ```
 
-*Version `r crit_changelog$version[1]` (`r crit_changelog$date[1]`). **Model only, built on announcements:** the rules in this chapter were announced at the end of September 2026 and haven't been logged yet. This chapter is standalone: the rest of the book still uses the rules from before. See the [changelog](#crit-changelog).*
+*Version `r crit_changelog$version[1]` (`r crit_changelog$date[1]`). **Model only, built on announcements:** v2 has been in the game since the Warrior hotfixes of 1 and 2 October 2026, but nobody has logged it yet. The rest of the book uses v2 too. See the [changelog](#crit-changelog).*
 
 On 30 September 2026, Blizzard's [Class Deep Dive for priests and warriors](https://worldofwarcraft.blizzard.com/en-us/news/24301514) announced a new rage formula for Forever: "Critical strike will now give 75% more Rage than non-critical strikes." At the same time, Dual Wield Specialization stopped doubling the off hand's rage. Until then, a crit gave exactly the same rage as a normal hit (that was one of the findings of the [Rage Generation chapter](#rage)), so this was the first time Forever's rage depended on anything your gear does other than how often you land a swing.
 
 Shortly after, Zirene, one of Forever's developers, [posted on X](https://x.com/Zirene/status/2105700347557867695) that warriors' testing had been thrown off by a bug: Dual Wield Specialization was giving 10% hit to every attack, not just the off hand's. With that fixed, crits will give 100% more rage, and Dual Wield Specialization will give the off hand 50% more rage.
 
-So there are now three versions of Forever's rage to compare, plus Classic:
+That's what happened. Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4) (edited on 2 October) raise the crit bonus to 100%, and the Warrior hotfixes of 1 and 2 October gave Dual Wield Specialization a +50% off-hand rage tooltip (10% a rank). The notes themselves say Dual Wield Specialization lost its off-hand rage altogether, but the hotfixed talent tree, as read by [talentsforever.com](https://talentsforever.com), gives back half of it, as Zirene said it would. Its off-hand hit moved to a new talent, Furious Precision.
+
+So there are three versions of Forever's rage to compare, plus Classic:
 
 - **Forever v0**, the rules before 30 September: the off hand gets double rage from Dual Wield Specialization, and crits give no extra.
 - **Forever v1**, the 30 September change: crits give 75% more, and the off hand gets no bonus.
-- **Forever v2**, the coming fix: crits give 100% more (twice a normal swing's rage), and the off hand gets 50% more.
+- **Forever v2**, the game since 1 October: crits give 100% more (twice a normal swing's rage), and the off hand gets 50% more.
 - **Classic**, where rage comes from damage: 7.5 times the damage, divided by a constant for your level.
 
 This chapter asks what each one does to a Fury warrior. How much rage do you have, and how does it grow with crit, hit and attack power? Is there a ceiling? And does it change how the rotation *feels*, beyond the averages? We'll build it up from a single swing, check our numbers against the community's rage spreadsheet, and end with what the comparison says about the design.
@@ -320,14 +324,16 @@ Not everything in our simulations comes from an announcement, so here's where ea
 tribble(~Change, ~`Where it comes from`, ~`In our simulations`,
   "v1: a crit gives 75% more rage than a normal hit", "Blizzard's announcement (30 Sep)", "Yes",
   "v1: Dual Wield Specialization no longer adds off-hand rage", "Reported by testers (Bored's spreadsheet, 30 Sep update); the announcement lists only the off-hand hit", "Yes",
-  "v2: a crit gives 100% more rage, and Dual Wield Specialization gives the off hand 50% more", "Zirene, one of Forever's developers, on X", "Yes",
-  "Dual Wield Specialization's 10% hit applied to every attack (a bug, being fixed)", "Zirene, on X", "No: our simulator gives the hit to the off hand only, as the tooltip says",
+  "v2: a crit gives 100% more rage", "Zirene, one of Forever's developers, on X; Blizzard's notes (1 Oct, edited 2 Oct)", "Yes",
+  "v2: Dual Wield Specialization gives the off hand 50% more rage", "Zirene, on X; the hotfixed talent tree (the notes say it gives none)", "Yes",
+  "Dual Wield Specialization's 10% hit applied to every attack (a bug)", "Zirene, on X; fixed in Blizzard's notes (1 Oct), and the off-hand hit is Furious Precision's now", "No: our simulator gives the hit to the off hand only, as the tooltip says",
+  "Boundless Rage removed, so the cap is 100; Bloodthirst back to 45% of attack power; Raging Blows takes 3 rage off Whirlwind; a queued Heroic Strike no longer raises off-hand hit", "Blizzard's notes (1 Oct)", "Yes, in every version",
   "Rage from dealing damage is normalised to weapon speed", "Blizzard's announcement; it matches what our logs found", "Yes, as in the rest of the book",
   "No hit or crit suppression against bosses", "The in-game tooltips, as used in Bored's spreadsheet", "Yes",
   "Flurry's attack speed is 5% lower than Classic's", "Blizzard's announcement", "Yes, 25% (already in the book)",
   "Rage from damage taken ignores armor and absorbs", "Blizzard's announcement", "No: our warrior isn't taking hits",
   "Bloodthirst no longer heals", "Blizzard's announcement", "No effect on damage") %>%
-  knitr::kable(caption = "The changes behind this chapter, and where each one comes from.")
+  knitr::kable(caption = "The changes behind this chapter, and where each one comes from. Every Forever version is simulated on today's build, so they differ only in their rage.")
 ```
 
 Blizzard also said they're still tracking down bugs in the beta's rage generation, and Zirene's post is an example, so some of this may still move.
@@ -419,7 +425,7 @@ At early gear, v1's loss of the off-hand bonus costs `r f1(at_point("Forever v0"
 
 Crit isn't the only thing that matters. Hit makes more of your swings land, and a swing has to land to crit, so hit raises both parts of the sum in Step 1. Figure \@ref(fig:crit-contour) shows rage per second over every combination of the two, like a map where darker means more rage.
 
-```{r crit-contour, fig.cap=paste0("Rage per second for every combination of crit and hit from gear, at 2000 attack power. Darker means more rage, and the thin white lines are steps of 0.5 rage per second. The black dashed line is ", bt_ww_need, " rage per second, what Bloodthirst and Whirlwind use: gear below and to the left of it can't keep both on cooldown. The white dotted box is 5 to 10% hit, where most warriors will be. Under v0 and v2 almost any gear is above the line; under v1, the line runs through the middle of the usual gear."), fig.height=8.4, fig.width=10}
+```{r crit-contour, fig.cap=paste0("Rage per second for every combination of crit and hit from gear, at 2000 attack power. Darker means more rage, and the thin white lines are steps of 0.5 rage per second. The black dashed line is ", bt_ww_need, " rage per second, what Bloodthirst and Whirlwind use: gear below and to the left of it can't keep both on cooldown. The white dotted box is 5 to 10% hit, where most warriors will be. Under v0 almost any gear is above the line, and under v2 all of it is; under v1, the line runs through the middle of the usual gear."), fig.height=8.4, fig.width=10}
 d <- crit_res %>% filter(ap == 2000, model %in% main_models) %>%
   mutate(model = factor(model, main_models))
 ggplot2::ggplot(d, aes(crit, hit)) +
@@ -446,7 +452,7 @@ tibble(hit = c(0, 0.05, 0.075, 0.10)) %>%
   knitr::kable(caption = paste0("The crit you need to make the ", bt_ww_need, " rage per second Bloodthirst and Whirlwind use, at each level of hit."))
 ```
 
-Under v0, the dashed line only clipped the corner: almost any gear covered the rotation. **Under v1, it runs through the middle of the usual gear**: with `r pc(0.05)` hit you need about `r crit_needed("Forever v1", 0.05)` crit to keep Bloodthirst and Whirlwind going, and with `r pc(0.10)` hit about `r crit_needed("Forever v1", 0.10)`. **Under v2, it's back in the corner**: only with no hit at all do you need more than 15% crit (`r crit_needed("Forever v2", 0)`). In v1 and v2, hit is worth rage twice: once for the swings it lands, and again for the crits those swings can have.
+Under v0, the dashed line only clipped the corner: almost any gear covered the rotation. **Under v1, it runs through the middle of the usual gear**: with `r pc(0.05)` hit you need about `r crit_needed("Forever v1", 0.05)` crit to keep Bloodthirst and Whirlwind going, and with no hit `r crit_needed("Forever v1", 0)`. **Under v2, it's off the map**: even with no hit, `r crit_needed("Forever v2", 0)` crit covers the rotation. In v1 and v2, hit is worth rage twice: once for the swings it lands, and again for the crits those swings can have.
 
 Figure \@ref(fig:crit-map-pick) puts your own gear on the map. Set your crit and hit with the sliders: a red ring marks your gear on all four maps, and the line above reads out your rage per second under each version.
 
@@ -494,7 +500,7 @@ of the time. Past that, more crit on your character sheet doesn't give a single 
 ```{r}
 tibble(hit = c(0, 0.05, 0.075, 0.10, 0.15)) %>%
   transmute(`Hit from gear` = paste0(hit * 100, "%"), `Main hand` = pc(crit_cap(hit, "MH")), `Off hand` = pc(crit_cap(hit, "OH"))) %>%
-  knitr::kable(caption = "The most a white swing can crit against a level 63 boss, at each level of hit. The off hand has more room, because Dual Wield Specialization gives it 10% more hit.")
+  knitr::kable(caption = "The most a white swing can crit against a level 63 boss, at each level of hit. The off hand has more room, because Furious Precision gives it 10% more hit.")
 ```
 
 With `r pc(0.075)` hit, the main hand can't crit more than `r pc(crit_cap(0.075, "MH"))` of the time. v1's break-even point from Step 1, about `r pc0(be_crit(1, 0.75))`, is above that, which is why v1 only just catches up with v0 at the top of the range. v2 passes v0 long before the ceiling, so it has room to grow. The ceiling also moves up with hit: every 1% of hit gives 1% more room for crits.
@@ -607,10 +613,10 @@ expand_grid(Rules = c("Forever v0", opt_models), crit = c(0.15, 0.30, 0.45)) %>%
 
 What these show:
 
-- **v2 sits between Flurry +4 and the most generous idea.** At `r pc(0.075)` hit it runs from `r f2(gv("Forever v2", 0.15, 0.075))` to `r f2(gv("Forever v2", 0.45, 0.075))` rage per second, between Classic at 1250 attack power (`r f2(gv("Classic", 0.15, 0.075, ap = 1250))` to `r f2(gv("Classic", 0.45, 0.075, ap = 1250))`) and at 2000 (`r f2(gv("Classic", 0.15, 0.075))` to `r f2(gv("Classic", 0.45, 0.075))`).
+- **v2 sits just above Flurry +5, and below the most generous idea.** At `r pc(0.075)` hit it runs from `r f2(gv("Forever v2", 0.15, 0.075))` to `r f2(gv("Forever v2", 0.45, 0.075))` rage per second, between Classic at 1250 attack power (`r f2(gv("Classic", 0.15, 0.075, ap = 1250))` to `r f2(gv("Classic", 0.45, 0.075, ap = 1250))`) and at 2000 (`r f2(gv("Classic", 0.15, 0.075))` to `r f2(gv("Classic", 0.45, 0.075))`).
 - **Keeping the full off-hand bonus overshoots.** Crits at 200% with the off hand at double gives `r f2(gv("Crits x2, off hand x2", 0.15, 0.075))` to `r f2(gv("Crits x2, off hand x2", 0.45, 0.075))`, almost exactly Classic at 2000 attack power. A fresh level 60 would start with the rage of a well-geared Classic warrior, which leaves little room to grow. v2's half bonus lands lower.
 - **Every version flattens after about 35% crit.** That's the attack table's ceiling from Step 4, not the formulas: none of them caps any harder than another.
-- **The droughts follow how much rage you have, more than how it arrives.** Across the whole grid, at the same rage per second as v1, v0 (no crit bonus at all, so the steadiest rage) has a 1-in-10 wait `r drought_cmp("Forever v0")` v1's, v2's is `r drought_cmp("Forever v2")` v1's, and the Flurry options' are `r drought_cmp_range(paste0("Flurry +", 2:5))` it. So the main way to shorten the droughts is more rage, which is what v2 does.
+- **The droughts follow how much rage you have, more than how it arrives.** Across the whole grid, at the same rage per second as v1, v0 (no crit bonus at all, so the steadiest rage) has a 1-in-10 wait `r drought_cmp("Forever v0")` v1's, v2's is `r drought_cmp("Forever v2")` v1's, and the Flurry options' are `r drought_cmp_range(paste0("Flurry +", 2:5))` than v1's. So the main way to shorten the droughts is more rage, which is what v2 does.
 
 In other words, the real choice is **how high the floor should be**: how much rage a fresh level 60 has before crit adds anything. The crit bonus then adds growth on top of that, up to the attack table's ceiling. v1 set the floor too low; v2 raises it with half of the off-hand bonus, and its bigger crit bonus still leaves room to grow.
 
@@ -649,23 +655,23 @@ Two smaller things in the spreadsheet are worth knowing about. It applies the cr
 
 ## What we can test, and what we can't yet
 
-- **Announced, not yet logged:** the crit bonus. Our logs from before 30 September found crits gave no extra rage. Under v2, the first new logs should show a crit giving twice a normal swing's rage, in both hands.
-- **Announced, not yet logged:** the off-hand bonus from Dual Wield Specialization (none in v1, 50% in v2), and the fix to its hit, which should then apply only to the off hand. It needs level 24 to test.
+- **In the game, not yet logged:** the crit bonus. Our logs from before 30 September found crits gave no extra rage. The first new logs should show a crit giving twice a normal swing's rage, in both hands.
+- **In the game, not yet logged:** Dual Wield Specialization's +50% off-hand rage, which the tooltip shows and Blizzard's notes contradict, and Furious Precision's off-hand hit. Both need level 24 or so, which the level 30 cap allows.
 - **Measured:** the rage per swing for each hand, that it doesn't depend on damage, and that a hasted swing gives the full rage (the [Rage Generation chapter](#rage)).
 - **Assumed:** the attack table against a level 63 boss with no suppression (from the tooltips), that Windfury swings give rage like any other swing, and Windfury itself, since it needs a shaman in the group.
 - **Our guesses:** the gear ranges, and the rotation, with Heroic Strike queued at `r sim_defaults$hs_threshold` rage.
 
-The most useful logs for this chapter would be a level 20 dual wielder hitting a target dummy or mobs of the same level, with crits marked, so we can read the crit bonus straight off the rage gains, as the Rage Generation chapter did for normal hits.
+The most useful logs for this chapter would be a dual wielder of level 24 or more, with Dual Wield Specialization, hitting mobs of the same level, with crits marked, so we can read both the crit bonus and the off hand's rage straight off the rage gains, as the Rage Generation chapter did for normal hits.
 
 ## Conclusion
 
 1. **v1 traded early rage for growth.** Losing Dual Wield Specialization's off-hand bonus cost a lot of rage, and the crit bonus gave it back only as crit grew: fresh level 60s ended up with less rage than under v0, and well-geared warriors about where they were.
-2. **v2 raises the floor and keeps the growth.** With half the off-hand bonus and crits at twice a normal swing's rage, it has more rage than v0 everywhere in our grid (`r f2(v2_gain[1])` to `r f2(v2_gain[2])` rage per second more), and still `r f1(gv("Forever v2", 0.45, 0.075) - gv("Forever v2", 0.15, 0.075))` more at 45% crit than at 15% (at 7.5% hit).
-3. **Crit and hit are now your rage stats.** In v1, the usual 5 to 10% hit needed roughly `r crit_needed("Forever v1", 0.10)` to `r crit_needed("Forever v1", 0.05)` crit just to keep Bloodthirst and Whirlwind on cooldown. In v2, almost any gear covers it. Either way, hit counts twice: for the swings it lands, and the crits those swings can have.
+2. **v2, the game today, raises the floor and keeps the growth.** With half the off-hand bonus and crits at twice a normal swing's rage, it has more rage than v0 everywhere in our grid (`r f2(v2_gain[1])` to `r f2(v2_gain[2])` rage per second more), and still `r f1(gv("Forever v2", 0.45, 0.075) - gv("Forever v2", 0.15, 0.075))` more at 45% crit than at 15% (at 7.5% hit).
+3. **Crit and hit are now your rage stats.** In v1, 5% hit needed about `r crit_needed("Forever v1", 0.05)` crit just to keep Bloodthirst and Whirlwind on cooldown. In v2, any gear in our range covers it. Either way, hit counts twice: for the swings it lands, and the crits those swings can have.
 4. **Attack power still gives no rage**, in every version, and that's why Forever's rage can't run away like Classic's did. v2 lands between a Classic warrior at 1250 and at 2000 attack power.
 5. **There's already a ceiling.** A white swing can't crit more than the attack table leaves room for (about `r pc(crit_cap(0.075, "MH"))` for the main hand at 7.5% hit), so every version flattens out after about 35% crit.
 6. **v2 also fixes the feel.** v1 made the droughts between Heroic Strikes much longer at low gear; v2 has the shortest of the three Forever versions at every gear point (`r f0(at_point("Forever v2", "Early", "gap_p90"))` seconds for the 1-in-10 wait at early gear, against `r f0(at_point("Forever v1", "Early", "gap_p90"))` in v1 and `r f0(at_point("Forever v0", "Early", "gap_p90"))` in v0).
-7. **The real lever is the floor.** The design ideas show that how rage arrives matters much less than how much there is. Give early warriors enough rage, and crit can add growth on top, up to the ceiling. That's the shape v2 has.
+7. **The real lever is the floor.** The design ideas show that how rage arrives matters much less than how much there is. Give early warriors enough rage, and crit can add growth on top, up to the ceiling. That's the shape v2 has, and it's the one the game uses now.
 
 These simulations are simplified, and they rest on announcements and tooltips we can't check yet, so the exact numbers are there to illustrate what's happening, not to predict it. The shapes are the part to take away.
 
