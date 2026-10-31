@@ -6,6 +6,7 @@ source("data/flurry.R")
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.4.0",  "2026-10-31", "Added Haste breakpoints: on average, every bit of haste adds the same number of swings. Breakpoints only happen when a window always starts at the same point in your swing, which takes more than a static fight, and Flurry scrambles the swing timers within a few swings, so in the fight simulator a Fury warrior's rage and damage climb in a straight line with haste. Simulators and spreadsheets that start every fight on a swing and end it at a fixed time show breakpoints the game doesn't have.",
   "1.3.0",  "2026-10-28", "Today's rules (Blizzard's 1 Oct development notes and hotfixes): a crit gives twice a normal swing's rage, so crit gives Forever rage directly as well as through Flurry, and 1% crit is now worth more rage in Forever than in Classic. The white rage baseline uses Dual Wield Specialization's +50% off-hand rage (it was +100%) and Furious Precision's +10% off-hand hit. Flurry now needs Death Wish instead of Enrage.",
   "1.2.1",  "2026-09-25", "Crit lost against a boss corrected to 4.8% (3% from the level gap plus 1.8% on aura crit, from the Classic warrior wiki), and Classic's rage to 7.5 x damage / C. The uptimes come down a little and Classic's rage per 1% crit halves, but the conclusions stand.",
   "1.2.0",  "2026-09-24", "Confirmed that a hasted swing gives the full rage, using Berserking and Fishliver Oil logs, so Flurry's extra swings are extra rage.",
@@ -198,18 +199,368 @@ phases %>%
 
 Flurry's extra rage grows slowly from phase to phase, and each extra 1% crit is worth a little less than the one before (the diminishing returns from the Classic chapter are still there). The rotation assumes Bloodthirst and Whirlwind are pressed on cooldown; if you're short on rage and delay them, fewer yellow crits means a bit less Flurry.
 
-## What to test when the level cap goes up
+## Haste breakpoints {#haste-breakpoints}
 
-Everything above is a prediction. Once warriors can talent into Flurry, these are the things we need from the logs:
+You'll often hear that haste has **breakpoints**. The idea goes like this: swings come in whole numbers, so a little haste does nothing until you have enough to fit one more swing into a fight, and then it suddenly does a lot. If that were true, haste below a breakpoint would be wasted, and you'd want exactly the right amount of it.
 
-1. **Does the swing after a crit come 25% sooner?** And does it last exactly 3 swings?
-2. **Do Bloodthirst and Whirlwind crits trigger Flurry?** And do they use up charges?
-3. **Do Heroic Strike and Cleave crits trigger it**, and do they use up a charge?
-4. **Are the charges shared between main hand and off hand?**
-5. **Does a Flurry-hasted swing give the same rage as a normal one?** Other haste does (see the [Haste section](#haste)), so this is only a check.
-6. **Does Flurry speed up a swing that's already in progress**, or only the next one?
+Since haste is a rage stat in Forever (see the [Haste section](#haste)), it's worth checking. The short answer: breakpoints only exist in one special case, and Flurry keeps a warrior out of it. On average, every bit of haste is worth the same. This section shows why, using the two calculus ideas from the [How Damage Scales chapter](#calculus-words) and one new idea from probability.
 
-All of these can be answered from swing timings in the combat log, so the best logs are a few minutes of auto-attacking a single mob with Flurry talented, with a few Bloodthirsts mixed in, and the talents and gear posted in the metadata.
+### Counting swings in a window
+
+```{r}
+# Haste breakpoints. A window of T seconds holds x = T / S swing times. The phase u is how long the first swing in the
+# window takes to come, as a share of a swing time (0 < u <= 1), and the window holds an extra swing when u is within
+# the leftover, x - floor(x). The worked example is Classic's 15-second Recklessness.
+bp_speed  <- sim_defaults$mh_speed
+swings_in <- function(x, u) floor(x - u) + 1
+tl_T <- 15; tl_x <- tl_T / bp_speed; tl_r <- tl_x - floor(tl_x)
+timeline <- tibble(row = c("First swing early", "First swing late"), y = c(2, 1), u = c(0.3, 0.9)) %>%
+  mutate(n = swings_in(tl_x, u), label = paste0(row, ": ", n, " swings"),
+         t = map(u, ~ (.x + (-1:6)) * bp_speed)) %>%
+  unnest(t) %>%
+  filter(t > -2.5, t < tl_T + 2.5) %>%
+  mutate(inside = t > 0 & t <= tl_T)
+```
+
+Pick any stretch of time you want to count your white swings in. In Classic, Recklessness lasted 15 seconds and turned almost every swing into a crit, so every white swing you could fit into it counted for a lot. Death Wish lasted 30 seconds. A boss's execute phase, or the whole fight, works the same way. We'll call any stretch like that a **window**, and call its length $T$: for Recklessness, $T = 15$ seconds.
+
+Your **swing time** $S$ is the time from one white swing to the next: one full bar on a swing timer addon. With no haste, it's your weapon's speed, $S_0$. Our main hand is a `r bp_speed` speed weapon, so it swings every `r bp_speed` seconds. Haste makes it shorter:
+
+$$S = \frac{S_0}{1 + h}$$
+
+where $h$ is your haste, written as a share. Berserking at full health gives 10% haste, so $h = 0.10$, and our main hand swings every $`r bp_speed` / 1.10 = `r round(bp_speed / 1.1, 2)`$ seconds instead. The number of swing times that fit into the window is then
+
+\begin{equation}
+x = \frac{T}{S} = \frac{T \times (1 + h)}{S_0}
+(\#eq:haste-x)
+\end{equation}
+
+```{r haste-timeline, fig.cap=paste0("Two ", tl_T, "-second Recklessness windows (grey) with a ", bp_speed, " speed main hand, which is ", round(tl_x, 2), " swing times. Filled dots are swings inside the window, and hollow ones are swings just outside it. The window is ", floor(tl_x), " whole swing times (", floor(tl_x) * bp_speed, " seconds) plus a leftover of ", round(tl_r * bp_speed, 1), " seconds (orange). When the first swing comes within the leftover, there's room for ", floor(tl_x), " more after it (top). When it comes later, there's only room for ", floor(tl_x) - 1, " more (bottom)."), fig.height=2.4}
+ggplot2::ggplot(timeline, aes(t, y)) +   # a timeline, so no value axis to start at 0
+  annotate("rect", xmin = 0, xmax = tl_T, ymin = 0.5, ymax = 2.75, fill = "grey93") +
+  annotate("rect", xmin = 0, xmax = tl_r * bp_speed, ymin = 0.5, ymax = 2.75, fill = "#fdd0a2") +
+  annotate("text", x = tl_r * bp_speed / 2, y = 1.5, label = "leftover", angle = 90, size = 3, colour = "grey30") +
+  annotate("text", x = (tl_r * bp_speed + tl_T) / 2, y = 2.55, label = "Recklessness", size = 3, colour = "grey30") +
+  geom_line(aes(group = y), colour = "grey70") +
+  geom_point(aes(fill = inside), shape = 21, size = 3.5, colour = "grey30") +
+  scale_fill_manual(values = c(`TRUE` = "#2c7fb8", `FALSE` = "white"), guide = "none") +
+  scale_x_continuous(breaks = seq(0, tl_T + 2, by = 3)) +
+  scale_y_continuous(breaks = distinct(timeline, y, label)$y, labels = distinct(timeline, y, label)$label,
+                     limits = c(0.5, 2.75), expand = expansion(0)) +
+  labs(x = "Seconds since you pressed Recklessness", y = NULL) +
+  theme(panel.grid.minor = element_blank())
+```
+
+Recklessness holds $x = `r tl_T` / `r bp_speed` = `r round(tl_x, 2)`$ swing times of our main hand, with no haste. But nobody swings `r round(tl_x, 2)` times. You get either `r floor(tl_x)` or `r floor(tl_x) + 1` white swings with that hand, and which one depends on *when* your swings fall, as Figure \@ref(fig:haste-timeline) shows.
+
+Here's why. `r round(tl_x, 2)` swing times is `r floor(tl_x)` whole swing times (`r floor(tl_x) * bp_speed` seconds) plus `r round(tl_r, 2)` of one (`r round(tl_r * bp_speed, 1)` seconds). We'll call that extra bit the **leftover**: how much longer the window is than its whole swing times, too short to hold another whole one. For Recklessness it's `r round(tl_r * bp_speed, 1)` seconds, or `r round(tl_r, 2)` of a swing time: the part of $x$ after the decimal point.
+
+The leftover decides whether you get swing number `r floor(tl_x) + 1`. Your first swing always comes within one swing time of pressing Recklessness, and the other `r floor(tl_x)` follow it, `r bp_speed` seconds apart, so the last of them lands `r floor(tl_x) * bp_speed` seconds after the first. If the first swing comes within `r round(tl_r * bp_speed, 1)` seconds of pressing Recklessness, that last swing lands by the `r tl_T`-second mark, just in time. If the first swing comes any later, the last one lands after Recklessness has run out. That's why the figure shades the leftover at the start of the window: it's where the first swing has to land.
+
+So it all comes down to where your swing timer is when the window opens. We'll call that the **phase**, $u$: how long you wait for your first swing after the window opens, as a share of a swing time. On a swing timer addon, it's how much of the bar is left when you press the button:
+
+- **Press Recklessness right after a swing**, while the bar is starting over, and you wait a whole swing time: $u = 1$.
+- **Press it with the bar 70% full**, and your next swing comes 0.3 of a swing time (`r round(0.3 * bp_speed, 1)` seconds) later: $u = 0.3$.
+- **Press it just before the bar fills**, and your next swing comes almost at once: $u$ is close to 0.
+
+The phase is always between 0 and 1, and the rule is simple to say with it: you get the extra swing when the phase is no bigger than the leftover. For Recklessness, that's when your main hand's swing timer bar is at least `r round((1 - tl_r) * 100)`% full when you press it.
+
+Write $\lfloor x \rfloor$ (read "floor of x") for $x$ rounded down, so $\lfloor `r round(tl_x, 2)` \rfloor = `r floor(tl_x)`$: the swings you get whatever the phase. And write $r = x - \lfloor x \rfloor$ for the leftover as a share of a swing time (`r round(tl_r, 2)` for Recklessness). Then the number of white swings in the window, $N$, is:
+
+$$N = \begin{cases} \lfloor x \rfloor + 1 & \text{if } u \le r \text{ (the first swing comes within the leftover)} \\ \lfloor x \rfloor & \text{if } u > r \text{ (it comes later)} \end{cases}$$
+
+### Where breakpoints come from
+
+```{r}
+bp_T <- 30
+x_of <- function(h) bp_T * (1 + h) / bp_speed
+breakpoint <- function(k) k * bp_speed / bp_T - 1   # the haste that fits k swing times into the window
+```
+
+Suppose the window always opens right after one of your swings: you watch your swing timer and press the button the moment a swing lands, every time. Then the first swing in the window is always a whole swing time away, so $u = 1$. That's never within the leftover, so you always get $\lfloor x \rfloor$ swings. As you add haste, $x$ grows smoothly, but $\lfloor x \rfloor$ only changes when $x$ passes a whole number. *That's* a breakpoint.
+
+For example, Death Wish's `r bp_T` seconds hold $x = `r bp_T` / `r bp_speed` = `r round(x_of(0), 1)`$ swing times of our main hand, so `r floor(x_of(0))` swings. To fit swing number `r floor(x_of(0)) + 1`, you need $x = `r floor(x_of(0)) + 1`$, which takes `r round(breakpoint(floor(x_of(0)) + 1) * 100)`% haste. Swing number `r floor(x_of(0)) + 2` takes `r round(breakpoint(floor(x_of(0)) + 2) * 100)`%. Anything in between does nothing.
+
+So the belief is right, *if* the window always starts at the same point in your swing. That's a bigger "if" than it sounds, as we'll see [further down](#fixed-start).
+
+### A random start
+
+Now suppose you press Recklessness without looking at your swing timer, so the phase is equally likely to be anywhere between 0 and 1. The chance it lands within the leftover is then just the size of the leftover. With $x = `r round(tl_x, 2)`$, that's a `r round(tl_r * 100)`% chance of `r floor(tl_x) + 1` swings and a `r round((1 - tl_r) * 100)`% chance of `r floor(tl_x)`, which works out to
+
+$$`r round(tl_r, 2)` \times `r floor(tl_x) + 1` + `r round(1 - tl_r, 2)` \times `r floor(tl_x)` = `r round(tl_x, 2)`$$
+
+swings on average: exactly $x$. That's no coincidence. Whatever $x$ is, the average is $\lfloor x \rfloor + r$, which is just $x$ put back together. So with a random start:
+
+\begin{equation}
+E[N] = x = \frac{T \times (1 + h)}{S_0}
+\end{equation}
+
+$E[N]$ (read "the expected value of N") is the average number of swings over many windows: if you counted your main hand's white swings in Recklessness over a hundred fights, it's the average you'd get. "Expected" is a slightly odd word for it, since you'll never get `r round(tl_x, 2)` swings in any one Recklessness, but over many fights that's the average, and the average is what matters for a stat.
+
+This is a straight line in haste, with no steps: **with a random start, every 1% haste adds the same number of swings on average**, whether or not it takes you past a "breakpoint". Below a breakpoint, haste isn't wasted. It's making the leftover bigger, and so it's making the extra swing more likely.
+
+If you like pictures: drop a ruler of length $T$ onto a floor of tiles that are $S$ wide. Depending on where it lands, it crosses either $\lfloor x \rfloor$ or $\lfloor x \rfloor + 1$ gaps between tiles, but on average it crosses exactly $T / S$. The tiles are your swing times, the gaps between them are your swings, and the ruler is the window. Try it:
+
+```{r results="asis"}
+cat("<script>window.RULER_CFG = ", jsonlite::toJSON(list(s0 = bp_speed, T = tl_T), auto_unbox = TRUE), ";</script>\n", sep = "")
+cat(readLines("data/ruler_widget.html"), sep = "\n")
+```
+
+A few things to try:
+
+- **Drop it a few times.** You'll only ever see two counts, `r floor(tl_x)` and `r floor(tl_x) + 1` with the starting settings, and never anything in between.
+- **Drop 1,000 at once.** The share of each count lands on the leftover (`r round(tl_r * 100)`% for `r floor(tl_x) + 1`), and the average lands on $T / S$.
+- **Move the haste slider and drop 1,000 again.** The tiles shrink, and the average climbs by about the same amount for every step of haste, even though every single drop is still a whole number.
+- **Switch to "always drop it just after a gap".** That's a fixed start: every drop now crosses exactly $\lfloor x \rfloor$ gaps, and the average sits below $T / S$ until enough haste shrinks the tiles to fit one more. That's the breakpoint.
+
+### One formula for every case
+
+Real windows sit somewhere in between: you might glance at your swing timer before pressing Recklessness, but the global cooldown, latency and everything else going on in the fight get in the way. To cover every case, we need a way to say how likely each phase is.
+
+Let $F(z)$ be the chance that the phase is $z$ or less: the chance that, when the window opens, your swing timer bar has no more than $z$ of it left to go. For example, $F(0.5)$ is the chance that the bar is at least half full when you press Recklessness. $F$ goes from $F(0) = 0$ up to $F(1) = 1$, since the bar can never have more than all of it left.
+
+- **If you never look at your swing timer**, the bar is at least half full half the time, at least 70% full 30% of the time, and so on: $F(z) = z$.
+- **If you always press right after a swing**, the bar is always just starting over, with all of it left to go: $F(z) = 0$ all the way up to $z = 1$.
+
+The extra swing comes when $u \le r$, which has a chance of $F(r)$, so the average number of swings is:
+
+\begin{equation}
+E[N] = \lfloor x \rfloor + F(r)
+(\#eq:haste-en)
+\end{equation}
+
+- $\lfloor x \rfloor$ is the swings you always get: `r floor(tl_x)` in Recklessness.
+- $F(r)$ is the chance of one more: the chance that the first swing comes within the leftover. For Recklessness, it's the chance that your bar is at least `r round((1 - tl_r) * 100)`% full when you press it.
+
+Put in $F(z) = z$ and you get the straight line from before. Put in the $F$ for a window that always opens right after a swing and you get $\lfloor x \rfloor$, the staircase.
+
+#### What the next bit of haste is worth
+
+How much does a little more haste add? That's a derivative: a small change in the average number of swings, divided by the small change in $x$ that caused it (see [Two words from calculus](#calculus-words)). Between two breakpoints $\lfloor x \rfloor$ doesn't move, and the leftover $r$ grows exactly as fast as $x$ does, so only $F(r)$ changes:
+
+\begin{equation}
+\frac{dE[N]}{dx} = f(r), \qquad \text{where} \quad f(z) = \frac{dF}{dz}
+(\#eq:haste-den)
+\end{equation}
+
+The two letters aren't a typo. $f(z) = \frac{dF}{dz}$ defines $f$ at every phase $z$, the same way $F(z)$ was defined for every $z$. $f(r)$ is that same $f$ at one particular phase, the leftover, because that's the only phase where the next bit of haste can change anything. For Death Wish at 0% haste, $r = `r round(x_of(0) - floor(x_of(0)), 2)`$, so the next bit of haste is worth $f(`r round(x_of(0) - floor(x_of(0)), 2)`)$.
+
+- $\frac{dE[N]}{dx}$ is the extra swings you get, on average, for each tiny bit of extra $x$. Since $x$ grows in a straight line with haste (Equation \@ref(eq:haste-x)), that's the same as asking what each tiny bit of haste is worth. In Death Wish, with our `r bp_speed` speed main hand, each 1% haste adds `r round(bp_T / bp_speed * 0.01, 2)` to $x$.
+- $f(z)$ is the derivative of $F$: how fast the chance climbs as $z$ grows. Nerds that like statistics call it the **probability density**, and it says how crowded the phases are around $z$. Picture pressing Death Wish in a thousand different fights, writing down how much of your swing timer bar was left each time, and drawing a histogram of those numbers with very thin bars. $f$ is the shape of that histogram, scaled so that the bars have a total area of 1: high where the phases pile up, and 0 where they never land. If you never look at your swing timer, the histogram is flat. If you always press right after a swing, it's a single tall spike at 1.
+
+So **what the next bit of haste is worth depends on how crowded the phases are at your leftover.** With a random start they're spread out evenly, $f$ is 1 everywhere, and every bit of haste is worth the same. With a window that always opens right after a swing, every phase is piled onto a single point. Then $f$ is 0 everywhere else, and haste only does anything at that one point: the breakpoint.
+
+Here's that thousand-fight histogram. Press Death Wish, and each press adds the phase it landed on. The orange shading is the leftover: presses that land there get swing number `r floor(x_of(0)) + 1`, so the share of the histogram inside it is $F(r)$. Move the haste slider and the leftover grows, and how much it gains for each step depends on how tall the histogram is at its edge, which is $f(r)$:
+
+```{r results="asis"}
+cat("<script>window.PHASE_CFG = ", jsonlite::toJSON(list(s0 = bp_speed, T = bp_T), auto_unbox = TRUE), ";</script>\n", sep = "")
+cat(readLines("data/phase_widget.html"), sep = "\n")
+```
+
+With "never look", the histogram fills in flat, so every step of haste moves the same number of presses into the leftover. With "try to press right after a swing", it piles up into a spike at 1 (with a little of it wrapping round to just above 0, from presses that came a moment too early). Then the leftover's edge sits in empty space for most of the haste slider's range, and nothing changes until it reaches the spike: the breakpoint, rounded off by how far off you usually are.
+
+#### What haste is worth in total
+
+The integral from the [How Damage Scales chapter](#scaling-formula) tells us one more thing, and this one holds in every case. A thin strip $f(z)\,dz$ is the chance that the phase lands in a thin slice of width $dz$ around $z$. Adding up all the strips from 0 to 1 covers every phase there is, and the first swing has to come somewhere, so:
+
+$$\int_0^1 f(z)\, dz = 1$$
+
+As haste takes $x$ from one whole number to the next (from one breakpoint to the next: for Death Wish, from `r floor(x_of(0)) + 1` swing times at `r round(breakpoint(floor(x_of(0)) + 1) * 100)`% haste to `r floor(x_of(0)) + 2` at `r round(breakpoint(floor(x_of(0)) + 2) * 100)`%), the leftover runs from 0 all the way to 1. By Equation \@ref(eq:haste-den), the swings gained along the way are the strips of $f$ from 0 to 1, so they add up to exactly this integral: one swing. **Breakpoints don't make haste worth more or less in total. They only bunch its value up.** A random start pays out that one swing evenly, a fixed start pays it all at once, and anything in between pays it out in bumps:
+
+```{r}
+# How likely each phase is when the window opens at about the same point every time: a bell curve around the
+# point right after a swing, usually within a tenth of a swing time of it (wrapping round from one swing to the next)
+u_grid   <- (1:2000) / 2000
+w_little <- dnorm(pmin(u_grid, 1 - u_grid), sd = 0.1); w_little <- w_little / sum(w_little)
+bp_cases <- list(`Always right after a swing` = function(x) floor(x),
+                 `A little random` = function(x) map_dbl(x, ~ sum(swings_in(.x, u_grid) * w_little)),
+                 `Completely random` = function(x) x)
+bp_curves <- imap_dfr(bp_cases, function(E, case) tibble(
+  case = factor(case, levels = names(bp_cases)), h = seq(0, 0.30, by = 0.0005),
+  `Extra swings from haste` = E(x_of(h)) - E(x_of(0)),
+  `Extra swings from the next 1% haste` = E(x_of(h + 0.01)) - E(x_of(h))))
+```
+
+```{r haste-phase, fig.cap=paste0("A ", bp_T, "-second Death Wish and a ", bp_speed, " speed main hand (", round(x_of(0), 1), " swing times with no haste), for three ways of pressing it. Left: the extra swings haste gives you, on average. If you always press it right after a swing (grey), haste does nothing until ", round(breakpoint(floor(x_of(0)) + 1) * 100), "%, then adds a whole swing at once. If you press it without looking at your swing timer (blue), every bit of haste adds the same. If you try to press it right after a swing but are usually off by up to a tenth of a swing time, from latency and reaction time (orange), the steps are rounded off. Right: what the next 1% haste adds at each point, which is all or nothing, steady, or in bumps. From one breakpoint to the next, all three add exactly one swing."), fig.height=4, fig.width=9}
+bp_curves %>%
+  pivot_longer(-c(case, h), names_to = "panel") %>%
+  ggplot(aes(h, value, colour = case)) +
+  geom_line(linewidth = 0.9) +
+  facet_wrap(~ panel, scales = "free_y") +
+  scale_x_continuous(labels = scales::percent) +
+  scale_colour_manual(values = c(`Always right after a swing` = "grey45", `A little random` = "#d95f02",
+                                 `Completely random` = "#2c7fb8")) +
+  labs(x = "Haste", y = "Swings", colour = NULL) +
+  theme(legend.position = "bottom")
+```
+
+### What a fixed start means in practice {#fixed-start}
+
+So the real question is how often a window really does start at the same point in your swing. It's tempting to read that as "a static fight": hitting the boss the whole time, with no target switches and no moving. That isn't it.
+
+Think of your swings as a metronome. A static fight keeps it ticking evenly, but what matters is whether the window's edges land on a tick, or at random moments between ticks. A window only has breakpoints when all three of these hold:
+
+1. **Your own swing opens the window.** For example, a buff from your own white hit that lasts a fixed time, like Crusader in Classic (15 seconds from the moment a swing lands): the next swing of that weapon always comes exactly one swing time into the buff. That only holds for the weapon that procced it, though. Your other weapon has its own timer, with its own breakpoints at different amounts of haste. A cooldown you always press right after a swing, with a swing timer addon, comes close, but latency and reaction time add a tenth of a second or two. That's the "a little random" curve in Figure \@ref(fig:haste-phase), not the staircase.
+2. **The window always lasts the same time.** The pull has a fixed start without a fixed length: your first swing goes off as you engage, so the start of the fight is tied to your swing. But for the whole fight to have breakpoints, every kill would also have to last the same time, to within a fraction of a second.
+3. **Nothing changes your rhythm inside the window.** No Flurry turning on and off, no haste procs, no moving out of range, and no stuns.
+
+A static fight only takes care of the third. In a real raid, the first two almost never hold:
+
+- **You don't decide when windows end.** The boss dies, or changes phase, when the raid's damage says so, and kill times vary by many swing times.
+- **Most windows are opened by something other than your white swing:** a crit on you (Enrage), a Bloodthirst or Whirlwind crit (Flurry), a trinket you press whenever the global cooldown frees up, or a boss emote.
+
+And for a Fury warrior, the third doesn't hold either, because of Flurry. Each swing is either normal or `r haste_forever * 100`% faster, depending on whether you crit recently, which is down to luck. A hasted `r bp_speed` speed swing comes `r round(bp_speed - bp_speed / (1 + haste_forever), 2)` seconds sooner, so every few swings, your timer shifts by a random amount. Even if a window opens right after a swing, by the time it closes your swings could be anywhere.
+
+```{r}
+bp_crit  <- eff_crit(crit_fixed)                                # white crit per swing at phase 2, after crit suppression
+bp_spd   <- c(sim_defaults$mh_speed, sim_defaults$oh_speed)
+win_grid <- c(10, 30)
+n_win    <- 20000
+haste_windows <- cached_sim("haste_windows", deps = list(bp_crit, bp_spd, haste_forever, win_grid, n_win), {
+  # Windows that open right after both weapons swing. Only the swing timers and Flurry are simulated: 3 charges,
+  # shared by both hands and refilled by a white crit. Yellow crits would scramble the timers even faster. Each
+  # haste value replays the windows with the same random numbers.
+  count_white <- function(T, h) {
+    nxt <- matrix(0, n_win, 2); charges <- rep(0, n_win); swings <- rep(0, n_win); rows <- seq_len(n_win)
+    repeat {
+      hand <- ifelse(nxt[, 1] <= nxt[, 2], 1, 2)
+      t <- nxt[cbind(rows, hand)]
+      live <- t <= T
+      if (!any(live)) break
+      swings <- swings + (live & t > 0)   # the swings at 0 open the window, so they don't count
+      charges[live & runif(n_win) < bp_crit] <- 3
+      hasted <- live & charges > 0
+      charges[hasted] <- charges[hasted] - 1
+      nxt[cbind(rows, hand)] <- ifelse(live, t + bp_spd[hand] / ((1 + h) * ifelse(hasted, 1 + haste_forever, 1)), t)
+    }
+    mean(swings)
+  }
+  expand_grid(window = win_grid, h = seq(0, 0.30, by = 0.005)) %>%
+    mutate(swings = map2_dbl(window, h, function(T, h) { set.seed(34); count_white(T, h) }))
+})
+# With a random start, the average is the window times the swings per second: Flurry's long-run share from the chain
+bp_base <- sum(1 / bp_spd)
+bp_mult <- flurry_stats(bp_crit, haste_forever)$swing_mult
+fine    <- expand_grid(window = win_grid, h = seq(0, 0.30, by = 0.0005))
+win_lines <- bind_rows(
+  fine %>% mutate(flurry = "No Flurry", start = "Opens right after a swing",
+                  extra = rowSums(floor(outer(window * (1 + h), 1 / bp_spd))) - rowSums(floor(outer(window, 1 / bp_spd)))),
+  fine %>% mutate(flurry = "No Flurry", start = "Opens at a random moment", extra = window * bp_base * h),
+  fine %>% mutate(flurry = "Flurry", start = "Opens at a random moment", extra = window * bp_base * bp_mult * h),
+  haste_windows %>% group_by(window) %>% mutate(extra = swings - swings[h == 0]) %>% ungroup() %>%
+    mutate(flurry = "Flurry", start = "Opens right after a swing")
+) %>% mutate(flurry = factor(flurry, levels = c("No Flurry", "Flurry")),
+             start = factor(start, levels = c("Opens right after a swing", "Opens at a random moment")),
+             panel = paste0("A ", window, "-second window"))
+# How far the fixed start strays from the random one, in swings
+win_gap <- win_lines %>% mutate(h = round(h, 4)) %>% filter(h %in% round(haste_windows$h, 4)) %>%
+  select(window, flurry, start, h, extra) %>%
+  pivot_wider(names_from = start, values_from = extra) %>%
+  group_by(window, flurry) %>%
+  summarise(gap = max(abs(`Opens right after a swing` - `Opens at a random moment`)), .groups = "drop")
+wg <- function(w, f) win_gap$gap[win_gap$window == w & win_gap$flurry == f]
+win_swings <- function(w) round(w * bp_base * bp_mult)   # about how many white swings the window holds
+```
+
+We can watch Flurry do this in a small simulation that follows nothing but the two swing timers and Flurry. Every window opens right after both weapons swing and lasts a fixed time, so it meets the first two conditions on purpose, and the warrior has `r round(bp_crit * 100)`% crit per white swing (our phase 2 guess, after crit suppression):
+
+```{r haste-flurry, fig.cap=paste0("Extra white swings from haste (on top of Flurry), with a ", sprintf("%.1f", bp_spd[1]), " main hand and a ", sprintf("%.1f", bp_spd[2]), " off hand. Solid lines: windows that always open right after both weapons swing. Dashed lines: windows that open at a random moment. Without Flurry (grey), the fixed start gives a staircase, with a step at each weapon's breakpoints. With Flurry (blue, ", round(bp_crit * 100), "% crit per white swing), the steps get smaller in a 10-second window and are almost gone in a 30-second one. The blue lines are steeper because Flurry's own haste multiplies the rest. Fixed starts with Flurry are simulated, ", format(n_win, big.mark = ","), " windows at each point; only white crits trigger Flurry here, so Bloodthirst and Whirlwind crits would scramble the timers even faster."), fig.height=4, fig.width=9}
+ggplot(win_lines, aes(h, extra, colour = flurry, linetype = start)) +
+  geom_line(linewidth = 0.8) +
+  facet_wrap(~ panel, scales = "free_y") +
+  scale_x_continuous(labels = scales::percent) +
+  scale_colour_manual(values = c(`No Flurry` = "grey45", Flurry = "#2c7fb8")) +
+  scale_linetype_manual(values = c(`Opens right after a swing` = "solid", `Opens at a random moment` = "22")) +
+  labs(x = "Haste", y = "Extra white swings", colour = NULL, linetype = NULL) +
+  theme(legend.position = "bottom", legend.box = "vertical")
+```
+
+Without Flurry, a fixed start strays up to `r round(wg(30, "No Flurry"), 1)` swings from the straight line: that's the staircase. With Flurry, in a 30-second window (about `r win_swings(30)` white swings), it never strays more than `r round(wg(30, "Flurry"), 1)` swings, and the staircase is all but gone. A 10-second window only holds about `r win_swings(10)` white swings, which isn't enough for Flurry to scramble the timers completely, so there are still steps, just smaller ones: up to `r round(wg(10, "Flurry"), 1)` swings from the line, against `r round(wg(10, "No Flurry"), 1)` without Flurry. A whole fight holds many times more swings than either, so by its end there's nothing left of them.
+
+### Checking it in the fight simulator
+
+```{r}
+n_haste <- 300
+haste_fights <- cached_sim("haste_fights", deps = list(n_haste, gear, crit_fixed, forever_draws, sim_defaults, forever_talents, p2_dps), {
+  expand_grid(h = seq(0, 0.20, by = 0.005), i = seq_len(n_haste)) %>%
+    mutate(res = map2(h, i, function(h, i) {
+      set.seed(2500 + i)
+      simulate_fight(rage_fns$Forever, p2_dps, modifyList(gear_p("Forever", p2_dps), list(extra_haste = 1 + h)))
+    })) %>%
+    unnest(res) %>%
+    group_by(h) %>%
+    summarise(rps = mean(rps), dps = mean(total_dps), hs_pm = mean(hs_pm), .groups = "drop")
+})
+haste_extra <- haste_fights %>%
+  select(h, `Extra rage per second` = rps, `Extra damage per second` = dps) %>%
+  pivot_longer(-h, names_to = "panel", values_to = "value") %>%
+  group_by(panel) %>%
+  mutate(base = value[h == 0], extra = value - base, fit = fitted(lm(extra ~ h)),
+         slope = coef(lm(extra ~ h))[["h"]] / 100,       # per 1% haste
+         off = max(abs(extra - fit)) / base) %>%          # furthest from the line, as a share of the fight's total
+  ungroup()
+hx <- function(pn, col) haste_extra[[col]][haste_extra$panel == pn][1]
+h_top <- which.max(haste_fights$h)
+haste_gain <- function(col) haste_fights[[col]][h_top] / haste_fights[[col]][haste_fights$h == 0] - 1
+```
+
+The fight simulator used in the rest of the book starts each weapon's swing timer at a random point, then plays out every swing, crit, Flurry charge, Bloodthirst, Whirlwind and Heroic Strike. If anything in a real fight (the rotation, rage running out, Heroic Strike taking the place of main-hand swings) brought breakpoints back, rage and damage would climb in steps as haste goes up. Here are `r n_haste` three-minute fights at every amount of haste from 0 to 20%, in steps of 0.5%, for our phase 2 warrior:
+
+```{r haste-sim, fig.cap=paste0("Extra rage and damage per second from haste (on top of Flurry), in ", n_haste, " simulated three-minute fights at each point, for our phase 2 Forever warrior with the full rotation. Both climb in a straight line (the line is the best fit through the points), with no steps."), fig.height=3.8, fig.width=9}
+ggplot(haste_extra, aes(h, extra)) +
+  geom_line(aes(y = fit), colour = "grey60") +
+  geom_point(colour = "#2c7fb8", size = 1.6) +
+  facet_wrap(~ panel, scales = "free_y") +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Haste", y = NULL)
+```
+
+Both climb in a straight line. Each 1% haste adds about `r sprintf("%.3f", hx("Extra rage per second", "slope"))` rage per second and `r sprintf("%.1f", hx("Extra damage per second", "slope"))` damage per second, and no point is further from its line than `r sprintf("%.1f", hx("Extra rage per second", "off") * 100)`% of the fight's rage or `r sprintf("%.1f", hx("Extra damage per second", "off") * 100)`% of its damage, which is about what the luck of `r n_haste` fights gives. (20% haste gives `r round(haste_gain("rps") * 100)`% more rage per second, not 20%, because the extra rage goes into Heroic Strikes, which take the place of main-hand swings and give no rage of their own: from `r round(haste_fights$hs_pm[haste_fights$h == 0], 1)` to `r round(haste_fights$hs_pm[h_top], 1)` a minute.)
+
+### The simulator versus the game {#sim-vs-game}
+
+```{r}
+sw_T <- sim_defaults$fight_len
+sw_gain <- sw_T * 0.01 / bp_speed   # main-hand swings that 1% haste adds over a fight, on average
+# What a sim says 1% more haste is worth, starting from each amount of haste (1e-9 keeps exact whole numbers whole)
+sw <- tibble(h = seq(0, 0.10, by = 0.0005)) %>%
+  mutate(`Every fight starts on a swing and lasts exactly 3 minutes` =
+           floor(sw_T * (1 + h + 0.01) / bp_speed + 1e-9) - floor(sw_T * (1 + h) / bp_speed + 1e-9),
+         `The swing timer starts at a random point` = sw_gain) %>%
+  pivot_longer(-h, names_to = "sim", values_to = "gain") %>%
+  mutate(sim = factor(sim, levels = unique(sim)))
+```
+
+In the game, all of that randomness comes for free. In a simulator or a spreadsheet, the only randomness is what the model puts in, and the simplest models put in none. A spreadsheet that counts $\lfloor 30 / `r bp_speed` \rfloor = `r floor(30 / bp_speed)`$ swings in a 30-second cooldown, or a simulator that starts every fight with a swing at 0 seconds and stops it at exactly `r sw_T` seconds, meets the first two conditions by construction. Leave out Flurry and it meets the third as well. **It will then show breakpoints that the game doesn't have.**
+
+That matters most for stat weights, where you simulate a small change and see what it's worth. Over a `r sw_T / 60`-minute fight, 1% haste is worth $`r sw_T` \times 0.01 / `r bp_speed` = `r round(sw_gain, 2)`$ main-hand swings on average. A simulator with a fixed start and a fixed length gives it either 0 or 1, depending on where your haste happens to sit: anywhere from nothing to `r round(1 / sw_gain, 1)` times what it's really worth.
+
+```{r haste-statweight, fig.cap=paste0("What a simulator says 1% more haste is worth, in main-hand swings over a ", sw_T / 60, "-minute fight with a ", bp_speed, " speed weapon and no Flurry, starting from each amount of haste. If every simulated fight starts on a swing and lasts exactly ", sw_T / 60, " minutes (grey), it's either a whole swing or nothing, depending on where your haste happens to sit. If the swing timer starts at a random point (blue), it's always ", round(sw_gain, 2), " of a swing, which is what that haste is really worth on average."), fig.height=3.2}
+ggplot(sw, aes(h, gain, colour = sim)) +
+  geom_line(linewidth = 0.9) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_colour_manual(values = c("grey45", "#2c7fb8")) +
+  labs(x = "Haste before the extra 1%", y = "Extra main-hand swings", colour = NULL) +
+  theme(legend.position = "bottom", legend.direction = "vertical")
+```
+
+There are two ways to fix it, and either one is enough: start each weapon's swing timer at a random point, or vary the length of the fight by more than a swing time. Our fight simulator does the first, which is why its rage and damage climb in a straight line in Figure \@ref(fig:haste-sim) even though every fight lasts exactly `r sw_T / 60` minutes. (With Flurry in the rotation, the timers would be scrambled anyway.) It's also why the small simulation in Figure \@ref(fig:haste-flurry) had to open its windows right after a swing on purpose: in a model with no Flurry, that's the only way to see a staircase at all.
+
+So when a breakpoint turns up in a simulator or a spreadsheet, the first thing to check is whether the model starts every fight on a swing and ends it at a fixed time. If it does, the breakpoint belongs to the model, not to the game.
+
+### Where breakpoints are real
+
+Breakpoints aren't a myth. Anything that meets all three conditions has them, like a Crusader-style buff for a warrior with one weapon and no Flurry, and a few things outside white swings are built that way:
+
+- **Effects that tick on a fixed timer from the moment they're applied.** In some later expansions, haste gave damage-over-time spells whole extra ticks at set amounts of haste. Those were real breakpoints, and they're probably where the belief comes from. White swings don't work that way.
+- **Two timers that line up exactly.** A `r sprintf("%.1f", bp_spd[2])` speed off hand and Bloodthirst's `r sim_defaults$bt_cd`-second cooldown would meet at the same point of the swing every `r sim_defaults$bt_cd / bp_spd[2]` swings, with nothing to shift them apart. Flurry shifts them.
+
+### What it means
+
+- **On average, every 1% haste is worth the same number of swings**, so in Forever, the same amount of white rage. There's no amount of haste you need to reach before it starts paying off.
+- **In any one window, haste below a breakpoint raises the chance of an extra swing**, rather than doing nothing (unless the window always starts at the same point in your swing). Over many fights, those chances add up to exactly the swings the straight line promises.
+- **A fixed start isn't the same as a static fight.** It needs your own swing to open the window, the window to always last the same time, and nothing to change your rhythm in between. In a raid, the boss decides when fights end, most windows are opened by something else, and Flurry changes your rhythm every few swings.
+- **Breakpoints in a simulator or spreadsheet are usually the model's, not the game's.** A model that starts every fight on a swing and ends it at a fixed time has a fixed start built in. Starting the swing timers at a random point, or varying the fight's length, takes them away.
 
 ## Changelog {#flurry-changelog}
 

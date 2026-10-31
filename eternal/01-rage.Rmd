@@ -502,7 +502,7 @@ haste_diff <- haste %>% group_by(label) %>% summarise(d = mean(gain[hasted]) - m
 
 **Haste doesn't shrink the rage from a swing.** All `r n_hasted` hasted swings gave the normal rate x weapon speed, within the 0.1 rage the log rounds to (the averages differ by at most `r sprintf("%.2f", max(abs(haste_diff)))` rage), and none came anywhere near the smaller amount they would give if the game scaled rage to the shorter swing time. Since rage per swing is always exactly the same in Forever, this doesn't need a p-value: a single hasted swing at full rage is enough to rule out the shrinking version, and we have `r n_hasted`.
 
-So **in Forever, haste is a rage stat**: 10% faster swings give 10% more white rage per second. That matters for Flurry (see the [Flurry chapter](#flurry)), Berserking, haste potions and any haste on gear, and it's one of the few ways left to raise your rage with gear.
+So **in Forever, haste is a rage stat**: 10% faster swings give 10% more white rage per second. That matters for Flurry (see the [Flurry chapter](#flurry)), Berserking, haste potions and any haste on gear, and it's one of the few ways left to raise your rage with gear. Every bit of haste counts, too: there's no "breakpoint" you need to reach before it pays off (see [Haste breakpoints](#haste-breakpoints)).
 
 ## Other rage sources
 

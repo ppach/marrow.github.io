@@ -207,7 +207,7 @@ A few things are worth noticing:
 - **Heroic Strike is the wide, low block at the end** in both games: it can take a lot of rage (up to one per main-hand swing), but it gives the least for it: about `r round(dpr_p2("Classic", "Heroic Strike"))` damage per rage in Classic and `r round(dpr_p2("Forever", "Heroic Strike"))` in Forever.
 - **The dashed line is where the story of this chapter happens.** With phase 2 gear, Classic gets `r round(income_p2[["Classic"]], 1)` rage a second and Forever `r round(income_p2[["Forever"]], 1)`. In Forever that line never moves. In Classic, it moves right every time your gear gets better.
 
-## Step 3: the formula
+## Step 3: the formula {#scaling-formula}
 
 Putting the two steps together, your damage per second is your white damage plus the filled area:
 
@@ -258,7 +258,7 @@ The formula lands within `r round(max(abs(check$diff)) * 100, 1)`% of the simula
 
 Now for the real question: what happens to $D$ when $g$ goes up? Look at Equation \@ref(eq:scaling-d) again. Gear shows up in three places: in the white damage $W(g)$, in the height of the blocks $\eta(\rho, g)$, and in where the filling stops, $R(g)$.
 
-### Two words from calculus
+### Two words from calculus {#calculus-words}
 
 To answer that, we need two ideas from calculus. Both are simpler than they sound.
 
@@ -577,7 +577,7 @@ el <- function(g) range(el_tbl$gain[el_tbl$Game == g]) * 100
 
 In Forever, how hard you hit doesn't give you rage, but *how often* you swing does: every landed white swing gives the same lump of rage. So anything that adds landed swings moves your rage line to the right, and brings the third term of Equation \@ref(eq:scaling-dd) back:
 
-- **Haste**, from gear, buffs or Flurry. Logs from elvenfresh and Ceece show a hasted swing still gives its full rage (see the [Haste section](#haste) and the [Flurry chapter](#flurry)).
+- **Haste**, from gear, buffs or Flurry. Logs from elvenfresh and Ceece show a hasted swing still gives its full rage (see the [Haste section](#haste) and the [Flurry chapter](#flurry)), and on average every bit of haste adds the same number of swings, with no breakpoints to reach first (see [Haste breakpoints](#haste-breakpoints)).
 - **Hit**, which turns misses into landed swings.
 - **Extra attacks**, like Windfury Totem, Hand of Justice, Sword Specialization or Thrash Blade.
 

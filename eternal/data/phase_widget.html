@@ -1,0 +1,126 @@
+<div id="phase-widget" class="phase-widget">
+<style>
+.phase-widget { --pw-ink:#2b2b2b; --pw-muted:#777; --pw-grid:#e6e6e6; --pw-bg:#fafafa;
+  border:1px solid var(--pw-grid); border-radius:8px; padding:14px 16px; margin:18px 0; background:var(--pw-bg); color:var(--pw-ink); font-size:14px; }
+.phase-widget h4 { margin:0 0 4px 0; font-size:16px; }
+.phase-widget .pw-sub { color:var(--pw-muted); margin:0 0 10px 0; font-size:13px; }
+.phase-widget .pw-mode { font-size:13px; margin:4px 0 6px 0; }
+.phase-widget .pw-mode label { margin-right:16px; cursor:pointer; }
+.phase-widget .pw-controls { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px 18px; margin-bottom:8px; }
+.phase-widget .pw-controls label { display:block; font-weight:600; font-size:13px; }
+.phase-widget .pw-controls label span { font-weight:400; color:var(--pw-muted); }
+.phase-widget input[type=range] { width:100%; }
+.phase-widget svg { width:100%; height:auto; display:block; }
+.phase-widget .pw-buttons { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+.phase-widget button { padding:4px 10px; border:1px solid #bbb; border-radius:5px; background:#fff; cursor:pointer; font-size:13px; }
+.phase-widget .pw-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin:8px 0 0 0; }
+.phase-widget .pw-stat { background:#fff; border:1px solid var(--pw-grid); border-radius:6px; padding:6px 10px; }
+.phase-widget .pw-stat .pw-k { font-size:12px; color:var(--pw-muted); }
+.phase-widget .pw-stat .pw-v { font-size:18px; font-weight:600; }
+</style>
+<h4>Press Death Wish a thousand times</h4>
+<p class="pw-sub">Every press writes down how much of your main hand's swing timer bar was left: the phase. The bars are the histogram of those phases, and the dashed line is f, the shape the histogram settles into. Presses in the orange leftover get the extra swing.</p>
+<div class="pw-mode">
+  <label><input type="radio" name="pw-mode" value="random" checked> Never look at the swing timer</label>
+  <label><input type="radio" name="pw-mode" value="timed"> Try to press right after a swing</label>
+</div>
+<div class="pw-controls">
+  <div><label for="pw-sd">How far off you usually are <span id="pw-sd-v"></span></label><input id="pw-sd" type="range" min="0.02" max="0.3" step="0.01" value="0.1"></div>
+  <div><label for="pw-h">Haste, h <span id="pw-h-v"></span></label><input id="pw-h" type="range" min="0" max="30" step="0.5" value="0"></div>
+</div>
+<svg id="pw-plot" viewBox="0 0 640 250" role="img" aria-label="A histogram of the phase at each Death Wish press, with the density curve and the leftover marked"></svg>
+<div class="pw-buttons">
+  <button id="pw-one" type="button">Press once</button>
+  <button id="pw-auto" type="button">Keep pressing</button>
+  <button id="pw-many" type="button">Press 1,000 at once</button>
+  <button id="pw-reset" type="button">Start over</button>
+</div>
+<div class="pw-stats">
+  <div class="pw-stat"><div class="pw-k">Presses</div><div class="pw-v" id="pw-n">0</div></div>
+  <div class="pw-stat"><div class="pw-k" id="pw-got-l"></div><div class="pw-v" id="pw-got"></div></div>
+  <div class="pw-stat"><div class="pw-k" id="pw-avg-l"></div><div class="pw-v" id="pw-avg"></div></div>
+</div>
+</div>
+<script>
+(function () {
+  var cfg = window.PHASE_CFG;
+  var el = function (id) { return document.getElementById(id); };
+  var BINS = 50, W = 640, H = 250, L = 40, R = 14, T0 = 14, B = 34;
+  var st = { mode: "random", sd: 0.1, h: 0, phases: [], bins: [], timer: null };
+  var X = function () { return cfg.T * (1 + st.h) / cfg.s0; };
+  var whole = function () { return Math.floor(X() + 1e-9); };
+  var left = function () { return X() - whole(); };
+  function normal() { var a = 1 - Math.random(), b = Math.random(); return Math.sqrt(-2 * Math.log(a)) * Math.cos(2 * Math.PI * b); }
+  // The phase: how much of the bar is left, from just above 0 to 1. Never looking spreads it evenly. Aiming for right
+  // after a swing (a phase of 1) misses by a bell curve either way: a press a little late lands just under 1, and a
+  // press a little early lands just before the swing, with almost none of the bar left, so it wraps round to near 0.
+  function draw1() {
+    if (st.mode === "random") return 1 - Math.random();
+    var u = 1 + st.sd * normal(); u = u - Math.floor(u); return u === 0 ? 1 : u;
+  }
+  // f, the density the histogram settles into
+  function f(z) {
+    if (st.mode === "random") return 1;
+    var s = 0; for (var k = -2; k <= 2; k++) { var d = (z - 1 + k) / st.sd; s += Math.exp(-d * d / 2); }
+    return s / (st.sd * Math.sqrt(2 * Math.PI));
+  }
+  function F(r) { var n = 400, s = 0; for (var i = 0; i < n; i++) s += f((i + 0.5) / n * r); return s * r / n; }
+  function record() { var u = draw1(); st.phases.push(u); st.bins[Math.min(BINS - 1, Math.floor((1 - u) * BINS))]++; }
+  function reset() { st.phases = []; st.bins = []; for (var i = 0; i < BINS; i++) st.bins.push(0); draw(); }
+  function draw() {
+    var n = st.phases.length, r = left(), lo = whole();
+    el("pw-sd-v").textContent = st.sd.toFixed(2) + " of a swing (" + (st.sd * cfg.s0).toFixed(2) + " sec)" + (st.mode === "random" ? ", not used" : "");
+    el("pw-h-v").textContent = Math.round(st.h * 1000) / 10 + "% (leftover " + r.toFixed(2) + " of a swing)";
+    var fmax = 0; for (var i = 0; i <= 200; i++) fmax = Math.max(fmax, f(i / 200));
+    var hmax = 0; st.bins.forEach(function (c) { if (n) hmax = Math.max(hmax, c / n * BINS); });
+    var yMax = Math.max(2, fmax, hmax) * 1.08;
+    var px = function (z) { return L + z * (W - L - R); };
+    var py = function (v) { return T0 + (1 - v / yMax) * (H - T0 - B); };
+    var o = [];
+    o.push('<rect x="' + px(0) + '" y="' + T0 + '" width="' + (px(r) - px(0)) + '" height="' + (H - T0 - B) + '" fill="#fdd0a2" fill-opacity="0.6"/>');
+    var step = yMax > 8 ? 4 : yMax > 4 ? 2 : 1;
+    for (var v = 0; v <= yMax; v += step)
+      o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + py(v) + '" y2="' + py(v) + '" stroke="#e6e6e6"/>',
+             '<text x="' + (L - 6) + '" y="' + (py(v) + 4) + '" font-size="12" fill="#777" text-anchor="end">' + v + '</text>');
+    // the bars run from phase 1 (left of the last bin) down; bin i covers phases (1 - (i+1)/BINS, 1 - i/BINS]
+    if (n) st.bins.forEach(function (c, i) {
+      var z0 = 1 - (i + 1) / BINS, hgt = c / n * BINS;
+      if (!c) return;
+      o.push('<rect x="' + (px(z0) + 0.5) + '" y="' + py(hgt) + '" width="' + Math.max(px(1 / BINS) - px(0) - 1, 1) + '" height="' + (py(0) - py(hgt)) +
+             '" fill="' + (z0 + 0.5 / BINS <= r ? "#d95f02" : "#2c7fb8") + '" fill-opacity="0.85"/>');
+    });
+    var pts = []; for (var j = 0; j <= 400; j++) pts.push(px(j / 400) + "," + py(f(j / 400)));
+    o.push('<polyline points="' + pts.join(" ") + '" fill="none" stroke="#2b2b2b" stroke-width="1.6" stroke-dasharray="5,4"/>');
+    o.push('<line x1="' + px(r) + '" x2="' + px(r) + '" y1="' + T0 + '" y2="' + (H - B) + '" stroke="#d95f02" stroke-width="1.5"/>',
+           '<text x="' + (px(r) + (r > 0.7 ? -4 : 4)) + '" y="' + (T0 + 12) + '" font-size="12" fill="#d95f02" text-anchor="' +
+             (r > 0.7 ? "end" : "start") + '">leftover, r = ' + r.toFixed(2) + '</text>');
+    o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#bbb"/>');
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (z) {
+      o.push('<text x="' + px(z) + '" y="' + (H - B + 16) + '" font-size="12" fill="#777" text-anchor="middle">' + z + '</text>');
+    });
+    o.push('<text x="' + (L + W - R) / 2 + '" y="' + (H - 4) + '" font-size="12" fill="#777" text-anchor="middle">Phase: how much of the bar was left when you pressed it</text>');
+    el("pw-plot").innerHTML = o.join("");
+    var got = 0; st.phases.forEach(function (u) { if (u <= r) got++; });
+    var exp = Math.min(1, F(r));
+    el("pw-n").textContent = n.toLocaleString();
+    el("pw-got-l").textContent = "Got swing " + (lo + 1) + " (expected " + Math.round(exp * 100) + "%, which is F(r))";
+    el("pw-got").textContent = n ? Math.round(got / n * 100) + "%" : "–";
+    el("pw-avg-l").textContent = "Average swings (expected " + (lo + exp).toFixed(2) + ")";
+    el("pw-avg").textContent = n ? (lo + got / n).toFixed(2) : "–";
+  }
+  el("pw-one").addEventListener("click", function () { record(); draw(); });
+  el("pw-many").addEventListener("click", function () { for (var i = 0; i < 1000; i++) record(); draw(); });
+  el("pw-auto").addEventListener("click", function () {
+    if (st.timer) { clearInterval(st.timer); st.timer = null; el("pw-auto").textContent = "Keep pressing"; return; }
+    st.timer = setInterval(function () { for (var i = 0; i < 10; i++) record(); draw(); }, 120);
+    el("pw-auto").textContent = "Stop";
+  });
+  el("pw-reset").addEventListener("click", reset);
+  el("pw-sd").addEventListener("input", function () { st.sd = parseFloat(el("pw-sd").value); reset(); });
+  el("pw-h").addEventListener("input", function () { st.h = parseFloat(el("pw-h").value) / 100; draw(); });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="pw-mode"]'), function (rd) {
+    rd.addEventListener("change", function () { st.mode = rd.value; reset(); });
+  });
+  reset();
+})();
+</script>

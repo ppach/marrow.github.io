@@ -1,0 +1,171 @@
+<div id="ruler-widget" class="ruler-widget">
+<style>
+.ruler-widget { --rw-ink:#2b2b2b; --rw-muted:#777; --rw-grid:#e6e6e6; --rw-bg:#fafafa;
+  border:1px solid var(--rw-grid); border-radius:8px; padding:14px 16px; margin:18px 0; background:var(--rw-bg); color:var(--rw-ink); font-size:14px; }
+.ruler-widget h4 { margin:0 0 4px 0; font-size:16px; }
+.ruler-widget .rw-sub { color:var(--rw-muted); margin:0 0 10px 0; font-size:13px; }
+.ruler-widget .rw-controls { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px 18px; margin-bottom:8px; }
+.ruler-widget .rw-controls label { display:block; font-weight:600; font-size:13px; }
+.ruler-widget .rw-controls label span { font-weight:400; color:var(--rw-muted); }
+.ruler-widget input[type=range] { width:100%; }
+.ruler-widget .rw-mode { font-size:13px; margin:4px 0 6px 0; }
+.ruler-widget .rw-mode label { margin-right:16px; cursor:pointer; }
+.ruler-widget svg { width:100%; height:auto; display:block; }
+.ruler-widget .rw-buttons { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+.ruler-widget button { padding:4px 10px; border:1px solid #bbb; border-radius:5px; background:#fff; cursor:pointer; font-size:13px; }
+.ruler-widget .rw-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin:8px 0; }
+.ruler-widget .rw-stat { background:#fff; border:1px solid var(--rw-grid); border-radius:6px; padding:6px 10px; }
+.ruler-widget .rw-stat .rw-k { font-size:12px; color:var(--rw-muted); }
+.ruler-widget .rw-stat .rw-v { font-size:18px; font-weight:600; }
+.ruler-widget .rw-recent { font-size:13px; color:var(--rw-muted); margin:2px 0 6px 0; min-height:18px; }
+.ruler-widget .rw-recent b { color:var(--rw-ink); font-weight:600; }
+.ruler-widget .rw-recent .rw-up { color:#d95f02; }
+</style>
+<h4>Drop a ruler on the tiles</h4>
+<p class="rw-sub">Each tile is one swing time, so the gaps between tiles are your swings, and the ruler is the window. Every drop lands the ruler somewhere new, and the orange marks are the gaps it crosses: the swings that fall inside the window. Keep dropping and watch the average settle on T / S.</p>
+<div class="rw-controls">
+  <div><label for="rw-T">Ruler (window) length, T <span id="rw-T-v"></span></label><input id="rw-T" type="range" min="3" max="20" step="0.5"></div>
+  <div><label for="rw-h">Haste, h <span id="rw-h-v"></span></label><input id="rw-h" type="range" min="0" max="50" step="1"></div>
+</div>
+<div class="rw-mode">
+  <label><input type="radio" name="rw-mode" value="random" checked> Drop it anywhere (a random start)</label>
+  <label><input type="radio" name="rw-mode" value="fixed"> Always drop it just after a gap (a fixed start)</label>
+</div>
+<div class="rw-recent" id="rw-info"></div>
+<svg id="rw-floor" viewBox="0 0 640 96" role="img" aria-label="A ruler lying across a row of tiles, with the gaps it crosses marked"></svg>
+<div class="rw-buttons">
+  <button id="rw-drop" type="button">Drop once</button>
+  <button id="rw-auto" type="button">Keep dropping</button>
+  <button id="rw-many" type="button">Drop 1,000 at once</button>
+  <button id="rw-reset" type="button">Start over</button>
+</div>
+<div class="rw-recent" id="rw-recent"></div>
+<div class="rw-stats">
+  <div class="rw-stat"><div class="rw-k">Drops</div><div class="rw-v" id="rw-n">0</div></div>
+  <div class="rw-stat"><div class="rw-k" id="rw-lo-l"></div><div class="rw-v" id="rw-lo"></div></div>
+  <div class="rw-stat"><div class="rw-k" id="rw-hi-l"></div><div class="rw-v" id="rw-hi"></div></div>
+  <div class="rw-stat"><div class="rw-k" id="rw-avg-l"></div><div class="rw-v" id="rw-avg"></div></div>
+</div>
+<svg id="rw-avgplot" viewBox="0 0 640 170" role="img" aria-label="The average number of gaps crossed so far, against the number of drops"></svg>
+</div>
+<script>
+(function () {
+  var cfg = window.RULER_CFG;
+  var el = function (id) { return document.getElementById(id); };
+  var st = { T: cfg.T, h: 0, mode: "random", n: 0, sum: 0, counts: {}, hist: [], recent: [], a: null, timer: null };
+  el("rw-T").value = st.T; el("rw-h").value = 0;
+  var ROOM = 4;   // the floor is the ruler plus this many tiles, so a drop can land anywhere along it
+  var S = function () { return cfg.s0 / (1 + st.h); };
+  var X = function () { return st.T / S(); };
+  // The gaps sit at every multiple of S. The ruler covers (a, a + T], where a is the spot its left end lands on.
+  // The 1e-9 keeps a gap that sits exactly on an end from being lost to rounding.
+  var first = function (a) { return Math.floor(a / S() + 1e-9) + 1; };
+  var last = function (a) { return Math.floor((a + st.T) / S() + 1e-9); };
+  function record() {
+    // A random start lands anywhere over ROOM whole tiles, so every spot within a tile is equally likely. A fixed
+    // start lands right on one of those tiles' gaps, so the gap under its left end isn't crossed.
+    var a = st.mode === "random" ? Math.random() * ROOM * S() : Math.floor(Math.random() * ROOM) * S();
+    var c = last(a) - first(a) + 1;
+    st.n++; st.sum += c; st.counts[c] = (st.counts[c] || 0) + 1; st.hist.push(st.sum / st.n); st.a = a;
+    st.recent.push(c); if (st.recent.length > 30) st.recent.shift();
+  }
+  function reset() { st.n = 0; st.sum = 0; st.counts = {}; st.hist = []; st.recent = []; st.a = null; draw(false); }
+  var W = 640;
+  function drawFloor(animate) {
+    var s = S(), span = st.T + ROOM * s, L = 12, R = 12, nudge = st.mode === "fixed" ? 2 : 0;
+    var px = function (v) { return L + v / span * (W - L - R); };
+    el("rw-info").textContent = "Tiles " + s.toFixed(2) + " sec wide, a " + st.T + " sec ruler: T / S = " + X().toFixed(2) + " tile widths";
+    var out = [];
+    for (var k = 0; k * s < span; k++) {
+      var x0 = px(k * s), x1 = px(Math.min((k + 1) * s, span));
+      out.push('<rect x="' + x0 + '" y="56" width="' + (x1 - x0) + '" height="36" fill="' + (k % 2 ? "#dcdcdc" : "#f2f2f2") + '"/>');
+    }
+    for (var k2 = 0; k2 * s <= span + 1e-9; k2++)
+      out.push('<line x1="' + px(k2 * s) + '" x2="' + px(k2 * s) + '" y1="56" y2="92" stroke="#777" stroke-width="1.5"/>');
+    if (st.a === null) {
+      out.push('<text x="' + W / 2 + '" y="36" font-size="13" fill="#777" text-anchor="middle">Press "Drop once" to drop the ruler</text>');
+    } else {
+      // The ruler falls a short way and the marks show up as it lands, so clicking quickly still shows every drop.
+      var a = st.a, f = first(a), l = last(a), rx0 = px(a) + nudge, rx1 = px(a + st.T);
+      var g = '<g class="rw-ruler" style="transform:translateY(' + (animate ? -18 : 0) + 'px); transition:transform 0.12s ease-in">' +
+        '<rect x="' + rx0 + '" y="32" width="' + (rx1 - rx0) + '" height="16" rx="2" fill="#2c7fb8" fill-opacity="0.9"/>';
+      for (var t = 1; t < st.T; t++) g += '<line x1="' + px(a + t) + '" x2="' + px(a + t) + '" y1="32" y2="38" stroke="#fff" stroke-opacity="0.8"/>';
+      g += '</g>';
+      var hl = '<g class="rw-hl" style="opacity:' + (animate ? 0 : 1) + '; transition:opacity 0.08s 0.1s">';
+      for (var j = f; j <= l; j++) {
+        var gx = px(j * s);
+        hl += '<line x1="' + gx + '" x2="' + gx + '" y1="48" y2="92" stroke="#d95f02" stroke-width="3"/>' +
+          '<circle cx="' + gx + '" cy="48" r="4" fill="#d95f02"/>';
+      }
+      var c = l - f + 1;
+      hl += '<text x="' + (rx0 + rx1) / 2 + '" y="24" font-size="13" fill="#2b2b2b" text-anchor="middle">crossed ' + c +
+        ' gap' + (c === 1 ? '' : 's') + '</text></g>';
+      out.push(g, hl);
+    }
+    var floor = el("rw-floor");
+    floor.innerHTML = out.join("");
+    if (animate) requestAnimationFrame(function () { requestAnimationFrame(function () {
+      var r = floor.querySelector(".rw-ruler"), h = floor.querySelector(".rw-hl");
+      if (r) r.style.transform = "translateY(0px)";
+      if (h) h.style.opacity = 1;
+    }); });
+  }
+  function drawStats() {
+    var x = X(), lo = Math.floor(x + 1e-9), r = x - lo, n = st.n;
+    var expLo = st.mode === "random" ? 1 - r : 1, expHi = st.mode === "random" ? r : 0;
+    var share = function (k) { return n ? Math.round((st.counts[k] || 0) / n * 100) + "%" : "–"; };
+    el("rw-n").textContent = n.toLocaleString();
+    el("rw-lo-l").textContent = "Crossed " + lo + " (expected " + Math.round(expLo * 100) + "%)";
+    el("rw-hi-l").textContent = "Crossed " + (lo + 1) + " (expected " + Math.round(expHi * 100) + "%)";
+    el("rw-lo").textContent = share(lo); el("rw-hi").textContent = share(lo + 1);
+    el("rw-avg-l").textContent = "Average crossed (T / S = " + x.toFixed(2) + ")";
+    el("rw-avg").textContent = n ? (st.sum / n).toFixed(2) : "–";
+    el("rw-recent").innerHTML = n ? "Last " + st.recent.length + " drops: <b>" + st.recent.map(function (c) {
+      return c > lo ? '<span class="rw-up">' + c + '</span>' : c; }).join(" ") + "</b>" : "";
+    var H = 170, L = 46, R = 70, T0 = 12, B = 30, yMin = lo - 0.15, yMax = lo + 1.15, nMax = Math.max(20, n);
+    var px = function (i) { return L + (i - 1) / (nMax - 1) * (W - L - R); };
+    var py = function (v) { return T0 + (yMax - v) / (yMax - yMin) * (H - T0 - B); };
+    var o = [];
+    [lo, lo + 1].forEach(function (v) {
+      o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + py(v) + '" y2="' + py(v) + '" stroke="#e6e6e6"/>',
+             '<text x="' + (L - 6) + '" y="' + (py(v) + 4) + '" font-size="12" fill="#777" text-anchor="end">' + v + '</text>');
+    });
+    o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + py(x) + '" y2="' + py(x) + '" stroke="#555" stroke-dasharray="5,4"/>',
+           '<text x="' + (W - R + 10) + '" y="' + (py(x) + 4) + '" font-size="12" fill="#555">T / S</text>');
+    if (n > 0) {
+      var step = Math.ceil(n / 800), pts = [];
+      for (var i = 1; i <= n; i += step) pts.push(px(i) + "," + py(st.hist[i - 1]));
+      pts.push(px(n) + "," + py(st.hist[n - 1]));
+      o.push('<polyline points="' + pts.join(" ") + '" fill="none" stroke="#2c7fb8" stroke-width="2" stroke-linejoin="round"/>',
+             '<circle cx="' + px(n) + '" cy="' + py(st.hist[n - 1]) + '" r="4" fill="#2c7fb8"/>');
+    }
+    o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#bbb"/>',
+           '<text x="' + L + '" y="' + (H - B + 16) + '" font-size="12" fill="#777">1</text>',
+           '<text x="' + (W - R) + '" y="' + (H - B + 16) + '" font-size="12" fill="#777" text-anchor="end">' + nMax.toLocaleString() + '</text>',
+           '<text x="' + (L + W - R) / 2 + '" y="' + (H - 4) + '" font-size="12" fill="#777" text-anchor="middle">Drops so far</text>',
+           '<text x="12" y="' + (T0 + (H - T0 - B) / 2) + '" font-size="12" fill="#777" text-anchor="middle" transform="rotate(-90 12 ' +
+             (T0 + (H - T0 - B) / 2) + ')">Average crossed</text>');
+    el("rw-avgplot").innerHTML = o.join("");
+  }
+  function draw(animate) {
+    el("rw-T-v").textContent = st.T + " sec";
+    el("rw-h-v").textContent = Math.round(st.h * 100) + "% (tiles " + S().toFixed(2) + " sec wide)";
+    drawFloor(animate); drawStats();
+  }
+  el("rw-drop").addEventListener("click", function () { record(); draw(true); });
+  el("rw-many").addEventListener("click", function () { for (var i = 0; i < 1000; i++) record(); draw(true); });
+  el("rw-auto").addEventListener("click", function () {
+    if (st.timer) { clearInterval(st.timer); st.timer = null; el("rw-auto").textContent = "Keep dropping"; return; }
+    st.timer = setInterval(function () { record(); draw(true); }, 450);
+    el("rw-auto").textContent = "Stop";
+  });
+  el("rw-reset").addEventListener("click", reset);
+  ["rw-T", "rw-h"].forEach(function (id) {
+    el(id).addEventListener("input", function () { st.T = parseFloat(el("rw-T").value); st.h = parseFloat(el("rw-h").value) / 100; reset(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="rw-mode"]'), function (r) {
+    r.addEventListener("change", function () { st.mode = r.value; reset(); });
+  });
+  draw(false);
+})();
+</script>
