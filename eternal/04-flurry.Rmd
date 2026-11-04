@@ -6,6 +6,7 @@ source("data/flurry.R")
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.5.0",  "2026-11-04", "Blizzard's 2 Nov development notes (the launch build): Flurry is now 3 points for 30% attack speed, the same as Classic's 5/5 (it was 5 points for 25%), and it no longer needs Death Wish. Flurry's extra rage goes up by about a fifth, and the comparison is now with the 25% Flurry Forever had before 2 Nov. The Bloodthirst and Whirlwind rotation behind the yellow crits uses Improved Whirlwind's 8-second cooldown.",
   "1.4.0",  "2026-10-31", "Added Haste breakpoints: on average, every bit of haste adds the same number of swings. Breakpoints only happen when a window always starts at the same point in your swing, which takes more than a static fight, and Flurry scrambles the swing timers within a few swings, so in the fight simulator a Fury warrior's rage and damage climb in a straight line with haste. Simulators and spreadsheets that start every fight on a swing and end it at a fixed time show breakpoints the game doesn't have.",
   "1.3.0",  "2026-10-28", "Today's rules (Blizzard's 1 Oct development notes and hotfixes): a crit gives twice a normal swing's rage, so crit gives Forever rage directly as well as through Flurry, and 1% crit is now worth more rage in Forever than in Classic. The white rage baseline uses Dual Wield Specialization's +50% off-hand rage (it was +100%) and Furious Precision's +10% off-hand hit. Flurry now needs Death Wish instead of Enrage.",
   "1.2.1",  "2026-09-25", "Crit lost against a boss corrected to 4.8% (3% from the level gap plus 1.8% on aura crit, from the Classic warrior wiki), and Classic's rage to 7.5 x damage / C. The uptimes come down a little and Classic's rage per 1% crit halves, but the conclusions stand.",
@@ -14,8 +15,9 @@ flurry_changelog <- tribble(
   "1.0.0",  "2026-09-24", "First version: a Markov chain model of Flurry, checked against the fight simulator, and compared with Classic. Model only - Flurry can't be talented in the beta yet."
 )
 
-haste_forever <- 0.25
-haste_classic <- 0.30
+haste_forever <- forever_talents$flurry_haste       # 30% at 3/3 since 2 Nov
+haste_oct     <- forever_oct_talents$flurry_haste   # 25% at 5/5, from September until 2 Nov
+haste_classic <- classic_talents$flurry_haste       # 30% at 5/5
 suppression   <- sim_defaults$crit_suppression   # crit lost against a level 63 boss: 3% from the level gap plus 1.8% on aura crit
 landed        <- 1 - sim_defaults$miss - sim_defaults$dodge            # dual wield vs a boss, from behind
 crit_cap      <- 1 - sim_defaults$miss - sim_defaults$dodge - sim_defaults$glance
@@ -34,18 +36,18 @@ fl <- function(sheet, haste = haste_forever, yellow = TRUE) {
 }
 ```
 
-*Version `r flurry_changelog$version[1]` (`r flurry_changelog$date[1]`). **Model only:** Flurry is in row 6 of the Fury tree, so it needs level 34, and the beta is capped at 30. Everything here assumes Flurry works like it did in Classic, but at Forever's 25%. See the [changelog](#flurry-changelog).*
+*Version `r flurry_changelog$version[1]` (`r flurry_changelog$date[1]`). **Model only:** Flurry is in row 6 of the Fury tree, so it needs level 34, and all our logs come from the beta, which was capped at 30. Until there are logs from the live game, everything here assumes Flurry works like it did in Classic, at the same 30% it has since 2 November. See the [changelog](#flurry-changelog).*
 
 Flurry is the talent that makes dual wield warriors tick, and in Forever it matters even more than it used to, because rage comes from swings: every extra swing Flurry gives you is extra rage. This chapter builds a better model of how often Flurry is up, compares it with the way we used to work it out in Classic, and lists what we need to check once the talent is available.
 
 ## What Flurry does
 
-At 5/5, a critical strike gives you **`r haste_forever * 100`% attack speed for your next 3 swings** (it was `r haste_classic * 100`% in Classic). Since 1 October it needs Death Wish to reach, instead of Enrage. Here's what we're assuming about how it works, and what we actually know:
+At 3/3, a critical strike gives you **`r haste_forever * 100`% attack speed for your next 3 swings**, the same as Classic's 5/5. Blizzard's [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9) made it a 3-point talent (it was 5 points for `r haste_oct * 100`%), so a Fury build has 2 more points to spend, and it no longer needs Death Wish (or Enrage, as it did before October) to reach. Here's what we're assuming about how it works, and what we actually know:
 
 ```{r}
 tribble(
   ~Rule,                                                          ~Status,
-  "25% attack speed at 5/5",                                      "Tooltip",
+  "30% attack speed at 3/3",                                      "Tooltip",
   "Lasts 3 white swings, and each hasted swing uses up a charge", "Assumed from Classic",
   "Any crit refreshes it back to 3 charges, including Bloodthirst and Whirlwind", "Assumed from Classic",
   "Yellow attacks don't use up charges",                          "Assumed from Classic",
@@ -144,16 +146,16 @@ map_dfr(crit_grid, function(s) {
   theme(legend.position = "bottom")
 ```
 
-At 30% sheet crit, the Classic formula says `r round(flurry_classic(0.30) * 100)`% uptime, while the chain says `r round(fl(0.30)$hasted_swings * 100)`% of swings are hasted and Flurry is up `r round(fl(0.30)$time_share * 100)`% of the time. The difference is mostly the crit suppression and treating yellow attacks properly. Going from Classic's `r haste_classic * 100`% to Forever's `r haste_forever * 100`% doesn't change the uptime much at all, since the uptime only depends on how often you crit - it changes how much each hasted swing is worth.
+At 30% sheet crit, the Classic formula says `r round(flurry_classic(0.30) * 100)`% uptime, while the chain says `r round(fl(0.30)$hasted_swings * 100)`% of swings are hasted and Flurry is up `r round(fl(0.30)$time_share * 100)`% of the time. The difference is mostly the crit suppression and treating yellow attacks properly. Forever's Flurry was `r haste_oct * 100`% until 2 November and is `r haste_forever * 100`% now, like Classic's. That doesn't change the uptime much at all, since the uptime only depends on how often you crit - it changes how much each hasted swing is worth.
 
 ### Flurry as rage
 
 Both games give more rage when you swing more often, so Flurry's extra swings are extra rage in both. In Classic, a crit also gave you about twice the rage directly, because rage came from damage. Until October, Forever had nothing like that, and Flurry was the only way crit gave you rage. Since the 1 October rework, **a crit gives twice the rage of a normal swing**, so Forever gets crit rage both ways too: from the crit itself, and from Flurry's extra swings.
 
-```{r fig.cap="Extra white rage per minute from Flurry, for a dual wielder against a boss. Forever: 25% haste on Forever's rage per swing. The dashed line is the same warrior with Classic's 30% haste, on the same Forever rage per swing.", fig.height=3.5}
+```{r fig.cap="Extra white rage per minute from Flurry, for a dual wielder against a boss, on Forever's rage per swing. The solid line is today's 30% Flurry; the dashed line is the 25% Forever had until 2 November.", fig.height=3.5}
 map_dfr(crit_grid, function(s) tibble(sheet = s,
-  `Forever (25%)` = base_rpm(s) * (fl(s)$swing_mult - 1),
-  `Forever rage with Classic's 30%` = base_rpm(s) * (fl(s, haste_classic)$swing_mult - 1))) %>%
+  `Forever since 2 Nov (30%)` = base_rpm(s) * (fl(s)$swing_mult - 1),
+  `Forever until 2 Nov (25%)` = base_rpm(s) * (fl(s, haste_oct)$swing_mult - 1))) %>%
   pivot_longer(-sheet) %>%
   ggplot(aes(sheet, value, linetype = name)) +
   geom_line(colour = "#2c7fb8", linewidth = 0.9) +
@@ -162,7 +164,7 @@ map_dfr(crit_grid, function(s) tibble(sheet = s,
   theme(legend.position = "bottom")
 ```
 
-At 30% sheet crit, our dual wielder gets about `r round(base_rpm(0.30))` rage per minute from white hits before Flurry. That's Forever's rage per second for each hand, with the off hand's raised by half by Dual Wield Specialization, times the share of swings that land against a boss (`r round(landed * 100)`% for the main hand, and `r round(landed_oh * 100)`% for the off hand with Furious Precision's +10% hit), plus the extra from crits, which give twice the rage. Flurry adds about **`r round(base_rpm(0.30) * (fl(0.30)$swing_mult - 1))` rage per minute** on top of that. With Classic's 30% haste it would be `r round(base_rpm(0.30) * (fl(0.30, haste_classic)$swing_mult - 1))`, so the nerf to 25% costs about `r round(base_rpm(0.30) * (fl(0.30, haste_classic)$swing_mult - fl(0.30)$swing_mult))` rage per minute.
+At 30% sheet crit, our dual wielder gets about `r round(base_rpm(0.30))` rage per minute from white hits before Flurry. That's Forever's rage per second for each hand, with the off hand's raised by half by Dual Wield Specialization, times the share of swings that land against a boss (`r round(landed * 100)`% for the main hand, and `r round(landed_oh * 100)`% for the off hand with Furious Precision's +10% hit), plus the extra from crits, which give twice the rage. Flurry adds about **`r round(base_rpm(0.30) * (fl(0.30)$swing_mult - 1))` rage per minute** on top of that. With the `r haste_oct * 100`% Flurry it had until 2 November, it was `r round(base_rpm(0.30) * (fl(0.30, haste_oct)$swing_mult - 1))`, so the change is worth about `r round(base_rpm(0.30) * (fl(0.30)$swing_mult - fl(0.30, haste_oct)$swing_mult))` rage per minute, from 2 fewer talent points.
 
 ### What 1% crit is worth in rage
 

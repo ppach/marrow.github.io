@@ -5,8 +5,8 @@
 #
 # Talents follow the most popular Fury build on talentsforever.com (17/34/0), in its Forever and
 # Classic versions: see `forever_talents` and `classic_talents` below, and data/talents/README.md.
-# Forever's rules are the ones in the game since the 1 to 2 Oct 2026 Warrior hotfixes (Blizzard's 1 Oct
-# development notes, and the hotfixed talent tree).
+# Forever's rules are the ones in the game since Blizzard's 2 Nov 2026 development notes (the launch build), which
+# came on top of the 1 Oct rework and its 1 to 2 Oct hotfixes.
 #
 # This is not meant to be a full simulator. The Classic mechanics follow the two Classic simulators,
 # WarriorSim (github.com/GuybrushGit/WarriorSim) and ClassicSim (github.com/timhul/ClassicSim), and the
@@ -15,7 +15,8 @@
 # the same mechanics, except where our logs or Blizzard's notes show otherwise: rage per white swing, no rage
 # from dodged swings, no rage from Heroic Strike, Unbridled Wrath only from landed white hits (logs), and a
 # crit giving twice the rage, Whirlwind hitting with both weapons and a queued Heroic Strike no longer
-# raising off-hand hit (notes).
+# raising off-hand hit (notes). Since 2 Nov: Flurry 3/3 gives 30%, Improved Whirlwind 2/2 cuts Whirlwind's cooldown
+# to 8 sec and adds 30% to its damage, and Reckless Swings gives 5 extra rage on each of your next 4 attacks (notes).
 
 sim_defaults <- list(
   fight_len = 180,        # seconds
@@ -31,7 +32,7 @@ sim_defaults <- list(
   crit_mult_yellow = 2.2, # 2x, plus Impale 2/2
   wpn_norm = 2.4,         # normalised speed of a one-handed weapon, used by Whirlwind
   gcd = 1.5,
-  bt_cost = 30, bt_cd = 6, ww_cd = 10,
+  bt_cost = 30, bt_cd = 6, ww_cd = 10, ww_dmg_mult = 1,
   hs_cost = 12, hs_bonus = 157, # rank 9, with Improved Heroic Strike 3/3
   hs_threshold = 60,      # queue Heroic Strike when rage is at least this much
   refund = 0.80,          # share of the cost given back when Bloodthirst or Heroic Strike misses or is dodged
@@ -44,35 +45,45 @@ sim_defaults <- list(
   execute_at = NA,        # seconds into the fight when the boss reaches 20% health (NA: no execute phase)
   exec_cost = 15, exec_base = 600, exec_per_rage = 15,   # rank 5, the same in both games
   ubw_rage = 1,
+  # Reckless Swings (Forever only): pressed whenever it's ready, off the global cooldown. Your next `rs_charges`
+  # landed attacks within `rs_dur` sec each give `rs_rage` extra rage. We count white swings, Heroic Strike,
+  # Bloodthirst and Whirlwind (once per cast); misses and dodges don't use a charge. Its health cost (25% of base
+  # health) is left to the healers. `rs_rage = 0` switches it off.
+  rs_rage = 0, rs_charges = 4, rs_dur = 8, rs_cd = 15,
   # Off unless switched on (the Rage on Crit chapter):
   flurry_rage = 0,        # extra rage from each white swing that lands while Flurry speeds it up (a design option)
   extra_haste = 1         # attack speed from outside Flurry, e.g. 1.03 for weapon enchants
 )
 
-# Forever 17/34/0 (since the 1 Oct rework): Dual Wield Specialization 5/5 (+25% off-hand damage, +50% off-hand
-# rage), Furious Precision 3/3 (+10% off-hand hit), Anger Management (1 rage every 3 sec), Raging Blows (Whirlwind
-# costs 3 less), Flurry 25%, Unbridled Wrath 60% (tooltip), Bloodthirst 45% of AP + 48 (rank 4). No Boundless
-# Rage any more, so the cap is 100. Whirlwind hits with both weapons without a talent. A white crit gives twice
+# Forever 17/34/0 (the 2 Nov tree): Dual Wield Specialization 5/5 (+25% off-hand damage, +50% off-hand rage),
+# Furious Precision 3/3 (+10% off-hand hit), Anger Management (1 rage every 3 sec), Raging Blows (Whirlwind costs 3
+# less), Reckless Swings, Flurry 3/3 (30%), Improved Whirlwind 2/2 (8 sec cooldown, +30% damage), Unbridled Wrath
+# 60% (tooltip), Bloodthirst 45% of AP + 48 (rank 4). No Boundless Rage any more, so the cap is 100. Whirlwind hits with both weapons without a talent. A white crit gives twice
 # the rage of a normal hit (`crit_rage_mult`). A dodged white swing gives no rage (logs), and a queued Heroic
 # Strike no longer raises off-hand hit.
 forever_talents <- list(
   oh_dmg_mult = 1.25, oh_rage_mult = 1.5, oh_hit_bonus = 0.10, anger_rps = 1 / 3, rage_cap = 100,
-  ww_offhand = TRUE, ww_cost = 22, flurry_haste = 0.25, flurry_charges = 3, ubw_chance = 0.60,
-  bt_ap = 0.45, bt_flat = 48, dodge_rage = 0, crit_rage_mult = 2, hs_oh_hit = FALSE
+  ww_offhand = TRUE, ww_cost = 22, ww_cd = 8, ww_dmg_mult = 1.3, flurry_haste = 0.30, flurry_charges = 3,
+  ubw_chance = 0.60, bt_ap = 0.45, bt_flat = 48, dodge_rage = 0, crit_rage_mult = 2, hs_oh_hit = FALSE, rs_rage = 5
 )
 # Classic 17/34/0: Dual Wield Specialization only adds damage, Whirlwind only hits with the main hand, Flurry 30%,
 # Unbridled Wrath 40%, Bloodthirst 45% of AP. A dodged white swing gives the rage of 75% of an average hit
 # (WarriorSim). Classic's rage already grows with a crit's damage, so `crit_rage_mult` stays at 1.
 classic_talents <- list(
   oh_dmg_mult = 1.25, oh_rage_mult = 1, oh_hit_bonus = 0, anger_rps = 1 / 3, rage_cap = 100,
-  ww_offhand = FALSE, ww_cost = 25, flurry_haste = 0.30, flurry_charges = 3, ubw_chance = 0.40,
-  bt_ap = 0.45, bt_flat = 0, dodge_rage = 0.75, crit_rage_mult = 1, hs_oh_hit = TRUE
+  ww_offhand = FALSE, ww_cost = 25, ww_cd = 10, ww_dmg_mult = 1, flurry_haste = 0.30, flurry_charges = 3,
+  ubw_chance = 0.40, bt_ap = 0.45, bt_flat = 0, dodge_rage = 0.75, crit_rage_mult = 1, hs_oh_hit = TRUE, rs_rage = 0
 )
 # Forever's rules before the 1 Oct rework (September 2026), which the Rage Design Proposals chapter was written
 # against: Dual Wield Specialization doubled off-hand rage and gave +10% off-hand hit, Boundless Rage 3/3 raised the
 # cap to 130, crits gave no extra rage, Bloodthirst was 35% of AP + 48, Whirlwind cost 25 (Raging Blows only gave it
 # the off-hand hit) and a queued Heroic Strike still raised off-hand hit.
-forever_sep_talents <- modifyList(forever_talents, list(
+# Forever's rules from the 1 Oct rework until 2 Nov: Flurry 5/5 gave 25%, and there was no Improved Whirlwind or
+# Reckless Swings.
+forever_oct_talents <- modifyList(forever_talents, list(
+  flurry_haste = 0.25, ww_cd = 10, ww_dmg_mult = 1, rs_rage = 0
+))
+forever_sep_talents <- modifyList(forever_oct_talents, list(
   oh_rage_mult = 2, rage_cap = 130, crit_rage_mult = 1, bt_ap = 0.35, ww_cost = 25, hs_oh_hit = TRUE
 ))
 sim_defaults <- modifyList(sim_defaults, forever_talents)
@@ -101,11 +112,13 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
   flurry <- 0; hs_queued <- FALSE; in_execute <- FALSE
   hasted <- c(MH = FALSE, OH = FALSE)   # whether each hand's current swing timer was sped up by Flurry
   wf_ready <- 0                     # Windfury's internal cooldown
+  rs_ready <- 0; rs_left <- 0; rs_end <- -Inf   # Reckless Swings: cooldown, charges left, and when they run out
   dw_end <- -Inf; dw_next <- Inf    # Deep Wounds: when the bleed ends, and when it next ticks
   crit <- p$crit - p$crit_suppression
   wasted <- 0; starved <- 0; last_t <- 0; generated <- 0
   spent <- c(bt = 0, ww = 0)        # rage spent on Bloodthirst and Whirlwind, after refunds
-  n <- c(bt = 0, ww = 0, hs = 0, exec = 0, wf = 0)
+  n <- c(bt = 0, ww = 0, hs = 0, exec = 0, wf = 0, rs = 0)
+  rs_gained <- 0                    # rage from Reckless Swings
   dmg <- c(white = 0, hs = 0, bt = 0, ww = 0, exec = 0, dw = 0)
   exec_rage <- numeric(0)   # rage spent on each Execute
   hs_t <- numeric(0)        # when each Heroic Strike went off
@@ -118,6 +131,10 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     over <- max(rage + x - p$rage_cap, 0)
     wasted <<- wasted + over
     rage <<- min(rage + x, p$rage_cap)
+  }
+  # A landed attack uses a Reckless Swings charge, if there's one left.
+  rs_hit <- function() {
+    if (rs_left > 0 && t <= rs_end) { rs_left <<- rs_left - 1; rs_gained <<- rs_gained + p$rs_rage; add_rage(p$rs_rage) }
   }
   refund <- function(cost) { r <- p$refund * cost; rage <<- min(rage + r, p$rage_cap); r }
   # Any crit starts Flurry and restarts Deep Wounds (and its tick timer, as in WarriorSim).
@@ -138,7 +155,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     if (runif(1) < crit) { on_crit(); return(d * p$crit_mult_yellow) }
     d
   }
-  ww_hit <- function(hand, speed) (wpn_dps * speed + p$ap / 14 * p$wpn_norm) * p$armor * hand_mult(hand)
+  ww_hit <- function(hand, speed) (wpn_dps * speed + p$ap / 14 * p$wpn_norm) * p$armor * hand_mult(hand) * p$ww_dmg_mult
 
   # One swing: the queued Heroic Strike (main hand only), or a white hit. Returns TRUE if it landed, which
   # is what Windfury procs from. `ap_bonus` is Windfury's extra attack power.
@@ -151,7 +168,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         rage <<- rage - p$hs_cost; n["hs"] <<- n["hs"] + 1; hs_t <<- c(hs_t, t)
         d <- yellow(base_dmg(speed, hand, ap_bonus) + p$hs_bonus * p$armor)
         dmg["hs"] <<- dmg["hs"] + d
-        if (d == 0) refund(p$hs_cost)
+        if (d == 0) refund(p$hs_cost) else rs_hit()
         return(d > 0)
       }
     }
@@ -170,6 +187,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     add_rage(rage_fn(hand, d, speed) * (if (hand == "OH") p$oh_rage_mult else 1) * (if (is_crit) p$crit_rage_mult else 1) +
              (if (hasted[[hand]]) p$flurry_rage else 0))
     if (runif(1) < p$ubw_chance) add_rage(p$ubw_rage)
+    rs_hit()
     if (is_crit) on_crit()
     TRUE
   }
@@ -190,13 +208,18 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     # global cooldown. An ability that is ready but unaffordable is not an event.
     ability_t <- max(gcd_ready, min(bt_ready, ww_ready))
     tick_t <- if (p$anger_rps > 0) (floor(t * p$anger_rps + 1e-9) + 1) / p$anger_rps else Inf
-    t_new <- min(next_mh, next_oh, tick_t, if (ability_t > t) ability_t else Inf)
+    rs_t <- if (p$rs_rage > 0 && rs_ready > t) rs_ready else Inf
+    t_new <- min(next_mh, next_oh, tick_t, rs_t, if (ability_t > t) ability_t else Inf)
     if (t_new > p$fight_len) break
     # Time spent with Bloodthirst ready but not enough rage to press it.
     if (bt_ready <= last_t && gcd_ready <= last_t && rage < p$bt_cost) starved <- starved + (t_new - last_t)
     t <- t_new; last_t <- t
     deep_wounds_ticks(t)
     if (abs(t - tick_t) < 1e-9) add_rage(1)   # Anger Management: 1 rage every 3 sec
+    # Reckless Swings, whenever it's ready (off the global cooldown)
+    if (p$rs_rage > 0 && t >= rs_ready) {
+      rs_left <- p$rs_charges; rs_end <- t + p$rs_dur; rs_ready <- t + p$rs_cd; n["rs"] <- n["rs"] + 1
+    }
 
     # Execute phase: Execute with all your rage whenever the global cooldown is free.
     in_execute <- !is.na(p$execute_at) && t >= p$execute_at
@@ -218,13 +241,13 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         rage <- rage - p$bt_cost; spent["bt"] <- spent["bt"] + p$bt_cost; bt_ready <- t + p$bt_cd; gcd_ready <- t + p$gcd; n["bt"] <- n["bt"] + 1
         d <- yellow((p$bt_ap * p$ap + p$bt_flat) * p$armor)
         dmg["bt"] <- dmg["bt"] + d
-        if (d == 0) spent["bt"] <- spent["bt"] - refund(p$bt_cost) else windfury()
+        if (d == 0) spent["bt"] <- spent["bt"] - refund(p$bt_cost) else { rs_hit(); windfury() }
       } else if (use == "ww") {
         rage <- rage - p$ww_cost; spent["ww"] <- spent["ww"] + p$ww_cost; ww_ready <- t + p$ww_cd; gcd_ready <- t + p$gcd; n["ww"] <- n["ww"] + 1
         d <- yellow(ww_hit("MH", p$mh_speed))
         dmg["ww"] <- dmg["ww"] + d
         if (p$ww_offhand) dmg["ww"] <- dmg["ww"] + yellow(ww_hit("OH", p$oh_speed))
-        if (d > 0) windfury()
+        if (d > 0) { rs_hit(); windfury() }
       }
     }
     # Heroic Strike is queued as soon as there's enough rage, and goes off on the next main-hand swing if
@@ -249,7 +272,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
 
   per_min <- 60 / p$fight_len
   out <- tibble::tibble(bt_pm = n[["bt"]] * per_min, ww_pm = n[["ww"]] * per_min, hs_pm = n[["hs"]] * per_min,
-                        wf_pm = n[["wf"]] * per_min,
+                        wf_pm = n[["wf"]] * per_min, rs_rps = rs_gained / p$fight_len,
                         wasted_pm = wasted * per_min, starved_share = starved / p$fight_len,
                         rps = generated / p$fight_len,
                         spare_pm = (generated - sum(spent)) * per_min,   # rage left after Bloodthirst and Whirlwind

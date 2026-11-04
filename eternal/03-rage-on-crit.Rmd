@@ -9,6 +9,7 @@ library(parallel)
 
 crit_changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.1.0",  "2026-11-04", "Added Since 2 November: Blizzard's 2 Nov notes gave Fury Flurry 3/3 at 30%, Improved Whirlwind and Reckless Swings. The crit rules are unchanged, so the versions stay on the build they were announced for (1 Oct to 2 Nov), and today's game is simulated alongside them at every crit and hit.",
   "2.0.0",  "2026-10-28", "v2 is in the game: Blizzard's 1 Oct development notes give crits 100% more rage, and the hotfixed talent tree gives Dual Wield Specialization +50% off-hand rage, with its off-hand hit moved to Furious Precision. The rest of the book now uses v2. Every version is simulated on today's build otherwise (Bloodthirst at 45% of attack power, a 100 rage cap without Boundless Rage, Whirlwind for 22 rage with Raging Blows, and a queued Heroic Strike no longer raising off-hand hit), and the rage Bloodthirst and Whirlwind need comes from the How Damage Scales chapter's rage blocks.",
   "1.0.0",  "2026-10-01", "First version: three versions of Forever's rage (v0 before 30 September; v1, the 30 September change, where crits give 75% more rage and Dual Wield Specialization no longer adds off-hand rage; and v2, the fix Zirene announced, where crits give 100% more and the off hand 50% more) against Classic, at every crit, hit and attack power. Where the ceiling comes from, how long you wait between Heroic Strikes, an interactive map for your own gear, a check against Bored's rage spreadsheet, and two design ideas."
 )
@@ -20,9 +21,11 @@ crit_wpn <- 58   # the phase 2 weapon from the How Damage Scales chapter, held f
 # glancing blows at 65% damage. Windfury Totem is always up.
 crit_table <- function(hit) list(crit_suppression = 0, miss = 0.27 - hit, yellow_miss = max(0.08 - hit, 0),
                                  dodge = 0.065, glance = 0.40, glance_dmg = 0.65, wf = TRUE)
-# Each version of the rage rules. Forever versions use today's 17/34/0 Forever build (Bloodthirst at 45%, a 100 rage
-# cap, Whirlwind for 22 rage); only the off-hand rage multiplier (Dual Wield Specialization), the crit multiplier and
-# the Flurry bonus change, so the versions differ in their rage and nothing else.
+# Each version of the rage rules. Forever versions use the 17/34/0 Forever build as it was from 1 Oct to 2 Nov
+# (`forever_oct_talents`: Bloodthirst at 45%, a 100 rage cap, Whirlwind for 22 rage, Flurry 25%); only the off-hand
+# rage multiplier (Dual Wield Specialization), the crit multiplier and the Flurry bonus change, so the versions differ
+# in their rage and nothing else. `Forever today` is v2 on the 2 Nov build (`forever_talents`: Flurry 30%, Improved
+# Whirlwind, Reckless Swings), for the "Since 2 November" section.
 #   v0: before 30 Sep 2026 (off hand x2, no crit bonus)
 #   v1: the 30 Sep change (crits x1.75, off hand x1)
 #   v2: the game since the 1 to 2 Oct hotfixes, as Zirene announced (crits x2, off hand x1.5)
@@ -37,7 +40,8 @@ crit_versions <- list(
   `Flurry +2`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 2)),
   `Flurry +3`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 3)),
   `Flurry +4`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 4)),
-  `Flurry +5`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 5))
+  `Flurry +5`                  = list(game = "Forever", p = list(oh_rage_mult = 1, crit_rage_mult = 1, flurry_rage = 5)),
+  `Forever today`              = list(game = "Forever", p = list(), now = TRUE)
 )
 # Gear: every combination of attack power, crit (character sheet) and hit from gear. Forever's rage doesn't use
 # damage, so the design options only run at 2000 attack power; the three main versions run everywhere, to show it.
@@ -53,13 +57,15 @@ gear_points <- tribble(~point, ~ap, ~crit, ~hit,
   "Mid",   2000, 0.30, 0.075,
   "Late",  2750, 0.40, 0.10)
 n_crit <- 60; crit_fight_len <- 600   # fights per gear point, and their length (long, so the opening matters little)
-# rage per second Bloodthirst and Whirlwind use when cast on cooldown (the How Damage Scales chapter's rage blocks)
-bt_ww_need <- round(ladder("Forever", crit_wpn)$blocks$end[2], 1)
+# rage per second Bloodthirst and Whirlwind use when cast on cooldown (the How Damage Scales chapter's rage blocks),
+# on the 1 Oct build (Whirlwind every 10 sec, about 5 a minute) and today's (Improved Whirlwind)
+bt_ww_need     <- round(ladder("Forever", crit_wpn, ww_pm = ww_per_min[["Classic"]], tal = forever_oct_talents)$blocks$end[2], 1)
+bt_ww_need_now <- round(ladder("Forever", crit_wpn)$blocks$end[2], 1)
 ```
 
 ```{r crit-sims, include=FALSE}
 # functions go into the key as their code (deparse), so where the chapter sits in the merged book doesn't change it
-crit_res <- cached_sim("crit_grid", deps = list(crit_grid, crit_versions, deparse(crit_table), gear_points, n_crit, crit_fight_len, crit_wpn, classic_k, forever_draws, C60, sim_defaults, forever_talents, classic_talents), {
+crit_res <- cached_sim("crit_grid", deps = list(crit_grid, crit_versions, deparse(crit_table), gear_points, n_crit, crit_fight_len, crit_wpn, classic_k, forever_draws, C60, sim_defaults, forever_talents, forever_oct_talents, classic_talents), {
   cl <- makeCluster(max(1, min(14, detectCores() - 2)))
   on.exit(stopCluster(cl))
   clusterCall(cl, setwd, getwd())
@@ -68,7 +74,7 @@ crit_res <- cached_sim("crit_grid", deps = list(crit_grid, crit_versions, depars
   rows <- split(crit_grid, seq_len(nrow(crit_grid)))
   bind_rows(parLapplyLB(cl, rows, function(j) {
     v <- crit_versions[[j$model]]
-    talents <- if (v$game == "Classic") classic_talents else forever_talents
+    talents <- if (v$game == "Classic") classic_talents else if (isTRUE(v$now)) forever_talents else forever_oct_talents
     p <- modifyList(modifyList(modifyList(sim_defaults, talents), crit_table(j$hit)),
                     c(list(ap = j$ap, crit = j$crit, fight_len = crit_fight_len), v$p))
     rage_fn <- if (v$game == "Classic") function(hand, dmg, speed) classic_k * dmg / C60
@@ -99,14 +105,14 @@ sheet_steps <- list(
   `... Anger Management` = function(r) list(wf_icd = 1.5, extra_haste = 1, miss = 0.27 - r$hit, yellow_miss = max(0.08 - r$hit, 0), dodge = 0.065 - r$exp, anger_rps = 1 / 3),
   `... a 2.0 speed off hand (our assumptions)` = function(r) list(wf_icd = 1.5, extra_haste = 1, miss = 0.27 - r$hit, yellow_miss = max(0.08 - r$hit, 0), dodge = 0.065 - r$exp, anger_rps = 1 / 3, oh_speed = 2.0)
 )
-sheet_res <- cached_sim("crit_sheet", deps = list(sheet_rows, lapply(sheet_steps, deparse), sim_defaults, forever_talents), {
+sheet_res <- cached_sim("crit_sheet", deps = list(sheet_rows, lapply(sheet_steps, deparse), sim_defaults, forever_oct_talents), {
   fixed_rates <- function(hand, dmg, speed) (if (hand == "MH") 3.46 else 1.73) * speed   # the sheet's base rage values
   expand_grid(i = seq_len(nrow(sheet_rows)), step = names(sheet_steps)) %>%
     mutate(rps = map2_dbl(i, step, function(ii, s) {
       r <- sheet_rows[ii, ]
       # the sheet: tooltip misses (27.6% / 8.6% before hit), 6.6% dodge, no crit suppression, Windfury on every
       # attack, 3% attack speed from enchants, a 2.7 speed off hand, no Anger Management
-      p <- modifyList(modifyList(sim_defaults, forever_talents),
+      p <- modifyList(modifyList(sim_defaults, forever_oct_talents),   # the build the spreadsheet models
                       list(miss = 0.276 - r$hit, yellow_miss = max(0.086 - r$hit, 0), dodge = 0.066 - r$exp, crit = r$crit,
                            crit_suppression = 0, anger_rps = 0, wf = TRUE, wf_icd = 0, extra_haste = 1.03, oh_speed = 2.7,
                            oh_rage_mult = 1, crit_rage_mult = 1.75, ap = 1300, fight_len = 600))
@@ -330,7 +336,8 @@ tribble(~Change, ~`Where it comes from`, ~`In our simulations`,
   "Boundless Rage removed, so the cap is 100; Bloodthirst back to 45% of attack power; Raging Blows takes 3 rage off Whirlwind; a queued Heroic Strike no longer raises off-hand hit", "Blizzard's notes (1 Oct)", "Yes, in every version",
   "Rage from dealing damage is normalised to weapon speed", "Blizzard's announcement; it matches what our logs found", "Yes, as in the rest of the book",
   "No hit or crit suppression against bosses", "The in-game tooltips, as used in Bored's spreadsheet", "Yes",
-  "Flurry's attack speed is 5% lower than Classic's", "Blizzard's announcement", "Yes, 25% (already in the book)",
+  "Flurry's attack speed is 5% lower than Classic's", "Blizzard's announcement", "Yes, 25%. Since 2 Nov it's 30% at 3/3, in the Since 2 November section",
+  "Improved Whirlwind and Reckless Swings, new Fury talents", "Blizzard's notes (2 Nov)", "Only in the Since 2 November section",
   "Rage from damage taken ignores armor and absorbs", "Blizzard's announcement", "No: our warrior isn't taking hits",
   "Bloodthirst no longer heals", "Blizzard's announcement", "No effect on damage") %>%
   knitr::kable(caption = "The changes behind this chapter, and where each one comes from. Every Forever version is simulated on today's build, so they differ only in their rage.")
@@ -340,7 +347,7 @@ Blizzard also said they're still tracking down bugs in the beta's rage generatio
 
 ## Our warrior
 
-Our warrior is the one from the rest of the book: level 60, dual wielding a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand and a `r sprintf('%.1f', sim_defaults$oh_speed)` speed off hand (both a phase 2 weapon, `r crit_wpn` DPS), with the 17/34/0 Fury build. What's different in this chapter:
+Our warrior is the one from the rest of the book: level 60, dual wielding a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand and a `r sprintf('%.1f', sim_defaults$oh_speed)` speed off hand (both a phase 2 weapon, `r crit_wpn` DPS), with the 17/34/0 Fury build as it was from 1 October to 2 November, when the crit rules were announced (Flurry at 25%, and no Improved Whirlwind or Reckless Swings). [Since 2 November](#crit-since-nov) adds today's talents. What's different in this chapter:
 
 - **The boss is level 63,** and we have no weapon skill from gear or race. Before any hit from gear, `r pc(0.27)` of white swings miss (it's high because dual wielding adds 19%), and `r pc(0.08)` of abilities do. `r pc(0.065)` are dodged, and `r pc(0.40)` of white swings are glancing blows, which do `r pc(0.65)` damage and can't crit.
 - **No hit or crit suppression.** In Classic, a boss three levels above you took away 1% of your hit and some of your crit. The Forever tooltips don't, so we don't either.
@@ -653,6 +660,44 @@ So at low gear, our assumptions land almost exactly on the spreadsheet (`r f2(sr
 
 Two smaller things in the spreadsheet are worth knowing about. It applies the crit bonus only to swings that land, but on the attack table, crit is a share of *all* swings, so it undercounts crit rage a little. That's why our simulator, with the spreadsheet's assumptions, comes out a little above it at high crit. And it takes Flurry as up 80% of the time, where in the simulation Flurry's uptime grows with crit (well below 80% at 25% crit, about 80% at 45%). Neither changes the picture.
 
+## Since 2 November {#crit-since-nov}
+
+Blizzard's [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9), the last before launch, gave Fury three talents that change its rage, after this chapter's versions were announced:
+
+- **Flurry** is 3 points for `r pc0(forever_talents$flurry_haste)` attack speed (it was 5 points for `r pc0(forever_oct_talents$flurry_haste)`), so crits buy a few more swings.
+- **Reckless Swings**: every `r sim_defaults$rs_cd` seconds, your next `r sim_defaults$rs_charges` attacks give `r forever_talents$rs_rage` extra rage each, a steady `r f2(forever_talents$rs_rage * sim_defaults$rs_charges / sim_defaults$rs_cd)` rage per second that doesn't depend on crit at all.
+- **Improved Whirlwind** cuts Whirlwind's cooldown to `r forever_talents$ww_cd` seconds, so Bloodthirst and Whirlwind on cooldown now use `r bt_ww_need_now` rage per second (it was `r bt_ww_need`).
+
+The crit rules didn't change, so we kept the versions above on the build they were announced for, and simulated today's game (v2's rules with the new talents) at every crit and hit:
+
+```{r}
+gear_points %>%
+  mutate(v2 = map2_dbl(crit, hit, ~ gv("Forever v2", .x, .y)),
+         now = map2_dbl(crit, hit, ~ gv("Forever today", .x, .y)),
+         p90_v2 = map2_dbl(crit, hit, ~ gv("Forever v2", .x, .y, col = "gap_p90")),
+         p90_now = map2_dbl(crit, hit, ~ gv("Forever today", .x, .y, col = "gap_p90"))) %>%
+  transmute(Gear = paste0(point, " (", pc0(crit), " crit, ", pc(hit), " hit)"),
+            `v2, 1 Oct build` = paste0(f2(v2), " (", f2(v2 - bt_ww_need), " spare)"),
+            `Today, 2 Nov build` = paste0(f2(now), " (", f2(now - bt_ww_need_now), " spare)"),
+            `1-in-10 Heroic Strike wait` = paste0(f0(pmin(p90_v2, 999)), " sec to ", f0(pmin(p90_now, 999)), " sec")) %>%
+  knitr::kable(caption = paste0("Rage per second at the three gear points under v2 on the October build and in today's game, and in brackets what's left after Bloodthirst and Whirlwind (", bt_ww_need, " and ", bt_ww_need_now, " rage per second)."))
+```
+
+```{r, include=FALSE}
+now_diff <- crit_res %>% filter(model %in% c("Forever v2", "Forever today"), ap == 2000) %>%
+  select(model, crit, hit, rps) %>% pivot_wider(names_from = model, values_from = rps) %>%
+  mutate(d = `Forever today` - `Forever v2`)
+now_gain <- range(now_diff$d)
+crit_needed_now <- function(h) {
+  d <- crit_res %>% filter(model == "Forever today", ap == 2000, abs(hit - h) < 1e-9) %>% arrange(crit)
+  if (min(d$rps) >= bt_ww_need_now) return("under 15%")
+  if (max(d$rps) < bt_ww_need_now) return("over 45%")
+  pc0(approx(d$rps, d$crit, xout = bt_ww_need_now, ties = "ordered")$y)
+}
+```
+
+Today's warrior has `r f2(now_gain[1])` to `r f2(now_gain[2])` more rage per second than v2 on the October build, across the whole grid. Most of it is Reckless Swings, the same at every crit, and the rest is Flurry's extra swings, which grow with crit. Improved Whirlwind takes back `r f2(bt_ww_need_now - bt_ww_need)` of it, so the floor goes up by less than the income: at 5% hit, keeping Bloodthirst and Whirlwind on cooldown takes `r crit_needed_now(0.05)` crit now. The shape is still v2's: a raised floor, growth with crit, and the same ceiling from the attack table. None of the three talents has been logged yet; they need levels 25 to 34.
+
 ## What we can test, and what we can't yet
 
 - **In the game, not yet logged:** the crit bonus. Our logs from before 30 September found crits gave no extra rage. The first new logs should show a crit giving twice a normal swing's rage, in both hands.
@@ -666,12 +711,13 @@ The most useful logs for this chapter would be a dual wielder of level 24 or mor
 ## Conclusion
 
 1. **v1 traded early rage for growth.** Losing Dual Wield Specialization's off-hand bonus cost a lot of rage, and the crit bonus gave it back only as crit grew: fresh level 60s ended up with less rage than under v0, and well-geared warriors about where they were.
-2. **v2, the game today, raises the floor and keeps the growth.** With half the off-hand bonus and crits at twice a normal swing's rage, it has more rage than v0 everywhere in our grid (`r f2(v2_gain[1])` to `r f2(v2_gain[2])` rage per second more), and still `r f1(gv("Forever v2", 0.45, 0.075) - gv("Forever v2", 0.15, 0.075))` more at 45% crit than at 15% (at 7.5% hit).
+2. **v2, the game's rules since 1 October, raises the floor and keeps the growth.** With half the off-hand bonus and crits at twice a normal swing's rage, it has more rage than v0 everywhere in our grid (`r f2(v2_gain[1])` to `r f2(v2_gain[2])` rage per second more), and still `r f1(gv("Forever v2", 0.45, 0.075) - gv("Forever v2", 0.15, 0.075))` more at 45% crit than at 15% (at 7.5% hit).
 3. **Crit and hit are now your rage stats.** In v1, 5% hit needed about `r crit_needed("Forever v1", 0.05)` crit just to keep Bloodthirst and Whirlwind on cooldown. In v2, any gear in our range covers it. Either way, hit counts twice: for the swings it lands, and the crits those swings can have.
 4. **Attack power still gives no rage**, in every version, and that's why Forever's rage can't run away like Classic's did. v2 lands between a Classic warrior at 1250 and at 2000 attack power.
 5. **There's already a ceiling.** A white swing can't crit more than the attack table leaves room for (about `r pc(crit_cap(0.075, "MH"))` for the main hand at 7.5% hit), so every version flattens out after about 35% crit.
 6. **v2 also fixes the feel.** v1 made the droughts between Heroic Strikes much longer at low gear; v2 has the shortest of the three Forever versions at every gear point (`r f0(at_point("Forever v2", "Early", "gap_p90"))` seconds for the 1-in-10 wait at early gear, against `r f0(at_point("Forever v1", "Early", "gap_p90"))` in v1 and `r f0(at_point("Forever v0", "Early", "gap_p90"))` in v0).
 7. **The real lever is the floor.** The design ideas show that how rage arrives matters much less than how much there is. Give early warriors enough rage, and crit can add growth on top, up to the ceiling. That's the shape v2 has, and it's the one the game uses now.
+8. **The 2 November talents raise the floor again.** Reckless Swings and Flurry's 30% give today's warrior `r f2(now_gain[1])` to `r f2(now_gain[2])` more rage per second than v2 on the October build, at every point of our grid. Improved Whirlwind spends some of it, but there's more left for Heroic Strike everywhere.
 
 These simulations are simplified, and they rest on announcements and tooltips we can't check yet, so the exact numbers are there to illustrate what's happening, not to predict it. The shapes are the part to take away.
 

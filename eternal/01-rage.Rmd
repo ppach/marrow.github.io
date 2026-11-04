@@ -54,6 +54,7 @@ forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "3.3.0",  "2026-11-04", "Added the rage changes in Blizzard's 2 Nov development notes (the launch build): the new Reckless Swings talent (5 extra rage on each of your next 4 attacks, every 15 sec), Flurry 3/3 at 30%, Improved Whirlwind, and higher health for higher level creatures, which may change rage from damage taken. New open questions for the live game.",
   "3.2.0",  "2026-10-28", "Added what changed in the game after these logs, from Blizzard's 1 Oct development notes and the 1 to 2 Oct hotfixes: crits now give twice a normal swing's rage, Dual Wield Specialization gives the off hand +50% rage (not +100%) and its hit moved to Furious Precision, Boundless Rage is gone, and Unbridled Wrath gives 1 rage per proc with two-handers too. The logged findings themselves don't change, since every log is from before 1 Oct. The level cap is now 30, so Dual Wield Specialization can be tested.",
   "3.1.0",  "2026-10-01", "Narrowed the attack power open question. As Nodrak pointed out, the mobs in the logs cast Demoralizing Shout on the warrior, but the logged attack power already includes the debuff, so it doesn't explain the gap. The logs show attack power adds damage at the Classic rate (0.28 damage per point on the Battle Axe, against 0.27); what's still open is that the hits start lower than the Classic formula gives.",
   "3.0.0",  "2026-09-25", "Classic's rage formula corrected to 7.5 x damage / C, from Kalgan's blue post, ClassicSim and WarriorSim (it was 15, copied from the Classic compendium). Every Classic comparison halves: at level 60 with the logged weapons, Classic now gives less rage than Forever, not more. The level 60 comparison also takes off the 4.8% crit lost against a boss. None of the Forever findings change.",
@@ -518,6 +519,7 @@ energize %>% filter(amount > 0) %>% mutate(Log = str_remove(file, "_092326.txt")
 - **Heroic Strike** hits don't give any rage, at least in the cases we checked.
 - **Misses, dodges and parries** on our own swings give little or no rage (though we only have a few of them).
 - **Rage from damage taken** is small, but it varied between logs, so it needs a proper controlled test.
+- **Reckless Swings**, a Fury talent added on 2 November (row 4, so not in any of our logs), is a new direct source: for 25% of your base health, your next 4 melee attacks within 8 seconds give 5 extra rage each, on a 15-second cooldown. That's up to 20 rage every 15 seconds, or 1.33 rage per second, a little more than Dual Wield Specialization's whole off-hand rage bonus (see the [How Damage Scales chapter](#scaling)).
 
 ### Unbridled Wrath
 
@@ -610,7 +612,7 @@ Two more things stay the same as before: every proc gives 1 rage with one-hander
 
 ## What changed after these logs {#rage-since-logs}
 
-Every log in this chapter comes from beta build 1.60.1, before Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4) and the Warrior hotfixes of 1 and 2 October. Those changed several things about rage that our logs can't show yet:
+Every log in this chapter comes from beta build 1.60.1, before Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4), the Warrior hotfixes of 1 and 2 October and the [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9) that came just before launch. Those changed several things about rage that our logs can't show yet:
 
 ```{r}
 tribble(
@@ -620,13 +622,18 @@ tribble(
   "Boundless Rage is gone, so the rage cap is 100 (it was 130 with the talent)",            "Blizzard's notes",
   "Unbridled Wrath gives 1 rage per proc with two-handers too (it was 2)",                  "Blizzard's notes",
   "Unbridled Wrath's proc chance fixed (BUG-1)",                                             "Blizzard's notes",
-  "Rage from damage taken: based on the attacker's expected health, not yours, counts crits and crushing blows, and ignores absorbs", "Blizzard's notes, 8 Oct"
+  "Rage from damage taken: based on the attacker's expected health, not yours, counts crits and crushing blows, and ignores absorbs", "Blizzard's notes, 8 Oct",
+  "Reckless Swings (new Fury talent, row 4): your next 4 melee attacks within 8 sec give 5 extra rage each. 15 sec cooldown, costs 25% of base health", "Blizzard's notes, 2 Nov",
+  "Flurry: 3 points for 30% attack speed (it was 5 points for 25%), and no longer needs Death Wish", "Blizzard's notes, 2 Nov",
+  "Improved Whirlwind (new Fury talent, row 6): Whirlwind's cooldown 2 sec shorter and 30% more damage to the closest enemy, so Whirlwind uses more rage", "Blizzard's notes, 2 Nov",
+  "Improved Tactical Mastery: 3 points to keep 5/10/15 more rage when changing stances (it was 5 points for 3/6/9/12/15)", "Blizzard's notes, 2 Nov",
+  "Higher level creatures have more health, to make room for more class damage. Rage from damage taken uses the attacker's expected health, so it may change too", "Blizzard's notes, 2 Nov"
 ) %>% knitr::kable(caption = "Changes to rage since the logs in this chapter were recorded. None of them has been checked in logs yet.")
 ```
 
 The first one matters most here. Our logs found that a crit gives exactly the same rage as a normal hit; since 1 October it gives twice as much, so rage per swing is no longer quite fixed: it's still rate × weapon speed, but doubled on a crit. The rest of the book uses these rules. The [Rage on Crit chapter](#rage-on-crit) works through what they do to a Fury warrior.
 
-The level cap went up to 30 on 1 October, which opens up Dual Wield Specialization, Furious Precision and Raging Blows for testing.
+The level cap went up to 30 on 1 October, which opened up Dual Wield Specialization, Furious Precision and Raging Blows for testing. The game launched on 4 November, so logs from the live game can test the rest: Reckless Swings from level 25, Flurry and Improved Whirlwind from 34, and the rates above level 30.
 
 ## Open questions
 
@@ -635,7 +642,9 @@ The level cap went up to 30 on 1 October, which opens up Dual Wield Specializati
 - Figure out why hits are smaller than the Classic formula gives. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing, but the logged Battle Axe hits are only 69 to 88. Nodrak pointed out that the mobs in these logs cast Demoralizing Shout, which lowers the warrior's attack power, and they do: in Zomd's Battle Axe log, the Witchwing Slayers put it on Zomd over and over. But the attack power in the logs already includes the debuff (it drops from about 420 to 440 down to 375 to 400 while it's up), so the debuff doesn't explain the gap on its own. What the logs do show is that attack power adds damage at the Classic rate: across the logged hits, each point of attack power adds 0.28 damage (give or take 0.02) to a Battle Axe swing, where the Classic rule gives 0.27. It's the starting point that's off: the hits are lower than the Classic formula gives at any attack power. So the open question is the base of the formula (the weapon's damage, or a reduction we haven't found), not how attack power scales. Logs against mobs that don't shout, with the weapon's damage range posted, would settle it.
 - Check that [BUG-1](#bug-ubw) is fixed: Blizzard's notes say so, but no log since has shown 5/5 procing on 60% of hits.
 - Test Dual Wield Specialization, whose tooltip now says +50% off-hand rage at 5/5 (10% a rank), while Blizzard's notes say it lost its rage bonus. It's in the fourth row of the Fury tree, so it needs level 24 or higher, which the level 30 cap allows.
-- Test stances, and rage from damage taken, in a controlled setting.
+- Test stances, and rage from damage taken, in a controlled setting. Since 2 November, higher level creatures have more health, which may change rage from damage taken.
+- Test Reckless Swings: does it give exactly 4 x 5 rage, do Bloodthirst, Whirlwind and Heroic Strike use up a charge, do misses, and is the extra rage doubled on a crit or raised by Dual Wield Specialization on the off hand? The book assumes landed attacks of any kind use a charge, and that the 5 rage is never multiplied.
+- Check Flurry's 30% and Improved Whirlwind's 8-second cooldown in a log.
 - Record mid-log hand swaps in the metadata, since one log shows both weapons being used in both hands.
 
 ## Changelog {#rage-changelog}
