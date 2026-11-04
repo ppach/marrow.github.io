@@ -48,8 +48,12 @@ sim_defaults <- list(
   # Reckless Swings (Forever only): pressed whenever it's ready, off the global cooldown. Your next `rs_charges`
   # landed attacks within `rs_dur` sec each give `rs_rage` extra rage. We count white swings, Heroic Strike,
   # Bloodthirst and Whirlwind (once per cast); misses and dodges don't use a charge. Its health cost (25% of base
-  # health) is left to the healers. `rs_rage = 0` switches it off.
+  # health) is left to the healers. `rs_rage = 0` switches it off. The rules the tooltip doesn't settle, all off by
+  # default: only white swings use a charge (`rs_white_only`), a missed or dodged white swing uses one for nothing
+  # (`rs_miss`), a white crit doubles the extra rage like the swing's own (`rs_crit`), and Dual Wield
+  # Specialization raises it on off-hand swings (`rs_oh`).
   rs_rage = 0, rs_charges = 4, rs_dur = 8, rs_cd = 15,
+  rs_white_only = FALSE, rs_miss = FALSE, rs_crit = FALSE, rs_oh = FALSE,
   # Off unless switched on (the Rage on Crit chapter):
   flurry_rage = 0,        # extra rage from each white swing that lands while Flurry speeds it up (a design option)
   extra_haste = 1         # attack speed from outside Flurry, e.g. 1.03 for weapon enchants
@@ -132,9 +136,13 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     wasted <<- wasted + over
     rage <<- min(rage + x, p$rage_cap)
   }
-  # A landed attack uses a Reckless Swings charge, if there's one left.
-  rs_hit <- function() {
-    if (rs_left > 0 && t <= rs_end) { rs_left <<- rs_left - 1; rs_gained <<- rs_gained + p$rs_rage; add_rage(p$rs_rage) }
+  # A landed attack uses a Reckless Swings charge, if there's one left, for `mult` times its rage (0 for a charge
+  # used up by a miss). Yellow attacks (Heroic Strike, Bloodthirst, Whirlwind) don't use one under `rs_white_only`.
+  rs_hit <- function(mult = 1, yellow = FALSE) {
+    if (yellow && p$rs_white_only) return(invisible(NULL))
+    if (rs_left > 0 && t <= rs_end) {
+      rs_left <<- rs_left - 1; rs_gained <<- rs_gained + p$rs_rage * mult; add_rage(p$rs_rage * mult)
+    }
   }
   refund <- function(cost) { r <- p$refund * cost; rage <<- min(rage + r, p$rage_cap); r }
   # Any crit starts Flurry and restarts Deep Wounds (and its tick timer, as in WarriorSim).
@@ -168,14 +176,15 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         rage <<- rage - p$hs_cost; n["hs"] <<- n["hs"] + 1; hs_t <<- c(hs_t, t)
         d <- yellow(base_dmg(speed, hand, ap_bonus) + p$hs_bonus * p$armor)
         dmg["hs"] <<- dmg["hs"] + d
-        if (d == 0) refund(p$hs_cost) else rs_hit()
+        if (d == 0) refund(p$hs_cost) else rs_hit(yellow = TRUE)
         return(d > 0)
       }
     }
     miss <- if (hand == "OH") max((if (hs_queued && p$hs_oh_hit) p$yellow_miss else p$miss) - p$oh_hit_bonus, 0) else p$miss
     roll <- runif(1)
-    if (roll < miss) return(FALSE)
+    if (roll < miss) { if (p$rs_miss) rs_hit(0); return(FALSE) }
     if (roll < miss + p$dodge) {
+      if (p$rs_miss) rs_hit(0)
       if (p$dodge_rage > 0)
         add_rage(rage_fn(hand, p$dodge_rage * base_dmg(speed, hand, ap_bonus), speed) * (if (hand == "OH") p$oh_rage_mult else 1))
       return(FALSE)
@@ -187,7 +196,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     add_rage(rage_fn(hand, d, speed) * (if (hand == "OH") p$oh_rage_mult else 1) * (if (is_crit) p$crit_rage_mult else 1) +
              (if (hasted[[hand]]) p$flurry_rage else 0))
     if (runif(1) < p$ubw_chance) add_rage(p$ubw_rage)
-    rs_hit()
+    rs_hit((if (is_crit && p$rs_crit) p$crit_rage_mult else 1) * (if (hand == "OH" && p$rs_oh) p$oh_rage_mult else 1))
     if (is_crit) on_crit()
     TRUE
   }
@@ -241,13 +250,13 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         rage <- rage - p$bt_cost; spent["bt"] <- spent["bt"] + p$bt_cost; bt_ready <- t + p$bt_cd; gcd_ready <- t + p$gcd; n["bt"] <- n["bt"] + 1
         d <- yellow((p$bt_ap * p$ap + p$bt_flat) * p$armor)
         dmg["bt"] <- dmg["bt"] + d
-        if (d == 0) spent["bt"] <- spent["bt"] - refund(p$bt_cost) else { rs_hit(); windfury() }
+        if (d == 0) spent["bt"] <- spent["bt"] - refund(p$bt_cost) else { rs_hit(yellow = TRUE); windfury() }
       } else if (use == "ww") {
         rage <- rage - p$ww_cost; spent["ww"] <- spent["ww"] + p$ww_cost; ww_ready <- t + p$ww_cd; gcd_ready <- t + p$gcd; n["ww"] <- n["ww"] + 1
         d <- yellow(ww_hit("MH", p$mh_speed))
         dmg["ww"] <- dmg["ww"] + d
         if (p$ww_offhand) dmg["ww"] <- dmg["ww"] + yellow(ww_hit("OH", p$oh_speed))
-        if (d > 0) { rs_hit(); windfury() }
+        if (d > 0) { rs_hit(yellow = TRUE); windfury() }
       }
     }
     # Heroic Strike is queued as soon as there's enough rage, and goes off on the next main-hand swing if

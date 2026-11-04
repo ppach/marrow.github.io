@@ -8,6 +8,7 @@ source("data/flurry.R")     # how much Flurry speeds up your swings, used in the
 
 scaling_changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.2.0",  "2026-11-04", "Added a Reckless Swings section: what it's worth at each phase, why it adds less rage than it hands out (most of it goes to Heroic Strikes, which replace white swings), how much the rules its tooltip leaves open matter, and what its health cost means.",
   "2.1.0",  "2026-11-04", "The 2 Nov tree (Blizzard's 2 Nov development notes, the launch build): Flurry 3/3 gives 30% (it was 25% at 5/5), Improved Whirlwind cuts Whirlwind's cooldown to 8 seconds (about 6.5 a minute) and adds 30% to its damage, and Reckless Swings gives a steady 1.33 rage per second. Forever has more rage left for Heroic Strike at every phase, but its damage still grows in a straight line with gear.",
   "2.0.0",  "2026-10-28", "Today's rules, from Blizzard's 1 Oct development notes and hotfixes: a crit gives twice a normal swing's rage, Dual Wield Specialization gives +50% off-hand rage (not +100%) and its off-hand hit moved to Furious Precision, Bloodthirst is back to 45% of attack power, Whirlwind costs 22 with Raging Blows, Boundless Rage is gone, and a queued Heroic Strike no longer raises off-hand hit. Forever's rage still doesn't move with weapon damage or attack power, so the shapes stand, but crit is now a rage stat in its own right.",
   "1.1.0",  "2026-09-25", "Added the off hand and Dual Wield Specialization: Forever's early rage lead comes almost entirely from its off hand. The talent doubles off-hand rage in Forever (making the off hand as big a rage source as the main hand), where in Classic it only added damage, so it's worth about a quarter of a Forever dual wielder's damage, mostly through rage, against a small damage bonus in Classic. It's untested until level 24.",
@@ -415,7 +416,7 @@ ggplot2::ggplot(sources, aes(rage, game, fill = source)) +   # values on the x a
   theme(legend.position = "bottom")
 ```
 
-At pre-BiS, Forever's main hand is ahead (`r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Main hand"))` per second, against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Main hand"))` in Classic), partly because its crits give double rage. The off hands are further apart: `r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Off hand"))` against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Off hand"))`. That one bar is `r round(oh_gap_share * 100)`% of the gap between the two games. Forever's new **Reckless Swings** (purple) is another `r round(srcv("Forever", "Pre-BiS", "Reckless Swings") / (src_total("Forever", "Pre-BiS") - src_total("Classic", "Pre-BiS")) * 100)`%, added on 2 November: every `r sim_defaults$rs_cd` seconds, your next `r sim_defaults$rs_charges` attacks give `r forever_talents$rs_rage` extra rage each. A dual wielder lands that many attacks well within its `r sim_defaults$rs_dur` seconds, so it's a steady `r sprintf("%.2f", srcv("Forever", "Pre-BiS", "Reckless Swings"))` rage per second at every phase, for 25% of your base health each time.
+At pre-BiS, Forever's main hand is ahead (`r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Main hand"))` per second, against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Main hand"))` in Classic), partly because its crits give double rage. The off hands are further apart: `r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Off hand"))` against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Off hand"))`. That one bar is `r round(oh_gap_share * 100)`% of the gap between the two games. Forever's new **Reckless Swings** (purple) is another `r round(srcv("Forever", "Pre-BiS", "Reckless Swings") / (src_total("Forever", "Pre-BiS") - src_total("Classic", "Pre-BiS")) * 100)`%, added on 2 November: every `r sim_defaults$rs_cd` seconds, your next `r sim_defaults$rs_charges` attacks give `r forever_talents$rs_rage` extra rage each. A dual wielder lands that many attacks well within its `r sim_defaults$rs_dur` seconds, so it's a steady `r sprintf("%.2f", srcv("Forever", "Pre-BiS", "Reckless Swings"))` rage per second at every phase, for 25% of your base health each time. It gets its own section [below](#reckless-swings).
 
 ### Why the off hands are so different
 
@@ -618,12 +619,83 @@ wg <- function(g) range(wf_tbl$gain[wf_tbl$game == g]) * 100
 
 Windfury adds about the same to both games: `r sprintf("%.0f", wg("Forever")[1])` to `r sprintf("%.0f", wg("Forever")[2])`% in Forever and `r sprintf("%.0f", wg("Classic")[1])` to `r sprintf("%.0f", wg("Classic")[2])`% in Classic, with more rage and more Heroic Strikes in both. What it doesn't do is change the shape. Its `r sim_defaults$wf_chance * 100`% chance doesn't depend on your weapon, so in Forever it moves your rage line up by the same amount at every phase, and your damage stays a straight line, just a steeper one. Extra swings that come *from gear* are different, since they tie your rage to your gear again: a Hand of Justice or a faster haste weapon is, in Forever, the closest thing left to Classic's link between gear and rage.
 
+## Reckless Swings {#reckless-swings}
+
+Reckless Swings is a Fury talent from Blizzard's [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9), in row 4 of the tree (level 25). It's a button: it costs 25% of your base health, and for the next `r sim_defaults$rs_dur` seconds, your next `r sim_defaults$rs_charges` melee attacks each give `r sim_defaults$rs_rage` extra rage. It comes back every `r sim_defaults$rs_cd` seconds. It's the only rage source in the book that's neither a swing nor a talent that procs from one, and like Anger Management, it doesn't care about your gear.
+
+We press it whenever it's ready, which costs nothing, since it isn't on the global cooldown (it doesn't say it is, so we assume it isn't). A dual wielder lands 4 attacks in well under 8 seconds, so every charge gets used: `r sim_defaults$rs_charges * sim_defaults$rs_rage` rage every `r sim_defaults$rs_cd` seconds, or `r sprintf("%.2f", sim_defaults$rs_rage * sim_defaults$rs_charges / sim_defaults$rs_cd)` rage per second.
+
+```{r}
+rs_sims <- cached_sim("scaling_reckless", deps = list(phases, n_scaling, gear, crit_fixed, forever_draws, sim_defaults, forever_talents), {
+expand_grid(phase = phases$phase, rs = c(TRUE, FALSE)) %>%
+  mutate(res = map2(phase, rs, function(ph, on) {
+    d <- phases$dps[phases$phase == ph]
+    p <- modifyList(gear_p("Forever", d), list(rs_rage = if (on) forever_talents$rs_rage else 0))
+    map_dfr(seq_len(n_scaling), function(i) { set.seed(3100 + i); simulate_fight(rage_fns[["Forever"]], d, p) })
+  })) %>% unnest(res)
+})
+rs_tbl <- rs_sims %>% group_by(phase, rs) %>%
+  summarise(dps = mean(total_dps), rps = mean(rps), rs_rps = mean(rs_rps), hs = mean(hs_pm),
+            starved = mean(starved_share), .groups = "drop") %>%
+  pivot_wider(names_from = rs, values_from = c(dps, rps, rs_rps, hs, starved)) %>%
+  mutate(gain = dps_TRUE / dps_FALSE - 1)
+rs_tbl %>%
+  transmute(Phase = phase,
+            `Rage per second` = sprintf("%.1f to %.1f", rps_FALSE, rps_TRUE),
+            `Heroic Strikes per minute` = sprintf("%.1f to %.1f", hs_FALSE, hs_TRUE),
+            `Bloodthirst starved` = sprintf("%.0f%% to %.0f%%", starved_FALSE * 100, starved_TRUE * 100),
+            `DPS` = sprintf("%.0f to %.0f", dps_FALSE, dps_TRUE),
+            `Damage gained` = sprintf("%+.1f%%", gain * 100)) %>%
+  knitr::kable(caption = paste0("A Forever dual wielder without and with Reckless Swings, over ", n_scaling, " simulated fights at each phase (each pair of fights starts from the same random numbers). Bloodthirst starved is the share of the fight Bloodthirst was ready but you didn't have the rage for it."))
+rsv <- function(ph, col) rs_tbl[[col]][rs_tbl$phase == ph]
+```
+
+The rage columns are the same at every phase: Forever's rage doesn't depend on gear, and each phase's fights start from the same random numbers, so they play out the same way and only the damage changes. Two things stand out:
+
+- **It gives less rage than it says.** Reckless Swings itself hands out `r sprintf("%.2f", rsv("Phase 2", "rs_rps_TRUE"))` rage per second, but your total only goes up by `r sprintf("%.1f", rsv("Phase 2", "rps_TRUE") - rsv("Phase 2", "rps_FALSE"))` at phase 2. Most of that extra rage ends up in Heroic Strike (`r sprintf("%.1f", rsv("Phase 2", "hs_TRUE") - rsv("Phase 2", "hs_FALSE"))` more a minute), and in Forever every Heroic Strike replaces a white swing whose rage you never get. Bloodthirst and Whirlwind were already close to covered, so it's mostly Heroic Strike money.
+- **It's worth about the same at every phase**: `r sprintf("%+.1f%%", min(rs_tbl$gain) * 100)` to `r sprintf("%+.1f%%", max(rs_tbl$gain) * 100)` damage. Its rage doesn't grow with gear, but each Heroic Strike it buys hits harder, so the gain holds steady as a share. That's a lot for one talent point.
+
+### The rules we don't know yet
+
+The tooltip leaves four things open, and our simulator lets us try each one at phase 2:
+
+```{r}
+rs_rules <- list(
+  `Our assumption: any landed attack uses a charge`         = list(),
+  `Only white swings use a charge`                         = list(rs_white_only = TRUE),
+  `Misses and dodges use a charge too`                     = list(rs_miss = TRUE),
+  `Only white swings, and misses use one`                  = list(rs_white_only = TRUE, rs_miss = TRUE),
+  `A white crit doubles the extra rage`                    = list(rs_crit = TRUE),
+  `Dual Wield Specialization raises it on the off hand`    = list(rs_oh = TRUE)
+)
+rs_rule_sims <- cached_sim("scaling_reckless_rules", deps = list(rs_rules, p2_dps, n_scaling, gear, crit_fixed, forever_draws, sim_defaults, forever_talents), {
+tibble(rule = names(rs_rules)) %>%
+  mutate(res = map(rule, function(r) {
+    p <- modifyList(gear_p("Forever", p2_dps), rs_rules[[r]])
+    map_dfr(seq_len(n_scaling), function(i) { set.seed(3300 + i); simulate_fight(rage_fns[["Forever"]], p2_dps, p) })
+  })) %>% unnest(res)
+})
+rs_rule_tbl <- rs_rule_sims %>% mutate(rule = factor(rule, names(rs_rules))) %>% group_by(rule) %>%
+  summarise(rs = mean(rs_rps), rps = mean(rps), hs = mean(hs_pm), dps = mean(total_dps), .groups = "drop")
+rs_rule_tbl %>%
+  transmute(Rule = rule, `From Reckless Swings` = sprintf("%.2f", rs), `All rage per second` = sprintf("%.2f", rps),
+            `Heroic Strikes per minute` = sprintf("%.1f", hs), DPS = sprintf("%.0f", dps)) %>%
+  knitr::kable(caption = paste0("Reckless Swings under each reading of its tooltip, at phase 2 over ", n_scaling, " simulated fights each."))
+rr <- function(i, col) rs_rule_tbl[[col]][i]
+```
+
+The rage from Reckless Swings itself runs from `r sprintf("%.2f", min(rs_rule_tbl$rs))` to `r sprintf("%.2f", max(rs_rule_tbl$rs))` rage per second depending on the rules, and your damage moves by about `r sprintf("%.0f", diff(range(rs_rule_tbl$dps)))` a second, around `r sprintf("%.0f", diff(range(rs_rule_tbl$dps)) / rr(1, "dps") * 100)`% at most. The one that would hurt is **misses using up charges**: a dual wielder misses about one white swing in five against a boss, so a miss-eaten charge is 5 rage gone. If only white swings use a charge it hardly matters, since you swing often enough to use all 4 anyway. Crits doubling it, or Dual Wield Specialization raising it, would make it a little better. These are the first things to check in a log: count the rage events after each press, and see which attacks they follow.
+
+### What it costs
+
+25% of your *base* health is the health you'd have with no Stamina from gear. In Classic, a level 60 warrior's base health is about 1,700, so if Forever's is similar, each press costs about 420 health, every 15 seconds: about 28 damage a second for the whole fight, taken by you and healed by your healers. That's small next to what a boss does to its tank, and on a raid boss most Fury warriors take little damage, so the healers can usually afford it. It matters more on fights with heavy raid damage, and while leveling with no healer, where pressing it on cooldown means eating or bandaging more often. Blood Craze and Gore Drinker give some of it back. The book doesn't model health at all, so none of this is in the numbers above.
+
 ## What we can test, and what we can't yet
 
 - **Measured:** the rage per swing in Forever, and that it doesn't depend on damage or level (from level 1 to 17). That a hasted swing gives the full rage.
 - **Announced, not yet logged:** that a crit gives twice the rage (our logs, from before 1 October, show no crit bonus), Dual Wield Specialization's +50% off-hand rage, and the 2 November talents: Flurry's 30%, Improved Whirlwind and Reckless Swings.
 - **Assumed from Classic:** that a swing's damage follows the same formula in Forever (the logs match how attack power adds damage, but the hits come out lower than the formula gives, which is still open), the attack table, and that the rage per swing stays the same up to level 60.
-- **From tooltips:** Bloodthirst, Whirlwind, Heroic Strike, Improved Whirlwind and Reckless Swings. Which attacks use up a Reckless Swings charge is our guess (white swings, Heroic Strike, Bloodthirst and Whirlwind, but not misses), though it hardly matters: a dual wielder lands 4 white swings well within its 8 seconds either way.
+- **From tooltips:** Bloodthirst, Whirlwind, Heroic Strike, Improved Whirlwind and Reckless Swings. Which attacks use up a Reckless Swings charge is our guess (white swings, Heroic Strike, Bloodthirst and Whirlwind, but not misses). The [Reckless Swings section](#reckless-swings) tries the other readings: they move damage by about 2% at most, and misses using up charges is the one that would cost the most.
 - **Our guesses:** the gear at each phase, the same in both games, and without world buffs, since Forever won't have them. In real Classic raids, world buffs made warriors hit much harder, so Classic's rage line in Figure \@ref(fig:scaling-side) would have started higher and climbed faster, and its damage would have bent upward sooner.
 
 Now that the game has launched, the most useful logs for this chapter would show a Bloodthirst and Whirlwind rotation at level 36 or above, with the gear and buffs posted, so we can check the rage income and the damage per rage of each block directly.

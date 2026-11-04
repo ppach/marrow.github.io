@@ -519,7 +519,7 @@ energize %>% filter(amount > 0) %>% mutate(Log = str_remove(file, "_092326.txt")
 - **Heroic Strike** hits don't give any rage, at least in the cases we checked.
 - **Misses, dodges and parries** on our own swings give little or no rage (though we only have a few of them).
 - **Rage from damage taken** is small, but it varied between logs, so it needs a proper controlled test.
-- **Reckless Swings**, a Fury talent added on 2 November (row 4, so not in any of our logs), is a new direct source: for 25% of your base health, your next 4 melee attacks within 8 seconds give 5 extra rage each, on a 15-second cooldown. That's up to 20 rage every 15 seconds, or 1.33 rage per second, a little more than Dual Wield Specialization's whole off-hand rage bonus (see the [How Damage Scales chapter](#scaling)).
+- **Reckless Swings**, a Fury talent added on 2 November (row 4, so not in any of our logs), is a new direct source: for 25% of your base health, your next 4 melee attacks within 8 seconds give 5 extra rage each, on a 15-second cooldown. That's up to 20 rage every 15 seconds, or 1.33 rage per second, a little more than Dual Wield Specialization's whole off-hand rage bonus. The [Reckless Swings section](#reckless-swings) of the How Damage Scales chapter works out what it's worth.
 
 ### Unbridled Wrath
 
