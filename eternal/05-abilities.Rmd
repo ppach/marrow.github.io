@@ -14,6 +14,7 @@ abilities_changelog <- tribble(
   "1.0.0",  "2026-09-24", "First version: Bloodthirst and Whirlwind, from the beta client's tooltips, simulated in Classic and Forever. Model only - neither ability can be learned in the beta yet."
 )
 
+n_fights <- 500   # simulated fights for each game and phase
 talents_ref   <- read_csv("data/talents/warrior_talents.csv", show_col_types = FALSE)
 abilities_ref <- read_csv("data/talents/warrior_abilities.csv", show_col_types = FALSE)
 
@@ -132,7 +133,7 @@ Forever's Whirlwind is also more reliable. A Classic Whirlwind or any Bloodthirs
 
 ## Across the phases
 
-Bloodthirst scales with attack power only, while Whirlwind scales with both attack power and weapon damage, so the gap between them changes as you gear up. To see how, we simulate `r n_fights` three-minute fights for each game at each phase, with the same rotation as the proposals chapter (Bloodthirst on cooldown, then Whirlwind, then Heroic Strike with spare rage), and look at each fight's average damage per rage for each ability. A fight only has about 30 Bloodthirsts and 15 Whirlwinds, so the average from one fight to the next still moves around quite a bit, and that's the range we show.
+Bloodthirst scales with attack power only, while Whirlwind scales with both attack power and weapon damage, so the gap between them changes as you gear up. To see how, we simulate `r n_fights` three-minute fights for each game at each phase, with the same rotation as the [How Damage Scales chapter](#scaling) (Bloodthirst on cooldown, then Whirlwind, then Heroic Strike with spare rage), and look at each fight's average damage per rage for each ability. A fight only has about 30 Bloodthirsts and 15 Whirlwinds, so the average from one fight to the next still moves around quite a bit, and that's the range we show.
 
 ```{r}
 ability_sims <- cached_sim("abilities_fights", deps = list(classic_k, gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents), {

@@ -1,5 +1,5 @@
 # Event-based fight simulator for a level 60 dual-wield warrior against a boss.
-# Used by the Rage Design Proposals, Flurry and Abilities chapters. Each white swing rolls on the
+# Used by the How Damage Scales, Rage on Crit, Flurry and Abilities chapters. Each white swing rolls on the
 # attack table, and a rage model decides how much rage a landed swing gives. A simple priority
 # rotation spends it. Damage is tracked for every source, so we can compare abilities.
 #
@@ -74,8 +74,8 @@ classic_talents <- list(
   ww_offhand = FALSE, ww_cost = 25, ww_cd = 10, ww_dmg_mult = 1, flurry_haste = 0.30, flurry_charges = 3,
   ubw_chance = 0.40, bt_ap = 0.45, bt_flat = 0, dodge_rage = 0.75, crit_rage_mult = 1, hs_oh_hit = TRUE, rs_rage = 0
 )
-# Forever's rules before the 1 Oct rework (September 2026), which the Rage Design Proposals chapter was written
-# against: Dual Wield Specialization doubled off-hand rage and gave +10% off-hand hit, Boundless Rage 3/3 raised the
+# Forever's rules before the 1 Oct rework (September 2026), which the archived Rage Design Proposals chapter
+# (archive/03-rage-proposals.Rmd) was written against: Dual Wield Specialization doubled off-hand rage and gave +10% off-hand hit, Boundless Rage 3/3 raised the
 # cap to 130, crits gave no extra rage, Bloodthirst was 35% of AP + 48, Whirlwind cost 25 (Raging Blows only gave it
 # the off-hand hit) and a queued Heroic Strike still raised off-hand hit.
 # Forever's rules from the 1 Oct rework until 2 Nov: Flurry 5/5 gave 25%, and there was no Improved Whirlwind or

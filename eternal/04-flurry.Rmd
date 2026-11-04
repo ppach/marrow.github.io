@@ -1,8 +1,16 @@
 # Flurry {#flurry}
 
 ```{r setup-flurry, include=FALSE}
-# Reuses `forever_dw`, `phases`, `classic_rps` and `sim_defaults` from the earlier chapters.
+# Reuses `phases`, `classic_k`, `forever_mh`, `forever_oh` and `sim_defaults` from the earlier chapters.
 source("data/flurry.R")
+
+# Classic white rage per second for a dual wielder against a boss: 7.5 / C x white damage per second (off hand at half
+# damage plus Dual Wield Specialization's 25%, the same DPS in both hands), at 1200 attack power, 75% of damage left
+# after boss armor, and 30% sheet crit less the boss's crit suppression.
+crit_boss   <- 0.30 - sim_defaults$crit_suppression
+classic_rps <- function(dps, ap = 1200, armor = 0.75) {
+  classic_k / conv(60) * (dps + ap / 14) * (1 + 0.5 * classic_talents$oh_dmg_mult) * armor * (1 + crit_boss)
+}
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
@@ -99,7 +107,7 @@ In the plain white-only case, the chain gives exactly $1 - (1 - P(Crit))^3$ for 
 
 ## Checking the model
 
-To make sure the maths is right, we can run the same warrior through the fight simulator from the proposals chapter, with only white swings and Unbridled Wrath turned off, and see how much extra rage Flurry gives compared with the same fights without it:
+To make sure the maths is right, we can run the same warrior through the book's fight simulator, with only white swings and Unbridled Wrath turned off, and see how much extra rage Flurry gives compared with the same fights without it:
 
 ```{r flurry-check}
 flurry_check <- cached_sim("flurry_check", deps = list(sim_defaults, forever_mh, forever_oh, crit_cap, haste_forever), {

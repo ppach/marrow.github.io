@@ -585,7 +585,7 @@ What stands out:
 
 ## What else could work
 
-v1's problem was the early game: a fresh level 60 had too little rage for the core rotation, and long droughts between Heroic Strikes. Its strengths were worth keeping: rage that grows with your gear, and stops growing at a natural ceiling. v2 keeps both and raises the floor. To see where it sits among other ways of doing that, here are two other ideas, as illustrations rather than proposals (the [Rage Design Proposals chapter](#rage-proposals) looks at the wider question of how rage should grow with gear):
+v1's problem was the early game: a fresh level 60 had too little rage for the core rotation, and long droughts between Heroic Strikes. Its strengths were worth keeping: rage that grows with your gear, and stops growing at a natural ceiling. v2 keeps both and raises the floor. To see where it sits among other ways of doing that, here are two other ideas, as illustrations rather than proposals:
 
 - **Extra rage while Flurry is up.** In place of the crit bonus, every white swing that lands while Flurry is speeding it up gives a flat 1 to 5 extra rage, with the off hand at no bonus. It's still driven by crit (Flurry starts on a crit), and it ties rage to haste, which suits Fury.
 - **Crits give 200%, and the off hand keeps its full bonus.** v0 plus v2's crit bonus: the most generous version.

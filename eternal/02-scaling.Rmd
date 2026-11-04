@@ -578,7 +578,7 @@ el_tbl %>% mutate(gain = sprintf("+%.1f%%", gain * 100)) %>%
 el <- function(g) range(el_tbl$gain[el_tbl$Game == g]) * 100
 ```
 
-**In Forever, 10% better gear gives a little under 10% more damage** (`r sprintf("%.1f", el("Forever")[1])` to `r sprintf("%.1f", el("Forever")[2])`%), since a few things don't scale with gear at all, like the flat part of Bloodthirst and Heroic Strike's bonus damage. **In Classic it gives more than 10%** (`r sprintf("%.1f", el("Classic")[1])` to `r sprintf("%.1f", el("Classic")[2])`%), because part of every upgrade comes back as rage. That extra is the whole difference between the two games' scaling, and it's the "loop" that the [Rage Design Proposals chapter](#rage-proposals) is about: more damage, more rage, more damage.
+**In Forever, 10% better gear gives a little under 10% more damage** (`r sprintf("%.1f", el("Forever")[1])` to `r sprintf("%.1f", el("Forever")[2])`%), since a few things don't scale with gear at all, like the flat part of Bloodthirst and Heroic Strike's bonus damage. **In Classic it gives more than 10%** (`r sprintf("%.1f", el("Classic")[1])` to `r sprintf("%.1f", el("Classic")[2])`%), because part of every upgrade comes back as rage. That extra is the whole difference between the two games' scaling, and it's Classic's "loop": more damage, more rage, more damage.
 
 ## What else can move your rage
 

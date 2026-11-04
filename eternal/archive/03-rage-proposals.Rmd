@@ -1,5 +1,7 @@
 # Rage Design Proposals {#rage-proposals}
 
+<!-- Archived 2026-11-04: written for Forever's September rage rules, which no longer apply, and taken out of the book (_bookdown.yml). Its saved simulations (data/sim_cache/proposals_*.rds) are kept, so moving this file back and re-adding it to rmd_files restores it. -->
+
 ```{r setup-proposals, include=FALSE}
 # Reuses `obs`, `conv`, `classic_k`, the Forever rates (`forever_mh`, `forever_dw_tal`, `forever_draws`) and the
 # theme from the Rage Generation chapter, and `phases` from the Scaling chapter (bookdown knits all chapters in one
