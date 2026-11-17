@@ -208,38 +208,7 @@ sh <- function(ph, g) ability_sims %>% filter(phase == ph, game == g) %>%
 
 Bloodthirst still does more damage per second than Whirlwind in both games, simply because it comes off cooldown more often (every 6 seconds, against 10 in Classic and `r forever_talents$ww_cd` in Forever with Improved Whirlwind). But the balance shifts a lot: in Classic, Bloodthirst makes up about `r round(sh("Phase 2", "Classic")$bt * 100)`% of a phase 2 warrior's damage and Whirlwind `r round(sh("Phase 2", "Classic")$ww * 100)`%, while in Forever it's `r round(sh("Phase 2", "Forever")$bt * 100)`% and `r round(sh("Phase 2", "Forever")$ww * 100)`%. The totals tell a story of their own: Forever does more damage than Classic at pre-BiS (`r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Pre-BiS"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Pre-BiS"]))`), and Classic closes most of the gap by phase 4 (`r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Phase 4"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Phase 4"]))`). That's rage again: early on, a Classic warrior's hits are too small to pay for every Bloodthirst and Whirlwind (look at the casts per minute), while Forever's rage covers both from the first day. The [Scaling chapter](#scaling) follows this through every phase.
 
-
-### What 2 November did to Whirlwind
-
-Improved Whirlwind changed Whirlwind twice over: each cast does `r round((forever_talents$ww_dmg_mult - 1) * 100)`% more damage, and it comes back every `r forever_talents$ww_cd` seconds instead of 10. Reckless Swings pays for the extra casts. Here's the same Forever warrior on the build from 1 October to 2 November, and on today's:
-
-```{r}
-oct_sims <- cached_sim("abilities_fights_oct", deps = list(gear, forever_draws, n_fights, sim_defaults, forever_oct_talents), {
-set.seed(36)
-tibble(phase = gear$phase) %>%
-  mutate(res = map(phase, function(ph) {
-    p <- modifyList(phase_p("Forever", ph), forever_oct_talents)
-    map_dfr(seq_len(n_fights), function(i) simulate_fight(rage_models[["Forever"]], gear$dps[gear$phase == ph], p))
-  })) %>% unnest(res) %>%
-  mutate(phase = factor(phase, levels = levels(phases$phase)))
-})
-ww_cmp <- bind_rows(`1 Oct build` = oct_sims, `2 Nov build` = filter(ability_sims, game == "Forever"), .id = "build") %>%
-  group_by(build, phase) %>%
-  summarise(ww = median(dps_ww), bt = median(dps_bt), ww_pm = mean(ww_pm), total = median(total_dps),
-            ww_share = median(dps_ww / total_dps), .groups = "drop")
-wc <- function(b, ph, col) ww_cmp[[col]][ww_cmp$build == b & ww_cmp$phase == ph]
-ww_cmp %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
-  pivot_wider(names_from = build, values_from = c(ww, bt, ww_pm, total, ww_share)) %>%
-  transmute(Phase = phase,
-            `Whirlwind DPS` = sprintf("%.0f to %.0f", `ww_1 Oct build`, `ww_2 Nov build`),
-            `Whirlwind / min` = sprintf("%.1f to %.1f", `ww_pm_1 Oct build`, `ww_pm_2 Nov build`),
-            `Bloodthirst DPS` = sprintf("%.0f to %.0f", `bt_1 Oct build`, `bt_2 Nov build`),
-            `Whirlwind share` = sprintf("%.0f%% to %.0f%%", `ww_share_1 Oct build` * 100, `ww_share_2 Nov build` * 100),
-            `Total DPS` = sprintf("%.0f to %.0f", `total_1 Oct build`, `total_2 Nov build`)) %>%
-  knitr::kable(caption = paste0("A Forever warrior's typical fight on the 1 October build, and on today's (2 November), over ", n_fights, " simulated fights at each phase."))
-```
-
-At phase 2, Whirlwind's damage goes from `r round(wc("1 Oct build", "Phase 2", "ww"))` to `r round(wc("2 Nov build", "Phase 2", "ww"))` a second, `r round((wc("2 Nov build", "Phase 2", "ww") / wc("1 Oct build", "Phase 2", "ww") - 1) * 100)`% more: `r round((forever_talents$ww_dmg_mult - 1) * 100)`% from each cast hitting harder, and the rest from casting it `r round(wc("2 Nov build", "Phase 2", "ww_pm"), 1)` times a minute instead of `r round(wc("1 Oct build", "Phase 2", "ww_pm"), 1)`. Bloodthirst barely moves. So the gap between the two abilities closes from `r round(wc("1 Oct build", "Phase 2", "bt") - wc("1 Oct build", "Phase 2", "ww"))` damage per second to `r round(wc("2 Nov build", "Phase 2", "bt") - wc("2 Nov build", "Phase 2", "ww"))`, and Whirlwind's share of your damage goes from `r round(wc("1 Oct build", "Phase 2", "ww_share") * 100)`% to `r round(wc("2 Nov build", "Phase 2", "ww_share") * 100)`%. Bloodthirst still does more damage per second, because it comes back every 6 seconds and each one costs more, but per point of rage Whirlwind is now well ahead.
+Improved Whirlwind, new on 2 November, is a large part of Whirlwind's share. [How the Rules Changed](#ww-since-nov) compares the same warrior on the build before it.
 
 ## Should Whirlwind come first?
 

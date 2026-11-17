@@ -1,3 +1,5 @@
+# (PART) The rules {-}
+
 # Rage Generation {#rage}
 
 ```{r setup-rage, include=FALSE}
@@ -101,7 +103,7 @@ tribble(
 ) %>% knitr::kable(caption = "Where each part of the formula comes from.")
 ```
 
-Blizzard's [30 September announcement](https://worldofwarcraft.blizzard.com/en-us/news/24301514) also said that rage from dealing damage is now "normalised" to weapon speed, which is what our logs found.
+Blizzard's [30 September announcement](https://worldofwarcraft.blizzard.com/en-us/news/24301514) also said that rage from dealing damage is now "normalised" to weapon speed, which is what our logs found. [How the Rules Changed](#rules-history) lists every change to rage since our logs were recorded.
 
 ### How this differs from Classic
 
@@ -334,31 +336,6 @@ It isn't PPM. The proc chance per hit is the same whatever the weapon speed: at 
 So once the fix lands, every weapon should get the same 60% chance per hit at 5/5, and faster weapons will get more procs per minute simply because they hit more often.
 
 Two more things stay the same as before: every proc gives 1 rage with one-handers and 2 with two-handers, at every rank, and none of the procs come from Heroic Strike or Cleave. Blizzard's 1 Oct notes say the proc chance has been fixed ("a lower-than-intended proc chance"), and that two-handers now get 1 rage per proc like everyone else; neither has been checked in logs yet.
-
-## What changed after these logs {#rage-since-logs}
-
-Every log in this chapter comes from beta build 1.60.1, before Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4), the Warrior hotfixes of 1 and 2 October and the [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9) that came just before launch. Those changed several things about rage that our logs can't show yet:
-
-```{r}
-tribble(
-  ~Change,                                                                                   ~`Where it comes from`,
-  "A white crit gives twice the rage of a normal hit (100% more; it was 75% on 30 September, and nothing before that)", "Blizzard's notes, edited 2 Oct",
-  "Dual Wield Specialization: +50% off-hand rage at 5/5 (it was +100%). Its +10% off-hand hit moved to the new Furious Precision talent", "The hotfixed talent tree (the notes say the rage bonus was removed, but the tooltip gives back half of it)",
-  "Boundless Rage is gone, so the rage cap is 100 (it was 130 with the talent)",            "Blizzard's notes",
-  "Unbridled Wrath gives 1 rage per proc with two-handers too (it was 2)",                  "Blizzard's notes",
-  "Unbridled Wrath's proc chance fixed (BUG-1)",                                             "Blizzard's notes",
-  "Rage from damage taken: based on the attacker's expected health, not yours, counts crits and crushing blows, and ignores absorbs", "Blizzard's notes, 8 Oct",
-  "Reckless Swings (new Fury talent, row 4): your next 4 melee attacks within 8 sec give 5 extra rage each. 15 sec cooldown, costs 25% of base health", "Blizzard's notes, 2 Nov",
-  "Flurry: 3 points for 30% attack speed (it was 5 points for 25%), and no longer needs Death Wish", "Blizzard's notes, 2 Nov",
-  "Improved Whirlwind (new Fury talent, row 6): Whirlwind's cooldown 2 sec shorter and 30% more damage to the closest enemy, so Whirlwind uses more rage", "Blizzard's notes, 2 Nov",
-  "Improved Tactical Mastery: 3 points to keep 5/10/15 more rage when changing stances (it was 5 points for 3/6/9/12/15)", "Blizzard's notes, 2 Nov",
-  "Higher level creatures have more health, to make room for more class damage. Rage from damage taken uses the attacker's expected health, so it may change too", "Blizzard's notes, 2 Nov"
-) %>% knitr::kable(caption = "Changes to rage since the logs in this chapter were recorded. None of them has been checked in logs yet.")
-```
-
-The first two are part of [the formula](#rage-formula) at the start of this chapter, and the rest of the book uses all of these rules. The [Rage on Crit chapter](#rage-on-crit) works through what the crit rule does to a Fury warrior.
-
-The level cap went up to 30 on 1 October, which opened up Dual Wield Specialization, Furious Precision and Raging Blows for testing. The game launched on 4 November, so logs from the live game can test the rest: Reckless Swings from level 25, Flurry and Improved Whirlwind from 34, and the rates above level 30.
 
 ## Open questions
 

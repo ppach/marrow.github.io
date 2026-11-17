@@ -1,0 +1,165 @@
+# How the Rules Changed {#rules-history}
+
+```{r setup-history, include=FALSE}
+# Reuses `crit_res`, `at_point`, `gear_label`, `be_crit`, `v2_gain`, `crit_cols` and `bt_ww_need(_now)` from Rage on Crit,
+# `phase_p`, `rage_models`, `gear`, `phases`, `n_fights` and `ability_sims` from the Abilities chapter, and
+# `forever_oct_talents` from data/fight_sim.R, so it has to come after Abilities in rmd_files.
+history_changelog <- tribble(
+  ~version, ~date,        ~change,
+  "1.0.0",  "2026-11-17", "First version: the rule changes from the beta to launch in one place. The list of changes since our logs comes from the Rage Generation chapter, the comparison of the crit rule versions (v0, v1 and v2) from the Rage on Crit chapter, and the 1 Oct against 2 Nov Whirlwind comparison from the Abilities chapter."
+)
+```
+
+*Version `r history_changelog$version[1]` (`r history_changelog$date[1]`). See the [changelog](#history-changelog).*
+
+Forever's rage rules changed several times between the beta logs this book is built on and the launch on 4 November 2026. The other chapters describe the game as it is now. This chapter keeps the history in one place, so you can see which rules each log, and each older version of a chapter, was built on.
+
+## Timeline
+
+```{r}
+tribble(
+  ~When,              ~`What changed for rage`,                                                                                  ~`What it means for this book`,
+  "Up to 23 Sep",     "Beta build 1.60.1. Each white swing gives rate x weapon speed, and a crit gives no extra rage. Dual Wield Specialization doubles off-hand rage, Boundless Rage raises the cap to 130, Bloodthirst is 35% of attack power, and Unbridled Wrath procs at about 8% a point (a bug).",
+                      "Every combat log in the book comes from this build (the Rage Generation chapter). We call these rules v0 (see the crit rework below).",
+  "30 Sep",           "Blizzard's Class Deep Dive: a crit gives 75% more rage, rage from dealing damage is normalised to weapon speed, and Flurry's attack speed is 5% lower than Classic's. Testers found Dual Wield Specialization no longer adds off-hand rage.",
+                      "We call these rules v1.",
+  "1 to 2 Oct",       "Blizzard's development notes and the Warrior hotfixes: a crit gives twice the rage, Dual Wield Specialization gives +50% off-hand rage (its tooltip), and its off-hand hit moves to Furious Precision. Boundless Rage is gone (cap 100), Bloodthirst is back to 45% of attack power, Raging Blows takes 3 rage off Whirlwind, and Unbridled Wrath's proc chance is fixed, with 1 rage a proc for two-handers too. The level cap goes up to 30.",
+                      "We call these rules v2. They are still the game's rage rules.",
+  "8 Oct",            "Rage from damage taken is based on the attacker's expected health, not yours. It counts crits and crushing blows, and ignores absorbs.",
+                      "Not modelled: the book's warrior isn't taking hits.",
+  "2 Nov",            "The launch build's notes: Reckless Swings (new), Flurry at 3 points for 30% without Death Wish, Improved Whirlwind (new), Improved Tactical Mastery at 3 points, and more health for higher level creatures.",
+                      "The tree the whole book uses now.",
+  "4 Nov",            "Launch.",
+                      "Logs from the live game can now test everything since 23 Sep."
+) %>% knitr::kable(caption = "How Forever's rage rules changed, from the beta logs to launch.")
+```
+
+## Rage changes since our logs {#rage-since-logs}
+
+Every log in the book comes from beta build 1.60.1 (see the [Rage Generation chapter](#rage)), before Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4), the Warrior hotfixes of 1 and 2 October and the [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9) that came just before launch. Those changed several things about rage that our logs can't show yet:
+
+```{r}
+tribble(
+  ~Change,                                                                                   ~`Where it comes from`,
+  "A white crit gives twice the rage of a normal hit (100% more; it was 75% on 30 September, and nothing before that)", "Blizzard's notes, edited 2 Oct",
+  "Dual Wield Specialization: +50% off-hand rage at 5/5 (it was +100%). Its +10% off-hand hit moved to the new Furious Precision talent", "The hotfixed talent tree (the notes say the rage bonus was removed, but the tooltip gives back half of it)",
+  "Boundless Rage is gone, so the rage cap is 100 (it was 130 with the talent)",            "Blizzard's notes",
+  "Unbridled Wrath gives 1 rage per proc with two-handers too (it was 2)",                  "Blizzard's notes",
+  "Unbridled Wrath's proc chance fixed (BUG-1)",                                             "Blizzard's notes",
+  "Rage from damage taken: based on the attacker's expected health, not yours, counts crits and crushing blows, and ignores absorbs", "Blizzard's notes, 8 Oct",
+  "Reckless Swings (new Fury talent, row 4): your next 4 melee attacks within 8 sec give 5 extra rage each. 15 sec cooldown, costs 25% of base health", "Blizzard's notes, 2 Nov",
+  "Flurry: 3 points for 30% attack speed (it was 5 points for 25%), and no longer needs Death Wish", "Blizzard's notes, 2 Nov",
+  "Improved Whirlwind (new Fury talent, row 6): Whirlwind's cooldown 2 sec shorter and 30% more damage to the closest enemy, so Whirlwind uses more rage", "Blizzard's notes, 2 Nov",
+  "Improved Tactical Mastery: 3 points to keep 5/10/15 more rage when changing stances (it was 5 points for 3/6/9/12/15)", "Blizzard's notes, 2 Nov",
+  "Higher level creatures have more health, to make room for more class damage. Rage from damage taken uses the attacker's expected health, so it may change too", "Blizzard's notes, 2 Nov"
+) %>% knitr::kable(caption = "Changes to rage since our logs were recorded. None of them has been checked in logs yet.")
+```
+
+The first two are part of [the formula](#rage-formula) in the Rage Generation chapter, and the rest of the book uses all of these rules. The [Rage on Crit chapter](#rage-on-crit) works through what the crit rule does to a Fury warrior.
+
+The level cap went up to 30 on 1 October, which opened up Dual Wield Specialization, Furious Precision and Raging Blows for testing. The game launched on 4 November, so logs from the live game can test the rest: Reckless Swings from level 25, Flurry and Improved Whirlwind from 34, and the rates above level 30.
+
+## The crit rework: v0, v1 and v2 {#crit-rework}
+
+On 30 September 2026, Blizzard's [Class Deep Dive for priests and warriors](https://worldofwarcraft.blizzard.com/en-us/news/24301514) announced a new rage formula for Forever: "Critical strike will now give 75% more Rage than non-critical strikes." At the same time, Dual Wield Specialization stopped doubling the off hand's rage. Until then, a crit gave exactly the same rage as a normal hit (one of the findings of the [Rage Generation chapter](#rage)).
+
+Shortly after, Zirene, one of Forever's developers, [posted on X](https://x.com/Zirene/status/2105700347557867695) that warriors' testing had been thrown off by a bug: Dual Wield Specialization was giving 10% hit to every attack, not just the off hand's. With that fixed, crits would give 100% more rage, and Dual Wield Specialization would give the off hand 50% more rage.
+
+That's what happened. Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4) (edited on 2 October) raise the crit bonus to 100%, and the Warrior hotfixes of 1 and 2 October gave Dual Wield Specialization a +50% off-hand rage tooltip (10% a rank). The notes themselves say Dual Wield Specialization lost its off-hand rage altogether, but the hotfixed talent tree, as read by [talentsforever.com](https://talentsforever.com), gives back half of it, as Zirene said it would. Its off-hand hit moved to a new talent, Furious Precision.
+
+So Forever's rage went through three versions in four days:
+
+```{r}
+tribble(~Version, ~When, ~`Off hand's rage (Dual Wield Specialization)`, ~`A crit's rage`,
+  "Forever v0", "Before 30 Sep", "x2", "x1 (no bonus)",
+  "Forever v1", "30 Sep", "x1 (no bonus)", "x1.75",
+  "Forever v2", "Since 1 Oct (today's rule)", "x1.5", "x2") %>%
+  knitr::kable(caption = "The two things that changed between the Forever versions.")
+```
+
+Earlier versions of the [Rage on Crit chapter](#rage-on-crit) simulated all three on the build from 1 October to 2 November (Flurry at 25%, and no Improved Whirlwind or Reckless Swings), so they differ only in their rage. Figure \@ref(fig:crit-rework-lines) shows them at 7.5% hit, with Classic for comparison.
+
+```{r crit-rework-lines, fig.cap=paste0("Rage per second against crit, at 7.5% hit from gear, for the three versions on the 1 October build. v1 starts well below v0 and only catches it at the top of the crit range; v2 is above v0 everywhere and keeps climbing with crit. Classic's rage depends on attack power, so it's shown at two levels. The dashed line is the ", bt_ww_need, " rage per second that Bloodthirst and Whirlwind used on that build."), fig.height=4.8}
+d <- bind_rows(
+  crit_res %>% filter(model %in% c("Forever v0", "Forever v1", "Forever v2"), ap == 2000),
+  crit_res %>% filter(model == "Classic", ap %in% c(1250, 2000)) %>% mutate(model = paste0("Classic (", ap, " AP)"))
+) %>% filter(abs(hit - 0.075) < 1e-9)
+ends <- d %>% filter(crit == max(crit))
+ggplot(d, aes(crit, rps, colour = model)) +
+  geom_hline(yintercept = bt_ww_need, linetype = "dashed", colour = "grey30") +
+  annotate("text", x = 0.45, y = bt_ww_need, label = "Bloodthirst + Whirlwind", hjust = 1, vjust = 1.6, size = 3.2, colour = "grey30") +
+  geom_line(linewidth = 1.2) + geom_point(size = 1.6) +
+  ggrepel::geom_text_repel(data = ends, aes(label = model), hjust = 0, nudge_x = 0.01, direction = "y", size = 3.3,
+                           segment.colour = "grey70", min.segment.length = 0, xlim = c(0.455, NA), show.legend = FALSE) +
+  scale_colour_manual(values = crit_cols, guide = "none") +
+  scale_x_continuous(labels = pc, breaks = seq(0.15, 0.45, 0.05), limits = c(0.15, 0.55), expand = expansion(mult = c(0.02, 0))) +
+  labs(x = "Crit (character sheet)", y = "Rage per second")
+```
+
+```{r}
+steps <- c("Forever v0", "Off hand x1, no crit bonus", "Forever v1", "Forever v2")
+expand_grid(Gear = gear_points$point, version = steps) %>%
+  mutate(rps = map2_dbl(version, Gear, ~ at_point(.x, .y)), dps = map2_dbl(version, Gear, ~ at_point(.x, .y, "dps")),
+         p90 = map2_dbl(version, Gear, ~ at_point(.x, .y, "gap_p90"))) %>%
+  group_by(Gear) %>% mutate(vs = dps / dps[version == "Forever v0"] - 1) %>% ungroup() %>%
+  mutate(Gear = map_chr(Gear, gear_label),
+         version = recode(version, `Off hand x1, no crit bonus` = "v1, first half: the off hand loses its bonus",
+                          `Forever v1` = "v1: ... and crits give 175%", `Forever v2` = "v2: off hand x1.5, crits give 200%")) %>%
+  transmute(Gear, Rules = version, `Rage per second` = f2(rps),
+            `Damage vs v0` = ifelse(version == "Forever v0", "", sprintf("%+.1f%%", vs * 100)),
+            `1-in-10 wait between Heroic Strikes` = ifelse(version == "v1, first half: the off hand loses its bonus", "", paste(f0(p90), "sec"))) %>%
+  knitr::kable(caption = "Each version at three gear points on the 1 October build (at 2000 attack power; attack power doesn't change Forever's rage). v1's two halves are shown separately: losing the off-hand bonus costs a lot of rage, and the crit bonus gives some of it back.")
+```
+
+What the comparison showed:
+
+- **v1 traded early rage for growth.** At early gear, losing the off-hand bonus cost `r f1(at_point("Forever v0", "Early") - at_point("Off hand x1, no crit bonus", "Early"))` rage per second, and the crit bonus gave back only `r f1(at_point("Forever v1", "Early") - at_point("Off hand x1, no crit bonus", "Early"))` of it. By late gear it gave back `r f1(at_point("Forever v1", "Late") - at_point("Off hand x1, no crit bonus", "Late"))`, almost all of it. It only broke even with v0 at about `r pc0(be_crit(1, 0.75))` crit, which is above the attack table's ceiling at 7.5% hit.
+- **v2 raised the floor and kept the growth.** With half the off-hand bonus and crits at twice a normal swing's rage, it had more rage than v0 everywhere in the grid (`r f2(v2_gain[1])` to `r f2(v2_gain[2])` rage per second more).
+- **v2 also fixed the feel.** v1 made the droughts between Heroic Strikes much longer at low gear. v2 had the shortest of the three at every gear point (`r f0(at_point("Forever v2", "Early", "gap_p90"))` seconds for the 1-in-10 wait at early gear, against `r f0(at_point("Forever v1", "Early", "gap_p90"))` in v1 and `r f0(at_point("Forever v0", "Early", "gap_p90"))` in v0).
+
+```{r, include=FALSE}
+now_gain <- crit_res %>% filter(model %in% c("Forever v2", "Forever today"), ap == 2000) %>%
+  select(model, crit, hit, rps) %>% pivot_wider(names_from = model, values_from = rps) %>%
+  with(range(`Forever today` - `Forever v2`))
+```
+
+Then the 2 November talents raised the floor again. Reckless Swings and Flurry's 30% give today's warrior `r f2(now_gain[1])` to `r f2(now_gain[2])` more rage per second than v2 on the 1 October build, at every point of the grid. Improved Whirlwind spends `r f2(bt_ww_need_now - bt_ww_need)` of it on the extra Whirlwinds. The [Rage on Crit chapter](#rage-on-crit) now works on today's build.
+
+## What 2 November did to Whirlwind {#ww-since-nov}
+
+Improved Whirlwind changed Whirlwind twice over: each cast does `r round((forever_talents$ww_dmg_mult - 1) * 100)`% more damage, and it comes back every `r forever_talents$ww_cd` seconds instead of 10. Reckless Swings pays for the extra casts. Here's the same Forever warrior from the [Abilities chapter](#abilities), on the build from 1 October to 2 November and on today's:
+
+```{r}
+oct_sims <- cached_sim("abilities_fights_oct", deps = list(gear, forever_draws, n_fights, sim_defaults, forever_oct_talents), {
+set.seed(36)
+tibble(phase = gear$phase) %>%
+  mutate(res = map(phase, function(ph) {
+    p <- modifyList(phase_p("Forever", ph), forever_oct_talents)
+    map_dfr(seq_len(n_fights), function(i) simulate_fight(rage_models[["Forever"]], gear$dps[gear$phase == ph], p))
+  })) %>% unnest(res) %>%
+  mutate(phase = factor(phase, levels = levels(phases$phase)))
+})
+ww_cmp <- bind_rows(`1 Oct build` = oct_sims, `2 Nov build` = filter(ability_sims, game == "Forever"), .id = "build") %>%
+  group_by(build, phase) %>%
+  summarise(ww = median(dps_ww), bt = median(dps_bt), ww_pm = mean(ww_pm), total = median(total_dps),
+            ww_share = median(dps_ww / total_dps), .groups = "drop")
+wc <- function(b, ph, col) ww_cmp[[col]][ww_cmp$build == b & ww_cmp$phase == ph]
+ww_cmp %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+  pivot_wider(names_from = build, values_from = c(ww, bt, ww_pm, total, ww_share)) %>%
+  transmute(Phase = phase,
+            `Whirlwind DPS` = sprintf("%.0f to %.0f", `ww_1 Oct build`, `ww_2 Nov build`),
+            `Whirlwind / min` = sprintf("%.1f to %.1f", `ww_pm_1 Oct build`, `ww_pm_2 Nov build`),
+            `Bloodthirst DPS` = sprintf("%.0f to %.0f", `bt_1 Oct build`, `bt_2 Nov build`),
+            `Whirlwind share` = sprintf("%.0f%% to %.0f%%", `ww_share_1 Oct build` * 100, `ww_share_2 Nov build` * 100),
+            `Total DPS` = sprintf("%.0f to %.0f", `total_1 Oct build`, `total_2 Nov build`)) %>%
+  knitr::kable(caption = paste0("A Forever warrior's typical fight on the 1 October build, and on today's (2 November), over ", n_fights, " simulated fights at each phase."))
+```
+
+At phase 2, Whirlwind's damage goes from `r round(wc("1 Oct build", "Phase 2", "ww"))` to `r round(wc("2 Nov build", "Phase 2", "ww"))` a second, `r round((wc("2 Nov build", "Phase 2", "ww") / wc("1 Oct build", "Phase 2", "ww") - 1) * 100)`% more: `r round((forever_talents$ww_dmg_mult - 1) * 100)`% from each cast hitting harder, and the rest from casting it `r round(wc("2 Nov build", "Phase 2", "ww_pm"), 1)` times a minute instead of `r round(wc("1 Oct build", "Phase 2", "ww_pm"), 1)`. Bloodthirst barely moves. So the gap between the two abilities closes from `r round(wc("1 Oct build", "Phase 2", "bt") - wc("1 Oct build", "Phase 2", "ww"))` damage per second to `r round(wc("2 Nov build", "Phase 2", "bt") - wc("2 Nov build", "Phase 2", "ww"))`, and Whirlwind's share of your damage goes from `r round(wc("1 Oct build", "Phase 2", "ww_share") * 100)`% to `r round(wc("2 Nov build", "Phase 2", "ww_share") * 100)`%. Bloodthirst still does more damage per second, because it comes back every 6 seconds and each one costs more, but per point of rage Whirlwind is now well ahead.
+
+## Changelog {#history-changelog}
+
+```{r}
+history_changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "How the Rules Changed chapter versions, newest first.")
+```
