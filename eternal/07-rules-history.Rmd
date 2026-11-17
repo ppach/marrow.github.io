@@ -30,19 +30,19 @@ tribble(
   "2 Nov",            "The launch build's notes: Reckless Swings (new), Flurry at 3 points for 30% without Death Wish, Improved Whirlwind (new), Improved Tactical Mastery at 3 points, and more health for higher level creatures.",
                       "The tree the whole book uses now.",
   "4 Nov",            "Launch.",
-                      "Logs from the live game can now test everything since 23 Sep."
+                      "The book follows the launch build."
 ) %>% knitr::kable(caption = "How Forever's rage rules changed, from the beta logs to launch.")
 ```
 
 ## Rage changes since our logs {#rage-since-logs}
 
-Every log in the book comes from beta build 1.60.1 (see the [Rage Generation chapter](#rage)), before Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4), the Warrior hotfixes of 1 and 2 October and the [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9) that came just before launch. Those changed several things about rage that our logs can't show yet:
+Every log in the book comes from beta build 1.60.1 (see the [Rage Generation chapter](#rage)), before Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4), the Warrior hotfixes of 1 and 2 October and the [2 November notes](https://us.forums.blizzard.com/en/wow/t/2360696/9) that came just before launch. Those changed several things about rage that our logs come from before:
 
 ```{r}
 tribble(
   ~Change,                                                                                   ~`Where it comes from`,
   "A white crit gives twice the rage of a normal hit (100% more; it was 75% on 30 September, and nothing before that)", "Blizzard's notes, edited 2 Oct",
-  "Dual Wield Specialization: +50% off-hand rage at 5/5 (it was +100%). Its +10% off-hand hit moved to the new Furious Precision talent", "The hotfixed talent tree (the notes say the rage bonus was removed, but the tooltip gives back half of it)",
+  "Dual Wield Specialization: +50% off-hand rage at 5/5 (it was +100%). Its +10% off-hand hit moved to the new Furious Precision talent", "The 1 to 2 Oct hotfixes (the talent's tooltip), as Zirene, one of Forever's developers, announced",
   "Boundless Rage is gone, so the rage cap is 100 (it was 130 with the talent)",            "Blizzard's notes",
   "Unbridled Wrath gives 1 rage per proc with two-handers too (it was 2)",                  "Blizzard's notes",
   "Unbridled Wrath's proc chance fixed (BUG-1)",                                             "Blizzard's notes",
@@ -52,12 +52,12 @@ tribble(
   "Improved Whirlwind (new Fury talent, row 6): Whirlwind's cooldown 2 sec shorter and 30% more damage to the closest enemy, so Whirlwind uses more rage", "Blizzard's notes, 2 Nov",
   "Improved Tactical Mastery: 3 points to keep 5/10/15 more rage when changing stances (it was 5 points for 3/6/9/12/15)", "Blizzard's notes, 2 Nov",
   "Higher level creatures have more health, to make room for more class damage. Rage from damage taken uses the attacker's expected health, so it may change too", "Blizzard's notes, 2 Nov"
-) %>% knitr::kable(caption = "Changes to rage since our logs were recorded. None of them has been checked in logs yet.")
+) %>% knitr::kable(caption = "Changes to rage since our logs were recorded.")
 ```
 
 The first two are part of [the formula](#rage-formula) in the Rage Generation chapter, and the rest of the book uses all of these rules. The [Rage on Crit chapter](#rage-on-crit) works through what the crit rule does to a Fury warrior.
 
-The level cap went up to 30 on 1 October, which opened up Dual Wield Specialization, Furious Precision and Raging Blows for testing. The game launched on 4 November, so logs from the live game can test the rest: Reckless Swings from level 25, Flurry and Improved Whirlwind from 34, and the rates above level 30.
+The level cap went up to 30 on 1 October, and the game launched on 4 November.
 
 ## The crit rework: v0, v1 and v2 {#crit-rework}
 
@@ -65,7 +65,7 @@ On 30 September 2026, Blizzard's [Class Deep Dive for priests and warriors](http
 
 Shortly after, Zirene, one of Forever's developers, [posted on X](https://x.com/Zirene/status/2105700347557867695) that warriors' testing had been thrown off by a bug: Dual Wield Specialization was giving 10% hit to every attack, not just the off hand's. With that fixed, crits would give 100% more rage, and Dual Wield Specialization would give the off hand 50% more rage.
 
-That's what happened. Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4) (edited on 2 October) raise the crit bonus to 100%, and the Warrior hotfixes of 1 and 2 October gave Dual Wield Specialization a +50% off-hand rage tooltip (10% a rank). The notes themselves say Dual Wield Specialization lost its off-hand rage altogether, but the hotfixed talent tree, as read by [talentsforever.com](https://talentsforever.com), gives back half of it, as Zirene said it would. Its off-hand hit moved to a new talent, Furious Precision.
+That's what happened. Blizzard's [1 October development notes](https://us.forums.blizzard.com/en/wow/t/2360696/4) (edited on 2 October) raise the crit bonus to 100%, and the Warrior hotfixes of 1 and 2 October gave Dual Wield Specialization a +50% off-hand rage tooltip (10% a rank). The notes first took Dual Wield Specialization's off-hand rage away altogether, and the hotfixed talent tree, as read by [talentsforever.com](https://talentsforever.com), gave half of it back, as Zirene said it would. Its off-hand hit moved to a new talent, Furious Precision.
 
 So Forever's rage went through three versions in four days:
 

@@ -95,7 +95,7 @@ filled     <- function(blocks, R) sum(pmax(pmin(R, blocks$end) - blocks$start, 0
 ladder_dps <- function(l, R = l$income) l$white + filled(l$blocks, R)
 ```
 
-*Version `r scaling_changelog$version[1]` (`r scaling_changelog$date[1]`). **Model only:** this chapter is about a level 60 warrior, and the beta is capped at level 30. The rage each swing gives in Forever is measured (see the [Rage Generation chapter](#rage)); everything else comes from the game's tooltips, the Classic simulators and our guesses about gear. See the [changelog](#scaling-changelog).*
+*Version `r scaling_changelog$version[1]` (`r scaling_changelog$date[1]`). This chapter simulates a level 60 warrior. The rage each swing gives in Forever is measured (see the [Rage Generation chapter](#rage)), and the rest comes from Blizzard's notes, the game's tooltips, the Classic simulators and our guesses about gear. See the [changelog](#scaling-changelog).*
 
 When you get a better weapon, how much more damage do you do? For most classes the answer is simple: a weapon that's 10% better makes every hit about 10% bigger. Warriors are different, because a warrior's damage comes in two parts: the damage of the swings themselves, and the damage of the abilities that rage pays for.
 
@@ -504,11 +504,11 @@ dv <- function(g, col) mean(dws_value[[col]][dws_value$Game == g])
 
 In Classic, Dual Wield Specialization is a damage talent: it adds about `r round(dv("Classic", "total") * 100)`% to your damage, most of it straight from the bigger off-hand hits. In Forever, it's the most important rage talent a dual wielder has: it adds about `r round(dv("Forever", "total") * 100)`% to your damage, and about `r round(dv("Forever", "rage") / dv("Forever", "total") * 100)`% of that comes from the rage it gives, which pays for the Bloodthirsts and Whirlwinds you couldn't otherwise afford.
 
-That makes it the biggest assumption behind Forever's rage in this book. It comes from the tooltip, and Blizzard's 1 October notes say the opposite: that Dual Wield Specialization no longer adds off-hand rage at all. The tooltip, from the hotfixed talent tree, gives it +50%. Dual Wield Specialization is in the fourth row of the Fury tree, so it needs level 24, and logs from the beta's level 30 cap or the live game can test it. It's the first thing to check in new logs (see the open questions in the [Rage Generation chapter](#rage)).
+That's why the 1 to 2 October hotfixes mattered so much. Blizzard's 1 October notes first took the off-hand rage bonus away altogether, and the hotfixes gave half of it back: +50% at 5/5, as Zirene, one of Forever's developers, announced (see [How the Rules Changed](#rules-history)).
 
 ## Step 5: the whole picture
 
-With all that in place, here's the answer to the question we started with, from the fight simulator: `r n_scaling` fights at each weapon, from `r min(scaling_grid)` to `r max(scaling_grid)` weapon DPS. The exact numbers depend on our guesses about gear and on mechanics we can't test yet, so read them as an illustration of the two shapes rather than as predictions.
+With all that in place, here's the answer to the question we started with, from the fight simulator: `r n_scaling` fights at each weapon, from `r min(scaling_grid)` to `r max(scaling_grid)` weapon DPS. The exact numbers depend on our guesses about gear, so read them as an illustration of the two shapes rather than as predictions.
 
 ```{r}
 dps_curve <- scaling_sims %>% group_by(game, dps) %>%
@@ -692,10 +692,10 @@ The rage from Reckless Swings itself runs from `r sprintf("%.2f", min(rs_rule_tb
 
 25% of your *base* health is the health you'd have with no Stamina from gear. In Classic, a level 60 warrior's base health is about 1,700, so if Forever's is similar, each press costs about 420 health, every 15 seconds: about 28 damage a second for the whole fight, taken by you and healed by your healers. That's small next to what a boss does to its tank, and on a raid boss most Fury warriors take little damage, so the healers can usually afford it. It matters more on fights with heavy raid damage, and while leveling with no healer, where pressing it on cooldown means eating or bandaging more often. Blood Craze and Gore Drinker give some of it back. The book doesn't model health at all, so none of this is in the numbers above.
 
-## What we can test, and what we can't yet
+## Where the numbers come from
 
 - **Measured:** the rage per swing in Forever, and that it doesn't depend on damage or level (from level 1 to 17). That a hasted swing gives the full rage.
-- **Announced, not yet logged:** that a crit gives twice the rage (our logs, from before 1 October, show no crit bonus), Dual Wield Specialization's +50% off-hand rage, and the 2 November talents: Flurry's 30%, Improved Whirlwind and Reckless Swings.
+- **Announced:** that a crit gives twice the rage, Dual Wield Specialization's +50% off-hand rage, and the 2 November talents: Flurry's 30%, Improved Whirlwind and Reckless Swings.
 - **Assumed from Classic:** that a swing's damage follows the same formula in Forever (the logs match how attack power adds damage, but the hits come out lower than the formula gives, which is still open), the attack table, and that the rage per swing stays the same up to level 60.
 - **From tooltips:** Bloodthirst, Whirlwind, Heroic Strike, Improved Whirlwind and Reckless Swings. Which attacks use up a Reckless Swings charge is our guess (white swings, Heroic Strike, Bloodthirst and Whirlwind, but not misses). The [Reckless Swings section](#reckless-swings) tries the other readings: they move damage by about 2% at most, and misses using up charges is the one that would cost the most.
 - **Our guesses:** the gear at each phase, the same in both games, and without world buffs, since Forever won't have them. In real Classic raids, world buffs made warriors hit much harder, so Classic's rage line in Figure \@ref(fig:scaling-side) would have started higher and climbed faster, and its damage would have bent upward sooner.
@@ -724,7 +724,7 @@ Here's what the chapter comes down to:
 
 7. **In Forever, a better weapon doesn't change your rotation.** You press the same abilities just as often with a pre-BiS weapon as with a phase 4 one; only the numbers get bigger. The gear that gives Forever more rage is gear that makes you land more swings (haste, hit and extra attacks) and, since 1 October, crit, which doubles a swing's rage and speeds you up through Flurry.
 
-The simulations behind this chapter are simplified, and their exact numbers rest on guesses we can't check yet, so they're there to illustrate what's happening, not to predict how a warrior will perform. The shapes are the part to take away: they follow from how each game turns swings into rage.
+The simulations behind this chapter are simplified, and their exact numbers rest on our guesses about gear, so they're there to illustrate what's happening, not to predict how a warrior will perform. The shapes are the part to take away: they follow from how each game turns swings into rage.
 
 ## Changelog {#scaling-changelog}
 

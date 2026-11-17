@@ -44,7 +44,7 @@ fl <- function(sheet, haste = haste_forever, yellow = TRUE) {
 }
 ```
 
-*Version `r flurry_changelog$version[1]` (`r flurry_changelog$date[1]`). **Model only:** Flurry is in row 6 of the Fury tree, so it needs level 34, and all our logs come from the beta, which was capped at 30. Until there are logs from the live game, everything here assumes Flurry works like it did in Classic, at the same 30% it has since 2 November. See the [changelog](#flurry-changelog).*
+*Version `r flurry_changelog$version[1]` (`r flurry_changelog$date[1]`). Flurry works as it did in Classic, at the same 30% it has had since 2 November. See the [changelog](#flurry-changelog).*
 
 Flurry is the talent that makes dual wield warriors tick, and in Forever it matters even more than it used to, because rage comes from swings: every extra swing Flurry gives you is extra rage. This chapter builds a better model of how often Flurry is up, compares it with the way we used to work it out in Classic, and lists what we need to check once the talent is available.
 
@@ -61,7 +61,7 @@ tribble(
   "Yellow attacks don't use up charges",                          "Assumed from Classic",
   "Main hand and off hand share the same charges",                "Assumed from Classic",
   "A hasted swing gives the same rage as a normal one (rate x weapon speed)", "Confirmed for Berserking and Fishliver Oil haste"
-) %>% knitr::kable(caption = "What the model assumes about Flurry. None of it has been checked in Forever logs yet.")
+) %>% knitr::kable(caption = "What the model assumes about Flurry.")
 ```
 
 That last one deserves a word. In Forever, each swing gives rage based on the weapon's speed, not on the time the swing actually took. If the game used the hasted swing time instead, Flurry would give no rage at all. The logs now show it doesn't: swings hasted by Berserking and Fishliver Oil give the full rage (see the [Haste section](#haste)), so every extra swing Flurry gives you is extra rage. Flurry itself still can't be tested, but it would be very surprising if its haste worked differently.

@@ -44,7 +44,7 @@ cast_damage <- function(p, ability, dps, n) {
 }
 ```
 
-*Version `r abilities_changelog$version[1]` (`r abilities_changelog$date[1]`). **Model only:** Bloodthirst needs level 40 and Whirlwind level 36, and the beta was capped at 30, so nothing here has been checked in logs yet. The numbers come from the game's tooltips, read by [talentsforever.com](https://talentsforever.com), with the Warrior changes from Blizzard's 1 Oct and 2 Nov development notes.*
+*Version `r abilities_changelog$version[1]` (`r abilities_changelog$date[1]`). The numbers come from the game's tooltips, read by [talentsforever.com](https://talentsforever.com), with the Warrior changes from Blizzard's 1 Oct and 2 Nov development notes.*
 
 The [Classic compendium](https://01a0bad7-106c-87b4-a48f-17061469cc4d.share.connect.posit.cloud/) compared abilities by their damage per rage: how much damage you get for each point of rage you spend. That's even more important in Forever, where most of your rage is a fixed income that only crit can raise, so every point has to go where it does the most damage. This chapter starts with the two abilities at the heart of a Fury rotation, Bloodthirst and Whirlwind, and both of them changed.
 

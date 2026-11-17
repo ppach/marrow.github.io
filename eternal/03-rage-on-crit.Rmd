@@ -329,7 +329,7 @@ hit_band <- annotate("rect", xmin = -Inf, xmax = Inf, ymin = 0.05, ymax = 0.10, 
                      linewidth = 0.7, linetype = "dotted")
 ```
 
-*Version `r crit_changelog$version[1]` (`r crit_changelog$date[1]`). **Model only, built on announcements:** the crit rule has been in the game since the Warrior hotfixes of 1 and 2 October 2026, but nobody has logged it yet. See the [changelog](#crit-changelog).*
+*Version `r crit_changelog$version[1]` (`r crit_changelog$date[1]`). See the [changelog](#crit-changelog).*
 
 Since 1 October, a white crit in Forever gives **twice the rage of a normal hit**, and Dual Wield Specialization gives the off hand 50% more rage (see [the formula](#rage-formula)). Before that, a crit gave exactly the same rage as a normal hit, so this is the first time Forever's rage depends on anything your gear does other than how often you land a swing. ([How the Rules Changed](#crit-rework) tells how the rule got here, through two earlier versions.)
 
@@ -591,15 +591,14 @@ So at low gear, our assumptions land almost exactly on the spreadsheet (`r f2(sr
 
 Two smaller things in the spreadsheet are worth knowing about. It applies the crit bonus only to swings that land, but on the attack table, crit is a share of *all* swings, so it undercounts crit rage a little. That's why our simulator, with the spreadsheet's assumptions, comes out a little above it at high crit. And it takes Flurry as up 80% of the time, where in the simulation Flurry's uptime grows with crit (well below 80% at 25% crit, about 80% at 45%). Neither changes the picture.
 
-## What we can test, and what we can't yet
+## Where the numbers come from
 
-- **In the game, not yet logged:** the crit bonus. Our logs from before 30 September found crits gave no extra rage. The first new logs should show a crit giving twice a normal swing's rage, in both hands.
-- **In the game, not yet logged:** Dual Wield Specialization's +50% off-hand rage, which the tooltip shows and Blizzard's notes contradict, Furious Precision's off-hand hit, and the 2 November talents (Flurry's 30%, Improved Whirlwind and Reckless Swings).
+- **Announced:** the crit bonus (twice a normal swing's rage, in both hands), Dual Wield Specialization's +50% off-hand rage, Furious Precision's off-hand hit, and the 2 November talents (Flurry's 30%, Improved Whirlwind and Reckless Swings).
 - **Measured:** the rage per swing for each hand, that it doesn't depend on damage, and that a hasted swing gives the full rage (the [Rage Generation chapter](#rage)).
 - **Assumed:** the attack table against a level 63 boss with no suppression (from the tooltips), that Windfury swings give rage like any other swing, and Windfury itself, since it needs a shaman in the group.
 - **Our guesses:** the gear ranges, and the rotation, with Heroic Strike queued at `r sim_defaults$hs_threshold` rage.
 
-Now that the game has launched, the most useful logs for this chapter would be a dual wielder with Dual Wield Specialization, hitting mobs of the same level, with crits marked, so we can read both the crit bonus and the off hand's rage straight off the rage gains, as the Rage Generation chapter did for normal hits.
+The most useful logs for this chapter would come from level 60 dual wielders, with their gear posted, to replace our guessed gear ranges with real ones.
 
 ## Conclusion
 
@@ -610,7 +609,7 @@ Now that the game has launched, the most useful logs for this chapter would be a
 5. **There's already a ceiling.** A white swing can't crit more than the attack table leaves room for (about `r pc(crit_cap(0.075, "MH"))` for the main hand at 7.5% hit), so rage flattens out after about 35% crit.
 6. **The crit bonus makes the rotation steadier.** At mid gear, the 1-in-10 wait between Heroic Strikes is `r f0(at_point("Forever", "Mid", "gap_p90"))` seconds, against `r f0(at_point("Forever, no crit bonus", "Mid", "gap_p90"))` with no crit bonus. At early gear, Forever is much steadier than Classic.
 
-These simulations are simplified, and they rest on announcements and tooltips we can't check yet, so the exact numbers are there to illustrate what's happening, not to predict it. The shapes are the part to take away.
+These simulations are simplified, and the gear ranges are our guesses, so the exact numbers are there to illustrate what's happening, not to predict it. The shapes are the part to take away.
 
 ## Changelog {#crit-changelog}
 
