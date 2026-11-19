@@ -38,12 +38,27 @@ things.
 | `wowsims_ensure()`                  | Runs `wow-sim-tools/wowsims_update.ps1` once per R session. Every wowsims call goes through it.    |
 | `cached_wowsims(name, p)`           | One multi-iteration run, cached in `data/sim_cache/wowsims/name.rds`.                              |
 | `wowsims_fights(name, setups, n)`   | `n` one-iteration fights per setup, on parallel workers. Fight *i* gets seed `seed0 + i` in every setup, so setups are paired. Each fight's combat log gives Heroic Strike times, rage per Execute and an approximate "Bloodthirst starved" share. Returns the columns of `fight_sim.R`'s `simulate_fight`, cached. |
+| `cached_wowsims_many(jobs)`         | Many runs of the book's warrior on parallel workers. Each job is the arguments to `book_wowsims()` plus iterations and seed, cached in `data/sim_cache/wowsims/jobs/` and keyed on those arguments, so a cached job skips calibrating the sheet. The Stat Weights chapter's runs (`data/stat_weights.R`) use it. |
 | `wowsims_sheet(p)`                  | The character sheet wowsims computes (the `statsheet` helper).                                     |
 | `wowsims_stamp(res)`                | "Simmed with wowsims forever @abc1234, 2026-11-19" for the text, linked to the commit.             |
 
-A cached result is keyed on the full request (setup, rotation file, weapons, seed) and the wowsims commit. When
-wowsims moves, every wowsims number in the book runs again on the next render, and the stamps in the text change
-with them.
+A cached result is keyed on the full request (setup, rotation file, weapons, seed) and the basis commit. The basis
+is the last wowsims commit that changed the book's results. wowsims commits many times a day, and most of those
+commits change nothing the book's warrior does.
+
+When wowsims moves to a new commit, `wowsims_check_basis()` runs the canaries first. The canaries are a small set of
+sims, each with a fixed seed: the phase 2-like warrior, Windfury, the execute phase, the talent changes, the other two
+rotations, three logged fights and the character sheet. The check takes about a minute.
+
+- If every canary number is identical to the basis commit's, the new commit is recorded as giving the same results.
+  Every cache stays valid.
+- If any number differs, the new commit becomes the basis. Every wowsims sim runs again as the render needs it, and
+  the stamps in the text change with them.
+
+The record is `data/sim_cache/wowsims/basis.rds`: the basis commit, its canary results, and the commits found
+equivalent to it. Each result still carries the commit that produced it. If the book starts to use a new part of
+wowsims, add a canary for it in `wowsims_canaries()`. To key every cache on the exact commit instead, set
+`options(wowsims.strict = TRUE)`.
 
 ## Keeping wowsims current
 
@@ -63,8 +78,10 @@ binary whose version file doesn't match the checkout, so the book never quietly 
 ## Refreshing the numbers
 
 - **Normal render:** run `bookdown::render_book("index.Rmd")` or `Rscript deploy.R`. The render updates wowsims and
-  re-runs only the sims whose inputs or wowsims commit changed. A full re-run of the wowsims sims takes about an hour
+  re-runs only the sims whose inputs or basis commit changed. A full re-run of the wowsims sims takes about an hour
   on 12 workers. The biggest part is the 441-cell crit grid in Rage on Crit.
+- **Stat Weights:** its runs (about 3,500 at first) take about an hour. Run `Rscript data/sw_prewarm.R` before a
+  render to do them on their own.
 - **No network:** set `options(wowsims.offline = TRUE)` before you render.
 - **Update wowsims by hand:** run `powershell -ExecutionPolicy Bypass -File ..\..\wow-sim-tools\wowsims_update.ps1` (add `-Force`
   to rebuild anyway).

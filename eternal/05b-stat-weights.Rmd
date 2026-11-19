@@ -1,0 +1,482 @@
+# Stat Weights {#stat-weights}
+
+```{r setup-weights, include=FALSE}
+# Reuses `gear` and the damage formula (`ladder`, `ladder_dps`) from the How Damage Scales chapter, and f0, f1, f2,
+# pc and pc0 from the Rage on Crit chapter. Every DPS number here is from wowsims, through data/stat_weights.R; the
+# formula is there to explain the shapes, and the chapter checks it against wowsims. The number formatters are the
+# same as Rage on Crit's, defined again so the chapter also renders on its own (a preview).
+source("data/stat_weights.R")
+f2 <- function(x) sprintf("%.2f", x); f1 <- function(x) sprintf("%.1f", x); f0 <- function(x) sprintf("%.0f", x)
+pc  <- function(x) paste0(round(x * 100, 1), "%"); pc0 <- function(x) paste0(round(x * 100), "%")
+
+weights_changelog <- tribble(
+  ~version, ~date,        ~change,
+  "1.0.0",  "2026-11-19", "First version: what a stat weight is (the slope of your damage in one stat's direction), why it changes with your gear, and the attack table and damage formula behind each stat (attack power, weapon DPS, crit, hit, expertise, haste and weapon skill). The weights at each phase, the landscape of crit and hit, exchange rates in attack power, an interactive map of the best stat for your next rating points, and how to use weights to compare gear. All simmed in wowsims."
+)
+
+sw <- sw_build(gear)
+sw_stamp <- wowsims_stamp(list(version = sw$version))
+sw_lab <- c(ap = "Attack power", dps = "Weapon DPS", crit = "Crit", hit = "Hit", exp = "Expertise", haste = "Haste",
+            skill = "Weapon skill", skill5 = "+5 weapon skill")
+sw_unit <- c(ap = "per point", dps = "per point", crit = "per 1%", hit = "per 1%", exp = "per 1%", haste = "per 1%",
+             skill5 = "for +5")
+sw_order <- c("crit", "hit", "exp", "haste", "ap", "dps", "skill5")
+p2 <- filter(sw$phases, phase == "Phase 2", seed == sw_seed)
+
+# The rating that gives 1% of each stat, and what Strength and Agility give, measured on wowsims' character sheet
+sheet_of <- function(extra = numeric(0)) {
+  p <- book_wowsims(p2$dps, p2$ap, p2$crit, p2$hit)
+  b <- p$bonus_stats
+  for (n in names(extra)) b[[n]] <- (if (n %in% names(b)) b[[n]] else 0) + extra[[n]]
+  p$bonus_stats <- b
+  sh <- wowsims_sheet(p)
+  c(ap = sh$stats$StatAttackPower, crit = sh$pseudo$PseudoStatMeleeCritPercent, hit = sh$pseudo$PseudoStatMeleeHitPercent,
+    haste = sh$pseudo$PseudoStatMeleeHastePercent, exp = sh$pseudo$PseudoStatExpertisePercent %||% 0)
+}
+sheet0 <- sheet_of()
+rating_per_pct <- c(crit = 140 / (sheet_of(c(crit_rating = 140))[["crit"]] - sheet0[["crit"]]),
+                    hit = 100 / (sheet_of(c(hit_rating = 100))[["hit"]] - sheet0[["hit"]]),
+                    haste = 100 / (sheet_of(c(haste_rating = 100))[["haste"]] - sheet0[["haste"]]),
+                    exp = 100 / (sheet_of(c(expertise_rating = 100))[["exp"]] - sheet0[["exp"]]))
+str_100 <- sheet_of(c(strength = 100)) - sheet0
+agi_100 <- sheet_of(c(agility = 100)) - sheet0
+
+# ---- The formula ----------------------------------------------------------------------------------------------------
+# The attack table against a level 63 boss for given hit, expertise and weapon skill from gear, as wowsims has it
+# (sim/core/target.go). `gap` is the skill you're short of the boss: 15, less your weapon skill from gear.
+#   miss:  5% + 0.2% per point of gap above 10 (8% at a gap of 15), or 5% + 0.1% per point at 10 or less; dual
+#          wielding adds 19% to white swings; hit from gear comes off both
+#   dodge: 5% + 0.1% per point of gap; expertise comes off it
+#   glancing: 40% of white swings, whatever your skill; the damage is a roll between 1.3 - 0.05 x gap (at most 91%)
+#          and 1.2 - 0.03 x gap (at most 99%)
+sw_table <- function(hit = sw_hit0, exp = 0, skill = 0) {
+  gap <- 15 - skill
+  base_miss <- if (gap > 10) 0.05 + 0.002 * gap else 0.05 + 0.001 * gap
+  g_lo <- min(max(1.3 - 0.05 * gap, 0.01), 0.91); g_hi <- min(max(1.2 - 0.03 * gap, 0.2), 0.99)
+  list(miss = max(base_miss + 0.19 - hit, 0), yellow_miss = max(base_miss - hit, 0),
+       dodge = max(0.05 + 0.001 * gap - exp, 0), glance = 0.40, glance_dmg = (g_lo + g_hi) / 2)
+}
+# The most crit a main-hand white swing can have, as crit in the fight: whatever the table leaves after misses,
+# dodges and glancing blows, plus what the boss takes off
+sw_ceiling <- function(hit = sw_hit0, exp = 0, skill = 0) {
+  t <- sw_table(hit, exp, skill); 1 - t$miss - t$dodge - t$glance + sim_defaults$crit_suppression
+}
+# DPS from the How Damage Scales formula (white damage plus what the rage buys), with the table above and gear haste
+formula_dps <- function(dps, ap, crit, hit = sw_hit0, haste = 0, exp = 0, skill = 0)
+  ladder_dps(ladder("Forever", dps, ap, crit, tal = c(sw_table(hit, exp, skill), list(extra_haste = 1 + haste))))
+formula_row <- function(pts) pmap_dbl(sw_fill(pts)[sw_cols], formula_dps)
+# The formula's weights at each row, with the same steps as the sims
+formula_weights <- function(pts, stats = names(sw_steps)) {
+  pts <- sw_fill(pts)
+  for (s in stats) {
+    lo <- pmax(pts[[s]] - sw_steps[[s]], 0)
+    span <- 2 * sw_steps[[s]] * (if (s %in% sw_pct) 100 else 1)
+    pts[[paste0("f_", s)]] <- (formula_row(mutate(pts, !!s := lo + 2 * sw_steps[[s]])) - formula_row(mutate(pts, !!s := lo))) / span
+  }
+  pts$f_skill5 <- formula_row(mutate(pts, skill = skill + 5)) - formula_row(pts)
+  pts
+}
+
+# ---- The weights at each phase, with their noise ---------------------------------------------------------------------
+ph_long <- sw$phases %>%
+  pivot_longer(starts_with("w_"), names_to = "stat", values_to = "w") %>% mutate(stat = sub("^w_", "", stat)) %>%
+  group_by(phase, stat) %>% summarise(half = abs(diff(w)) / 2, w = mean(w), .groups = "drop")
+# The noise of a weight (one standard error of the two-seed mean), pooled over the phases
+noise <- ph_long %>% group_by(stat) %>% summarise(se = sqrt(mean(half^2)))
+se_of <- function(s) noise$se[noise$stat == s]
+ph_w <- ph_long %>% select(-half) %>% pivot_wider(names_from = stat, values_from = w)
+ph_ap <- ph_long %>% left_join(select(ph_w, phase, w_ap = ap), by = "phase") %>% mutate(ap_eq = w / w_ap)
+wp <- function(s, ph = "Phase 2") ph_long$w[ph_long$stat == s & ph_long$phase == ph]
+ape <- function(s, ph = "Phase 2") ph_ap$ap_eq[ph_ap$stat == s & ph_ap$phase == ph]
+f_p2 <- formula_weights(select(p2, dps, ap, crit, hit))
+
+# ---- One stat at a time (phase 2) ------------------------------------------------------------------------------------
+sw_lines <- sw$lines %>% mutate(formula = formula_row(.))
+x0 <- c(crit = p2$crit, hit = p2$hit, exp = 0, haste = 0, ap = p2$ap, skill = 0)
+sw_lines <- sw_lines %>% group_by(stat) %>%
+  mutate(formula = formula - formula[which.min(abs(x - x0[[first(stat)]]))] + sim_dps[which.min(abs(x - x0[[first(stat)]]))]) %>%
+  ungroup()
+line_w <- sw_lines %>% group_by(stat) %>% arrange(x, .by_group = TRUE) %>%
+  mutate(scale = if (first(stat) %in% sw_pct) 100 else 1,
+         w = (lead(sim_dps) - sim_dps) / ((lead(x) - x) * scale),
+         f = (lead(formula) - formula) / ((lead(x) - x) * scale), xm = (x + lead(x)) / 2) %>%
+  filter(!is.na(w)) %>% ungroup()
+lw <- function(s, at) with(filter(line_w, stat == s), w[which.min(abs(xm - at))])
+skill_dps <- function(k) with(filter(sw_lines, stat == "skill"), sim_dps[x == k])
+
+# ---- The slice: crit x hit at five levels of attack power -------------------------------------------------------------
+sw_grid <- sw$slice %>% mutate(across(c(crit, hit), ~ round(.x, 3)))
+s2000 <- filter(sw_grid, ap == 2000)
+rep2000 <- sw$slice_repeat %>% mutate(across(c(crit, hit), ~ round(.x, 3)))
+slice_se <- map_dbl(c(crit = "w_crit", hit = "w_hit", ap = "w_ap", haste = "w_haste", exp = "w_exp"),
+                    ~ sqrt(mean((s2000[[.x]] - rep2000[[.x]])^2 / 2)))
+f_slice <- formula_weights(select(s2000, dps, ap, crit, hit), stats = c("crit", "hit"))
+sw_cap <- function(s, crit, hit) with(filter(s2000, near(hit, !!hit), near(crit, !!crit)), get(paste0("w_", s)))
+```
+
+*Version `r weights_changelog$version[1]` (`r weights_changelog$date[1]`). See the [changelog](#weights-changelog).*
+
+Every warrior asks the same question when a new item drops: is this better than what I have? Guides answer it with **stat weights**: one number per stat, saying how much damage it's worth, like "1% crit = 30 attack power". This chapter shows where those numbers come from, and why a single number per stat is only part of the story.
+
+The short version: **a stat weight is a slope, and the slope depends on where you're standing.** Think of your damage as a landscape over your stats. A stat's weight is how steeply the ground rises when you take one step in that stat's direction. In some places the ground is steep in every direction. In others, one direction runs into a wall. Forever's attack table and rage rules put walls in the landscape, so the same stat can be worth a lot at one level of gear and much less at the next.
+
+We'll build it up in steps: one stat at a time, the attack table behind each stat, the formula that ties them together, two stats at once, and finally how to use weights to pick gear.
+
+## Our warrior
+
+Our warrior is the one from the rest of the book: level 60, dual wielding a 2.7 speed main hand and a 2.0 speed off hand of the same DPS, with the 17/34/0 Fury build, in Berserker Stance, using the book's rotation (Bloodthirst, Whirlwind, then Heroic Strike at 72 rage). What's specific to this chapter:
+
+- **No buffs or consumables,** against a level 63 boss whose armor leaves 75% of your damage. Buffs add to your stats, so they move you on the landscape, but they don't change its shape.
+- **Gear is the phase guesses from [How Damage Scales](#scaling),** each with `r pc0(sw_hit0)` hit from gear. They're modeled on what warriors wore at each phase in Classic, since Forever's gear isn't known yet. Phase 2-like gear is a `r p2$dps` DPS weapon, `r format(p2$ap, big.mark = ",")` attack power and `r pc0(p2$crit)` crit. Where we need more room, we also use the grid from [Rage on Crit](#rage-on-crit): 15% to 45% crit, 0% to 15% hit, at 1000 to 3000 attack power.
+- **Crit is your crit in the fight:** your character sheet plus Berserker Stance's 3%.
+- **No race has weapon skill in Forever,** so weapon skill only comes from gear.
+
+Every number comes from wowsims. To measure a weight, we sim the warrior at a gear point and again one small step either side in one stat: 1% for crit, hit, expertise and haste, 50 for attack power, and 1 for weapon DPS. Both sides use the same random seed, so they get the same luck, and the difference between them is the stat's effect, not the dice. The weights at each phase are simmed over `r format(sw_iters_fine, big.mark = ",")` fights of 3 minutes, twice with different fights, which tells us how precise they are (the ± in the tables). The grid is simmed over `r format(sw_iters_grid, big.mark = ",")` fights per point.
+
+*`r sw_stamp`.*
+
+## Step 1: one stat, one line
+
+Start with one stat. Take our phase 2-like warrior, change one stat and leave everything else alone, and watch the damage.
+
+```{r weights-lines, fig.cap="Damage per second as one stat changes and everything else stays at our phase 2-like warrior, in wowsims (dots and solid line). The red dot is the phase 2-like warrior. The dashed line is the damage formula from How Damage Scales, moved up or down to meet wowsims at the red dot, so you can compare the shapes. Hit, expertise and haste come from gear, and weapon skill is points of skill from gear.", fig.height=6.5, fig.width=10}
+# Percent stats are plotted in percent, so every panel can share one way of labelling its axis
+facet_lab <- c(crit = "Crit (%)", hit = "Hit (%)", exp = "Expertise (%)", haste = "Haste (%)", ap = "Attack power",
+               skill = "Weapon skill (points)")
+lines_plot <- sw_lines %>% mutate(x_plot = if_else(stat %in% sw_pct, x * 100, x),
+                                  label = factor(facet_lab[stat], levels = facet_lab))
+dot <- lines_plot %>% group_by(stat) %>% slice_min(abs(x - x0[stat[1]]), n = 1, with_ties = FALSE) %>% ungroup()
+ggplot(lines_plot, aes(x_plot, sim_dps)) +
+  geom_line(aes(y = formula), linetype = "dashed", colour = "grey50") +
+  geom_line(colour = "#2c7fb8") + geom_point(colour = "#2c7fb8", size = 1.2) +
+  geom_point(data = dot, colour = "#d7301f", size = 2.5) +
+  facet_wrap(~ label, scales = "free_x") +
+  scale_x_continuous(labels = scales::label_comma()) +
+  labs(x = NULL, y = "Damage per second")
+```
+
+Each panel is one stat's **line**. The steepness of the line at your gear is the stat's weight there: how much damage one more unit of the stat adds. In the language of [How Damage Scales](#calculus-words), it's a derivative, $\partial D / \partial x$, the change in damage $D$ per change in the stat $x$, with every other stat held still (that's what the curly $\partial$ means).
+
+Some lines are straight, and some bend:
+
+- **Attack power is straight, and weapon DPS is the same.** Each point is worth the same as the last: about `r f2(wp("ap"))` damage per second per point of attack power, and `r f1(wp("dps"))` per point of weapon DPS, with phase 2-like gear.
+- **Crit is straight, then bends down** near `r pc0(sw_ceiling())`. That's the attack table filling up (Step 2).
+- **Hit is steeper below 8% than above it.** At 8%, your abilities stop missing.
+- **Expertise is straight until it stops.** It only removes dodges, and at `r pc(sw_table()$dodge)` there are none left to remove.
+- **Haste curves gently downward,** without a wall.
+- **Haste is almost straight, with no wall.**
+- **Weapon skill climbs steeply up to about +8, with an extra jump at +5, then flattens out.**
+
+Each shape has a reason, and the reasons come from two places: the attack table, and the rage your swings make.
+
+## Step 2: the attack table {#weights-table}
+
+Every white swing lands in exactly one slice of a bar that adds up to 100%: it misses, is dodged, glances, crits or hits normally. Abilities like Bloodthirst use the same bar, without glancing blows. Most stats work by moving the boundaries between slices.
+
+```{r weights-bar, fig.cap="The attack table for a main-hand white swing against a level 63 boss. The top bar is our phase 2-like warrior. Each bar below changes one thing. Crit grows into the normal hits, and once they're gone, it can't grow any more: at 45% crit, part of your crit doesn't fit on the table.", fig.height=4.2, fig.width=10}
+bar_row <- function(label, crit = p2$crit, hit = sw_hit0, exp = 0, skill = 0) {
+  t <- sw_table(hit, exp, skill)
+  room <- 1 - t$miss - t$dodge - t$glance
+  cw <- min(crit - sim_defaults$crit_suppression, room)
+  tibble(label = label, slice = c("Miss", "Dodge", "Glancing", "Crit", "Normal hit"),
+         share = c(t$miss, t$dodge, t$glance, cw, room - cw))
+}
+bars <- bind_rows(
+  bar_row("Phase 2 warrior"), bar_row("+5% hit", hit = sw_hit0 + 0.05), bar_row("+5% expertise", exp = 0.05),
+  bar_row("+5 weapon skill", skill = 5), bar_row("35% crit", crit = 0.35), bar_row("45% crit", crit = 0.45)) %>%
+  mutate(label = factor(label, levels = rev(unique(label))),
+         slice = factor(slice, levels = rev(c("Miss", "Dodge", "Glancing", "Crit", "Normal hit"))))
+ggplot2::ggplot(bars, aes(share, label, fill = slice)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = ifelse(share >= 0.03, pc0(share), "")), position = position_stack(vjust = 0.5), size = 3,
+            colour = "white") +
+  scale_fill_manual(values = c(Miss = "grey60", Dodge = "grey40", Glancing = "#7fcdbb", Crit = "#d7301f",
+                               `Normal hit` = "#2c7fb8"), breaks = c("Miss", "Dodge", "Glancing", "Crit", "Normal hit"),
+                    name = NULL) +
+  scale_x_continuous(labels = scales::percent) + labs(x = "Share of main-hand white swings", y = NULL) +
+  theme(legend.position = "top")
+```
+
+In symbols, with $h$ for hit from gear, $e$ for expertise and $c$ for your crit, the slices of a main-hand white swing are:
+
+\begin{align}
+\text{miss: } m &= 27\% - h \\
+\text{dodge: } d &= 6.5\% - e \\
+\text{glancing: } g &= 40\% \text{, doing } \gamma = 65\% \text{ damage} \\
+\text{crit: } c_w &= \min\left(c - 4.8\%,\; 1 - m - d - g\right)
+(\#eq:weights-table)
+\end{align}
+
+and whatever is left is a normal hit. For abilities, the miss is $\max(8\% - h,\, 0)$, there are no glancing blows, and crits do 2.2 times the damage (with Impale). The off hand has 10% less miss, from Furious Precision.
+
+Each stat's place in Equation \@ref(eq:weights-table) explains its line in Step 1:
+
+- **Crit** moves the boundary between crits and normal hits. The $\min$ is the ceiling: crit can only take the place of normal hits, and once those are gone, there's nothing left to turn into crits. The ceiling is $1 - m - d - g$, plus the `r pc(sim_defaults$crit_suppression)` the boss takes off. With `r pc0(sw_hit0)` hit that's `r pc(sw_ceiling())` crit; with 0% hit it's `r pc(sw_ceiling(0))`, and with 15% hit `r pc(sw_ceiling(0.15))`. Your abilities can't glance, so they have far more room, and they keep gaining from crit after your white swings stop.
+- **Hit** shrinks the misses, so more swings land. A white swing can't run out of misses to remove (27% is a lot), but abilities can: their misses are gone at 8%. Past that, hit only helps your white swings, so it's worth less.
+- **Expertise** shrinks the dodges the same way, for white swings and abilities alike, until there are none: at `r pc(sw_table()$dodge)`.
+- **Hit and expertise both raise the crit ceiling,** since the ceiling is whatever the misses and dodges leave. That's why the three stats interact (Step 5).
+- **Weapon skill** changes three slices at once (it's the only stat that changes glancing blows). Below, "gap" is how many points of skill you're short of the boss: 15, minus your skill from gear.
+  - Misses: 8% at a gap of 15, falling 0.2% per point down to a gap of 11 (7.2%). At a gap of 10 (+5 skill), the rule changes from 0.2% to 0.1% per point, and the miss drops to 6%. That's the big jump. After that, each point takes off 0.1%.
+  - Dodges: 0.1% less per point.
+  - Glancing blows: still 40% of white swings, but they do more damage. The damage is a roll between two limits, and each point of skill raises the lower limit by 5% and the upper one by 3%: from 55–75% (65% on average) at +0, to 80–90% (85%) at +5. The limits stop at 91% (reached at +7) and 99% (at +8), so skill past +8 adds very little.
+  - Crit suppression doesn't change.
+
+  So +5 skill gives your white swings 20% more glancing damage on 40% of swings, and 2% fewer misses on everything. That's why it's worth `r f0(wp("skill5"))` damage per second with phase 2-like gear, `r pc(wp("skill5") / p2$sim_dps)` of your damage, as much as `r f0(ape("skill5"))` attack power.
+- **Attack power, weapon DPS and haste** don't touch the table at all. They change how hard or how often you swing, not where a swing lands.
+
+## Step 3: the formula {#weights-formula}
+
+The attack table tells us where a swing lands. To get from there to damage per second, we use the formula from [How Damage Scales](#scaling-formula), Equation \@ref(eq:scaling-d):
+
+$$
+D = W + \int_0^{R} \eta(\rho)\, d\rho
+$$
+
+Your damage $D$ is your white damage $W$, plus what your rage buys: the rage $R$ you get per second, spent on Bloodthirst, Whirlwind and then Heroic Strike, each with its damage per rage $\eta$. We've added two things to it for this chapter: the crit ceiling from Equation \@ref(eq:weights-table), and haste.
+
+The white damage is:
+
+$$
+W = \underbrace{\frac{(1 + H)\, F}{s}}_{\text{swings per second}} \times \underbrace{\left(v + \frac{A}{14}\right) s \times 0.75}_{\text{a normal hit}} \times \underbrace{\left[(1 - m - d - g - c_w) + \gamma g + 2 c_w\right]}_{\text{an average swing, as a share of a normal hit}}
+$$
+
+for each hand, where $s$ is the weapon's speed, $v$ its DPS, $A$ your attack power, $H$ your haste from gear and $F$ the speed-up from Flurry. (The 0.75 is the boss's armor.) The rage is:
+
+$$
+R = \underbrace{\frac{(1 + H)\, F}{s}}_{\text{swings per second}} \times \underbrace{3.46\, s \times (1 - m - d + c_w)}_{\text{rage per swing: twice as much on a crit}} + \dots
+$$
+
+for the main hand (the off hand is the same with its own rate and Dual Wield Specialization's 50%), plus Unbridled Wrath, Anger Management and Reckless Swings, which don't depend on your stats. In Forever, a swing's rage doesn't depend on how hard it hits, only on whether it lands and whether it crits (see [Rage Generation](#rage-formula)).
+
+Now we can read off what each stat does. Each one turns some of the knobs in the formula:
+
+```{r}
+tribble(
+  ~Stat,               ~`What it changes`,                                                  ~`Damage`,                         ~`Rage`,
+  "Attack power",      "The size of every hit, $A$",                                         "Yes",                             "No",
+  "Weapon DPS",        "The size of every hit, $v$",                                         "Yes",                             "No",
+  "Crit",              "Normal hits into crits, $c_w$, up to the ceiling",                   "Yes",                             "Yes: a crit gives twice the rage",
+  "Hit",               "Misses into hits, $m$",                                              "Yes",                             "Yes: a landed swing gives rage",
+  "Expertise",         "Dodges into hits, $d$",                                              "Yes",                             "Yes",
+  "Haste",             "Swings per second, $H$",                                             "Yes",                             "Yes: more swings, more rage",
+  "Weapon skill",      "Misses, dodges and glancing damage, $m$, $d$ and $\\gamma$",          "Yes",                             "Yes, from fewer misses and dodges"
+) %>% knitr::kable(caption = "Which part of the formula each stat changes, and whether it gives you more damage, more rage, or both.", escape = FALSE)
+```
+
+Every stat pays you in damage. Some also pay you in **rage**, and in Forever that's a second paycheck: more rage means more Heroic Strikes. Attack power and weapon DPS only pay once, because Forever's rage doesn't depend on how hard you hit.
+
+### The weight of each stat
+
+A weight is a derivative, so we can take the derivative of the formula one stat at a time:
+
+- **Attack power:** $\partial W / \partial A$ is the number of swings per second, times $s \times 0.75 / 14$, times the average swing. Nothing in it depends on $A$, so the weight is the same at every level of attack power: a straight line. It does grow with crit and hit, because an average swing is bigger when more of them land and crit.
+- **Crit:** below the ceiling, 1% more crit turns 1% of normal hits into crits. That adds one more normal hit's damage (a crit does two), and one more swing's worth of rage. Neither depends on how much crit you already have, so the line is straight. At the ceiling, $\partial c_w / \partial c = 0$: white swings gain nothing from more crit. Only your abilities still gain, so the line bends down.
+- **Hit:** 1% more hit turns 1% of misses into landed swings, each a weighted mix of glancing blows, crits and normal hits. Below 8%, abilities gain too. Above 8%, they've stopped missing, so the weight drops by their share.
+- **Expertise:** the same as hit, but on dodges, and for abilities and white swings alike. At `r pc(sw_table()$dodge)` there are no dodges left, and the weight falls to 0.
+- **Haste:** it multiplies swings per second, so it multiplies your white damage and your swing rage. Its weight is roughly the damage from white swings and the rage they bring, divided by $(1 + H)$: each 1% adds a slightly smaller share than the last. There's no ceiling, because you can always swing faster.
+
+### Checking the formula against wowsims
+
+The formula is an average second of fighting. It knows nothing about cooldowns lining up badly or rage piling up at the cap, so before we trust what it says about weights, we should check it against wowsims:
+
+```{r}
+tibble(stat = sw_order) %>%
+  mutate(Stat = paste(sw_lab[stat], sw_unit[stat]),
+         wowsims = map_chr(stat, ~ sprintf("%s ± %s", f2(wp(.x)), f2(se_of(.x)))),
+         Formula = map_chr(stat, ~ f2(f_p2[[paste0("f_", .x)]]))) %>%
+  select(Stat, wowsims, Formula) %>%
+  knitr::kable(caption = "The weight of each stat for our phase 2-like warrior, in damage per second, in wowsims and in the formula. The ± is the noise of the wowsims number (one standard error, from two runs with different random seeds).")
+```
+
+The formula gets the order of the stats right and lands near wowsims for most of them, but it isn't exact, so the weights in the rest of the chapter are wowsims'. The formula's job is to explain the shapes: where the walls are, and why.
+
+## Step 4: the weight moves
+
+Now we can see what makes a single number per stat misleading. Here's what 1% more crit is worth across the grid from Rage on Crit, at 2000 attack power, at three levels of hit:
+
+```{r weights-crit, fig.cap="What 1% more crit is worth, in damage per second, as your crit grows, at three levels of hit from gear (2000 attack power, 58 DPS weapons). Solid lines are wowsims; dashed lines the formula. The dotted lines are where the formula's crit ceiling falls for each level of hit.", fig.height=4.8, fig.width=10}
+hits3 <- c(0, 0.075, 0.15)
+hit_cols <- setNames(c("#fdae61", "#2c7fb8", "#253494"), pc(hits3))
+cw <- s2000 %>% filter(round(hit, 3) %in% hits3) %>% select(crit, hit, wowsims = w_crit) %>%
+  left_join(select(f_slice, crit, hit, Formula = f_crit), by = c("crit", "hit")) %>%
+  mutate(hit_l = factor(pc(hit), levels = pc(hits3)))
+ceil <- tibble(hit = hits3, crit = map_dbl(hits3, sw_ceiling), hit_l = factor(pc(hits3), levels = pc(hits3)))
+ggplot(cw, aes(crit, colour = hit_l)) +
+  geom_vline(data = ceil, aes(xintercept = crit, colour = hit_l), linetype = "dotted") +
+  geom_line(aes(y = Formula), linetype = "dashed") +
+  geom_line(aes(y = wowsims), linewidth = 1) + geom_point(aes(y = wowsims)) +
+  scale_colour_manual(values = unname(hit_cols), name = "Hit from gear") +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Crit", y = "Damage per second per 1% crit")
+```
+
+Below the ceiling, crit is worth about the same everywhere, around `r f1(median(filter(s2000, crit + 0.01 < map_dbl(hit, sw_ceiling))$w_crit))` damage per second per 1% at this attack power. Then each line falls where its ceiling is, and the ceiling moves with your hit: with no hit, crit stops paying full price at about `r pc0(sw_ceiling(0))`; with 15% hit, not until `r pc0(sw_ceiling(0.15))`.
+
+The weights of the other stats move too. Here's each stat's weight along its line from Step 1:
+
+```{r weights-along, fig.cap="The weight of each stat (the slope of its line in Figure \\@ref(fig:weights-lines)) as that stat grows, for our phase 2-like warrior. Solid: wowsims. Dashed: the formula. For weapon skill, the weight is per point of skill.", fig.height=5.5, fig.width=10}
+line_w %>% filter(stat != "ap") %>%
+  mutate(xm = if_else(stat %in% sw_pct, xm * 100, xm), label = factor(facet_lab[stat], levels = facet_lab)) %>%
+  ggplot(aes(xm)) +
+  geom_line(aes(y = f), linetype = "dashed", colour = "grey50") +
+  geom_line(aes(y = w), colour = "#2c7fb8") + geom_point(aes(y = w), colour = "#2c7fb8", size = 1.2) +
+  facet_wrap(~ label, scales = "free_x") +
+  labs(x = NULL, y = "Damage per second per 1% (per point of skill)")
+```
+
+- **Hit** is worth about `r f1(lw("hit", 0.04))` per 1% below 8%, and about `r f1(lw("hit", 0.11))` above it.
+- **Expertise** is worth about `r f1(lw("exp", 0.03))` per 1% until your dodges are gone, then nothing.
+- **Haste** is worth about `r f1(lw("haste", 0.0125))` per 1% at first and `r f1(lw("haste", 0.1875))` at 20%: less, but it never stops.
+- **Weapon skill** is worth about `r f1(mean(filter(line_w, stat == "skill", xm < 4)$w))` per point up to +4, `r f1(skill_dps(5) - skill_dps(4))` for the step to +5, and about `r f1(mean(filter(line_w, stat == "skill", xm > 8)$w))` per point past +8.
+
+These are the walls in the landscape. Near one, a stat that was the best buy can become the worst.
+
+## Step 5: two stats together
+
+To see how stats interact, put two of them on the same map. Here's your damage over crit and hit, at 2000 attack power, as a landscape:
+
+```{r weights-landscape, fig.cap="Damage per second for every combination of crit and hit from gear, at 2000 attack power (lighter is more). The white lines join gear that does the same damage, 10 damage per second apart. Each arrow points the steepest way up from where it starts, and its length is how steep: the direction says which mix of crit and hit pays most, the length how much.", fig.height=5.5, fig.width=10}
+arrow_k <- 0.02 / max(sqrt(s2000$w_crit^2 + s2000$w_hit^2), na.rm = TRUE)
+ggplot2::ggplot(s2000, aes(crit, hit)) +
+  geom_raster(aes(fill = sim_dps), interpolate = TRUE) +
+  geom_contour(aes(z = sim_dps), colour = "white", alpha = 0.7, binwidth = 10) +
+  geom_segment(aes(xend = crit + w_crit * arrow_k, yend = hit + w_hit * arrow_k),
+               arrow = arrow(length = unit(0.12, "cm")), colour = "grey15", linewidth = 0.4) +
+  geom_line(data = tibble(hit = seq(0, 0.15, 0.005), crit = map_dbl(hit, sw_ceiling)) %>% filter(crit <= 0.46),
+            colour = "white", linetype = "dashed", linewidth = 0.8) +
+  coord_equal() +
+  scale_fill_viridis_c(name = "Damage per\nsecond") + scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) + labs(x = "Crit", y = "Hit from gear")
+```
+
+Three things to read from the map:
+
+- **The white lines are trade rates.** Gear anywhere on one line does the same damage. Where the lines are steep, a little crit replaces a lot of hit; where they lean over, the opposite.
+- **The arrows point right almost everywhere,** because crit pays more than hit at this attack power, until the dashed line: the crit ceiling. To its right, the arrows turn up. Once crit has filled the table, the best way up is hit, which makes room for more crit.
+- **Hit makes crit worth more,** near the ceiling. Between `r pc0(0.35)` and `r pc0(0.45)` crit, 1% crit is worth `r f1(sw_cap("crit", 0.4, 0))` damage per second with no hit, and `r f1(sw_cap("crit", 0.4, 0.15))` with 15%. In the language of calculus, the *cross derivative* $\partial^2 D / \partial c\, \partial h$ is positive near the ceiling: the slope in one direction gets steeper as you move in the other. Expertise and weapon skill do the same, since they also make room on the table.
+
+Haste is the exception. It doesn't change where a swing lands, so it doesn't move any wall. It multiplies everything else, so its weight grows a little as your other stats grow, and every other stat's weight grows a little with haste.
+
+## Step 6: exchange rates
+
+Damage per second per 1% is hard to compare across stats. A more useful unit is **attack power**: how much attack power each stat is worth, here. That's its weight divided by attack power's weight.
+
+```{r}
+ph_ap %>% filter(stat %in% sw_order) %>%
+  mutate(cell = if_else(stat == "ap", f2(w), sprintf("%s (%s AP)", f1(w), f0(ap_eq))),
+         Stat = factor(paste(sw_lab[stat], sw_unit[stat]), levels = paste(sw_lab[sw_order], sw_unit[sw_order]))) %>%
+  select(Stat, phase, cell) %>% pivot_wider(names_from = phase, values_from = cell) %>% arrange(Stat) %>%
+  knitr::kable(caption = "The weight of each stat at each phase, in damage per second, and in brackets as much attack power as it's worth. Every phase has 7% hit from gear and no buffs.")
+```
+
+With phase 2-like gear, 1% crit is worth `r f0(ape("crit"))` attack power, 1% expertise `r f0(ape("exp"))`, 1% hit `r f0(ape("hit"))` and 1% haste `r f0(ape("haste"))`. A point of weapon DPS is worth `r f0(ape("dps"))` attack power, and +5 weapon skill `r f0(ape("skill5"))`.
+
+The rates fall as you gear up: from pre-BiS-like to phase 4-like gear, 1% crit goes from `r f0(ape("crit", "Pre-BiS"))` attack power to `r f0(ape("crit", "Phase 4"))`. That's not because crit gets worse; in damage per second it gets better (`r f1(wp("crit", "Pre-BiS"))` to `r f1(wp("crit", "Phase 4"))`). Attack power gets better faster, because every point of it is multiplied by your crit and hit, which grow with your gear too.
+
+Across the whole grid, the exchange rates move a lot:
+
+```{r weights-rates, fig.cap="How much attack power 1% of each stat is worth, at every combination of crit and hit from gear, at 2000 attack power.", fig.height=6.5, fig.width=10}
+s2000 %>% transmute(crit, hit, Crit = w_crit / w_ap, Hit = w_hit / w_ap, Expertise = w_exp / w_ap, Haste = w_haste / w_ap) %>%
+  pivot_longer(-c(crit, hit), names_to = "stat", values_to = "ap") %>%
+  mutate(stat = factor(paste("1%", tolower(stat)), levels = paste("1%", c("crit", "hit", "expertise", "haste")))) %>%
+  ggplot2::ggplot(aes(crit, hit, fill = ap)) + geom_tile() +
+  geom_text(aes(label = round(ap)), size = 2.6, colour = "white") +
+  facet_wrap(~ stat) + scale_fill_viridis_c(name = "Attack power\nit's worth") +
+  scale_x_continuous(labels = scales::percent) + scale_y_continuous(labels = scales::percent) +
+  labs(x = "Crit", y = "Hit from gear")
+```
+
+## Your gear {#weights-your-gear}
+
+On gear, crit, hit, haste and expertise come as ratings. One percent costs `r f0(rating_per_pct[["crit"]])` crit rating, or `r f0(rating_per_pct[["hit"]])` hit, haste or expertise rating, so comparing them per percent flatters crit. Per point of rating, which is what an item actually gives you, the map below shows which stat pays most next. Hover over your crit and hit to read every weight there, and use the slider for your attack power.
+
+```{r weights-pick, fig.cap="The stat that adds the most damage per point of rating, for every combination of crit and hit from gear. Hover for every weight at that point, per 1% and in attack power. The slider sets your attack power. 58 DPS weapons, no buffs.", out.width="100%", fig.height=5.5}
+best_cols <- c(Crit = "#d7301f", Hit = "#fdae61", Expertise = "#7fcdbb", Haste = "#2c7fb8")
+pick <- sw_grid %>%
+  mutate(r_crit = w_crit / rating_per_pct[["crit"]], r_hit = w_hit / rating_per_pct[["hit"]],
+         r_exp = w_exp / rating_per_pct[["exp"]], r_haste = w_haste / rating_per_pct[["haste"]]) %>%
+  rowwise() %>% mutate(best = { v <- c(r_crit, r_hit, r_exp, r_haste)
+                                if (all(is.na(v))) NA_character_ else c("Crit", "Hit", "Expertise", "Haste")[which.max(v)] }) %>%
+  ungroup() %>%
+  mutate(z = match(best, names(best_cols)),
+         text = sprintf(paste0("%s crit, %s hit, %s attack power<br>Best per rating point: <b>%s</b><br>",
+                               "1%% crit: %.1f DPS (%.0f AP), %.2f per rating<br>1%% hit: %.1f DPS (%.0f AP), %.2f per rating<br>",
+                               "1%% expertise: %.1f DPS (%.0f AP), %.2f per rating<br>1%% haste: %.1f DPS (%.0f AP), %.2f per rating<br>",
+                               "1 attack power: %.2f DPS"),
+                        pc(crit), pc(hit), format(ap, big.mark = ","), best,
+                        w_crit, w_crit / w_ap, r_crit, w_hit, w_hit / w_ap, r_hit, w_exp, w_exp / w_ap, r_exp,
+                        w_haste, w_haste / w_ap, r_haste, w_ap))
+n_best <- length(best_cols)
+cs <- unlist(lapply(seq_len(n_best), function(i) list(list((i - 1) / n_best, best_cols[[i]]), list(i / n_best, best_cols[[i]]))), recursive = FALSE)
+plotly::plot_ly(pick, x = ~ crit * 100, y = ~ hit * 100, z = ~ z, frame = ~ paste(format(ap, big.mark = ","), "attack power"),
+                type = "heatmap", text = ~ text, hoverinfo = "text", zmin = 0.5, zmax = n_best + 0.5, colorscale = cs,
+                colorbar = list(tickvals = seq_len(n_best), ticktext = names(best_cols), title = "Best next")) %>%
+  plotly::layout(xaxis = list(title = "Crit (%)"), yaxis = list(title = "Hit from gear (%)")) %>%
+  plotly::animation_opts(transition = 0, redraw = TRUE) %>%
+  plotly::animation_button(visible = FALSE) %>%
+  plotly::animation_slider(currentvalue = list(prefix = "")) %>%
+  plotly::config(displayModeBar = FALSE)
+```
+
+## Using weights, and when not to
+
+To compare two items with stat weights, multiply each stat's change by its weight and add them up. Weights are slopes, so this works for small changes: a ring for a ring, a trinket for a trinket. Strength and Agility aren't ratings, so you need their conversions too, measured on wowsims' character sheet:
+
+```{r}
+tribble(
+  ~Stat,             ~`Gives you`,
+  "100 Strength",    sprintf("%s attack power", f0(str_100[["ap"]])),
+  "100 Agility",     sprintf("%s attack power and %s crit", f0(agi_100[["ap"]]), pc(agi_100[["crit"]] / 100)),
+  "Crit rating",     sprintf("1%% crit per %s", f0(rating_per_pct[["crit"]])),
+  "Hit rating",      sprintf("1%% hit per %s", f0(rating_per_pct[["hit"]])),
+  "Haste rating",    sprintf("1%% attack speed per %s", f0(rating_per_pct[["haste"]])),
+  "Expertise rating", sprintf("1%% less dodge per %s", f0(rating_per_pct[["exp"]]))
+) %>% knitr::kable(caption = "What each stat on gear gives a level 60 warrior in wowsims.")
+```
+
+```{r, include=FALSE}
+# Two example items for the phase 2-like warrior, scored with the phase 2 weights
+item_score <- function(str = 0, agi = 0, ap = 0, crit_r = 0, hit_r = 0, haste_r = 0, exp_r = 0) {
+  ap_tot <- ap + str * str_100[["ap"]] / 100 + agi * agi_100[["ap"]] / 100
+  crit_pct <- crit_r / rating_per_pct[["crit"]] + agi * agi_100[["crit"]] / 100
+  ap_tot * wp("ap") + crit_pct * wp("crit") + hit_r / rating_per_pct[["hit"]] * wp("hit") +
+    haste_r / rating_per_pct[["haste"]] * wp("haste") + exp_r / rating_per_pct[["exp"]] * wp("exp")
+}
+ring_a <- item_score(str = 12, crit_r = 14)
+ring_b <- item_score(agi = 10, hit_r = 10, ap = 16)
+```
+
+For example, with phase 2-like gear, take a ring with 12 Strength and 14 crit rating, against one with 10 Agility, 10 hit rating and 16 attack power. The first gives `r f1(ring_a)` damage per second and the second `r f1(ring_b)`, so the `r if (ring_a > ring_b) "first" else "second"` ring is better, by `r f1(abs(ring_a - ring_b))`.
+
+Weights stop working when a change is big enough to reach a wall:
+
+- **Crossing a cap:** if a new item takes you past 8% hit, or to `r pc(sw_table()$dodge)` expertise, the weight you used was only right for the part before the cap.
+- **Near the crit ceiling:** the ceiling moves with hit, expertise and weapon skill, so an item with hit can make the crit you already have worth more. Weights at one point don't see that.
+- **Weapons and weapon skill:** a new weapon changes your weapon DPS, its speed and maybe your skill, all at once, and skill comes in steps, not slopes.
+- **Set bonuses and procs:** they aren't stats, so they have no weight. They need a sim.
+
+For anything like that, sim both setups. The book's gear sim does it with wowsims, using your own gear.
+
+## Where the numbers come from
+
+- **From wowsims:** every damage number and weight, the attack table (misses, dodges, glancing blows and crit suppression against a level 63 boss, and what weapon skill does to them), and the stat conversions.
+- **The formula:** the damage formula from How Damage Scales, with the crit ceiling and haste added. It explains the shapes; the numbers are wowsims'.
+- **Our guesses:** the gear at each phase (modeled on Classic's phases), the 7% hit, and no buffs.
+- **How precise:** with two random seeds at each phase, the noise is about ± `r f2(se_of("crit"))` damage per second on a crit weight, ± `r f2(se_of("hit"))` on hit and ± `r f2(se_of("ap"))` on attack power. On the grid (fewer fights per point), the crit weights are good to about ± `r f1(slice_se[["crit"]])`, so neighbouring cells can differ by that much by chance.
+
+## Conclusion
+
+1. **A stat weight is a slope, and it depends on your gear.** One number per stat is the slope at one spot.
+2. **With phase 2-like gear, crit is the best stat per percent:** 1% crit is worth `r f0(ape("crit"))` attack power, ahead of expertise (`r f0(ape("exp"))`), hit (`r f0(ape("hit"))`) and haste (`r f0(ape("haste"))`). Per point of rating on gear, the gap is smaller, since crit costs `r f0(rating_per_pct[["crit"]])` rating per 1% and the others `r f0(rating_per_pct[["hit"]])`.
+3. **Crit pays twice,** in damage and in rage, until it hits the ceiling: the share of white swings left after misses, dodges and glancing blows. With `r pc0(sw_hit0)` hit, that's about `r pc0(sw_ceiling())` crit. Past it, crit is worth much less.
+4. **Hit, expertise and weapon skill make room for crit.** Each raises the crit ceiling, so near the ceiling they make your crit worth more.
+5. **Hit is worth less past 8%,** where your abilities stop missing, and **expertise is worth nothing past `r pc(sw_table()$dodge)`,** where there are no dodges left.
+6. **+5 weapon skill is worth `r f0(ape("skill5"))` attack power** with phase 2-like gear, mostly because glancing blows do 85% damage instead of 65%. Skill keeps paying well up to about +8, then very little.
+7. **Use weights for small swaps, and a sim for big ones:** weapons, set bonuses, and anything that crosses a cap.
+
+## Changelog {#weights-changelog}
+
+```{r}
+weights_changelog %>% rename(Version = version, Date = date, `What changed` = change) %>%
+  knitr::kable(caption = "Stat Weights chapter versions, newest first.")
+```

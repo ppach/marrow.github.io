@@ -11,7 +11,9 @@ library(parallel)
 
 crit_changelog <- tribble(
   ~version, ~date,        ~change,
-  "4.0.0",  "2026-11-18", "Today's game is now simmed in wowsims (github.com/wowsims/forever), the community simulator, which the book follows as the source of truth: every rage map, the Heroic Strike waits and the gear-point table for today's Forever. The attack table follows wowsims for every set of rules: a boss three levels up takes 4.8% off your crit (the chapter used to assume no crit suppression), and Forever's glancing blows do 70% damage. Classic, the older versions and the no-crit-bonus line stay on our simulator, a simplified model.",
+  "4.0.2",  "2026-11-19", "Wording: the gear phases are modeled on what warriors wore in Classic, since Forever's gear isn't known yet, so the chapter now says phase 2-like gear (and so on) instead of phase 2. No numbers change.",
+  "4.0.1",  "2026-11-18", "Correction: glancing blows do 65% damage on average in Forever (a roll between 55% and 75% in wowsims), the same as Classic. Version 4.0.0 wrongly said 70%.",
+  "4.0.0",  "2026-11-18", "Today's game is now simmed in wowsims (github.com/wowsims/forever), the community simulator, which the book follows as the source of truth: every rage map, the Heroic Strike waits and the gear-point table for today's Forever. The attack table follows wowsims for every set of rules: a boss three levels up takes 4.8% off your crit (the chapter used to assume no crit suppression). Classic, the older versions and the no-crit-bonus line stay on our simulator, a simplified model.",
   "3.0.0",  "2026-11-17", "Rebuilt on today's game (the 2 Nov build: crits x2, off hand x1.5, Flurry 30%, Improved Whirlwind and Reckless Swings) against Classic, at every crit, hit and attack power, with today's game without the crit bonus to show what the rule adds. The comparison of the rule versions (v0, v1 and v2 on the 1 Oct build) moved to How the Rules Changed, and the two design ideas were taken out. The check against Bored's spreadsheet stays.",
   "2.1.0",  "2026-11-04", "Added Since 2 November: Blizzard's 2 Nov notes gave Fury Flurry 3/3 at 30%, Improved Whirlwind and Reckless Swings. The crit rules are unchanged, so the versions stay on the build they were announced for (1 Oct to 2 Nov), and today's game is simulated alongside them at every crit and hit.",
   "2.0.0",  "2026-10-28", "v2 is in the game: Blizzard's 1 Oct development notes give crits 100% more rage, and the hotfixed talent tree gives Dual Wield Specialization +50% off-hand rage, with its off-hand hit moved to Furious Precision. The rest of the book now uses v2. Every version is simulated on today's build otherwise (Bloodthirst at 45% of attack power, a 100 rage cap without Boundless Rage, Whirlwind for 22 rage with Raging Blows, and a queued Heroic Strike no longer raising off-hand hit), and the rage Bloodthirst and Whirlwind need comes from the How Damage Scales chapter's rage blocks.",
@@ -19,10 +21,10 @@ crit_changelog <- tribble(
 )
 
 C60 <- conv(60)
-crit_wpn <- 58   # the phase 2 weapon from the How Damage Scales chapter, held fixed
+crit_wpn <- 58   # the phase 2-like weapon from the How Damage Scales chapter, held fixed
 # The attack table against a level 63 boss with 300 weapon skill, as wowsims has it: 27% white miss for a dual wielder
-# and 8% for abilities before hit from gear, 6.5% dodge, 40% glancing blows (70% damage in Forever, 65% in Classic,
-# from each game's profile), and the boss takes 4.8% off your crit (sim_defaults$crit_suppression). Windfury Totem is
+# and 8% for abilities before hit from gear, 6.5% dodge, 40% glancing blows (a 55% to 75% damage roll in wowsims, 65%
+# on average, as in Classic), and the boss takes 4.8% off your crit (sim_defaults$crit_suppression). Windfury Totem is
 # always up.
 crit_table <- function(hit) list(miss = 0.27 - hit, yellow_miss = max(0.08 - hit, 0),
                                  dodge = 0.065, glance = 0.40, wf = TRUE)
@@ -359,9 +361,9 @@ This chapter asks what the rule does for a Fury warrior in today's game. How muc
 
 ## Our warrior
 
-Our warrior is the one from the rest of the book: level 60, dual wielding a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand and a `r sprintf('%.1f', sim_defaults$oh_speed)` speed off hand (both a phase 2 weapon, `r crit_wpn` DPS), with the 17/34/0 Fury build the game launched with: Flurry 3/3 (`r pc0(forever_talents$flurry_haste)` attack speed), Improved Whirlwind and Reckless Swings, on top of Dual Wield Specialization, Furious Precision, Unbridled Wrath and Anger Management. What's different in this chapter:
+Our warrior is the one from the rest of the book: level 60, dual wielding a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand and a `r sprintf('%.1f', sim_defaults$oh_speed)` speed off hand (both a phase 2-like weapon, `r crit_wpn` DPS), with the 17/34/0 Fury build the game launched with: Flurry 3/3 (`r pc0(forever_talents$flurry_haste)` attack speed), Improved Whirlwind and Reckless Swings, on top of Dual Wield Specialization, Furious Precision, Unbridled Wrath and Anger Management. What's different in this chapter:
 
-- **The boss is level 63,** and we have no weapon skill from gear or race. Before any hit from gear, `r pc(0.27)` of white swings miss (it's high because dual wielding adds 19%), and `r pc(0.08)` of abilities do. `r pc(0.065)` are dodged, and `r pc(0.40)` of white swings are glancing blows, which do `r pc(forever_talents$glance_dmg)` damage in Forever (`r pc(classic_talents$glance_dmg)` in Classic) and can't crit.
+- **The boss is level 63,** and we have no weapon skill from gear or race. Before any hit from gear, `r pc(0.27)` of white swings miss (it's high because dual wielding adds 19%), and `r pc(0.08)` of abilities do. `r pc(0.065)` are dodged, and `r pc(0.40)` of white swings are glancing blows, which do 55% to 75% damage (`r pc(forever_talents$glance_dmg)` on average, the same as Classic) and can't crit.
 - **The boss takes `r pc(sim_defaults$crit_suppression)` off your crit,** as in wowsims: so 30% crit on your character sheet is about `r pc(0.30 - sim_defaults$crit_suppression)` against a boss. (This chapter used to assume no crit suppression, following Bored's spreadsheet and the tooltips; wowsims has it, and the book follows wowsims.)
 - **Windfury Totem is always up** (a 20% chance of an extra main-hand swing, as in WarriorSim).
 - **Gear is three numbers:** attack power from 1000 to 3000, crit on the character sheet from 15% to 45%, and hit from gear from 0% to 15%. Most warriors will have **5 to 10% hit**, and the plots mark that range.

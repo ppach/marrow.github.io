@@ -56,6 +56,7 @@ forever_draws <- list(MH = with(filter(obs, hand == "Main hand"), gain / speed),
 # Chapter version: newest first. See "Changelog" at the end of the chapter for what each part means.
 changelog <- tribble(
   ~version, ~date,        ~change,
+  "3.4.1",  "2026-11-19", "Removed the Open questions section.",
   "3.4.0",  "2026-11-17", "Rewritten around the confirmed formula: the chapter now opens with Forever's rage formula (rate x weapon speed, doubled on a crit, and +50% off-hand rage with Dual Wield Specialization) and where each part comes from, instead of testing the Classic formula step by step. The p-value tests against Classic, the level comparison, the Classic versus Forever histograms, the Bayesian estimate and the level 60 simulation (which used the rules from before 1 Oct) were taken out. The rates now come with plain 95% intervals. The attack power open question moved to How Damage Scales, since it is about damage, not rage. No finding changes.",
   "3.3.0",  "2026-11-04", "Added the rage changes in Blizzard's 2 Nov development notes (the launch build): the new Reckless Swings talent (5 extra rage on each of your next 4 attacks, every 15 sec), Flurry 3/3 at 30%, Improved Whirlwind, and higher health for higher level creatures, which may change rage from damage taken. New open questions for the live game.",
   "3.2.0",  "2026-10-28", "Added what changed in the game after these logs, from Blizzard's 1 Oct development notes and the 1 to 2 Oct hotfixes: crits now give twice a normal swing's rage, Dual Wield Specialization gives the off hand +50% rage (not +100%) and its hit moved to Furious Precision, Boundless Rage is gone, and Unbridled Wrath gives 1 rage per proc with two-handers too. The logged findings themselves don't change, since every log is from before 1 Oct. The level cap is now 30, so Dual Wield Specialization can be tested.",
@@ -336,14 +337,6 @@ It isn't PPM. The proc chance per hit is the same whatever the weapon speed: at 
 So once the fix lands, every weapon should get the same 60% chance per hit at 5/5, and faster weapons will get more procs per minute simply because they hit more often.
 
 Two more things stay the same as before: every proc gives 1 rage with one-handers and 2 with two-handers, at every rank, and none of the procs come from Heroic Strike or Cleave. Blizzard's 1 Oct notes say the proc chance has been fixed ("a lower-than-intended proc chance"), and that two-handers now get 1 rage per proc like everyone else.
-
-## Open questions
-
-- Do glancing blows still give the full rage, now that crits give twice as much?
-- Check whether the rates change above level 17, the highest level in our logs. Logs from the live game can test this all the way to 60.
-- Test stances, and rage from damage taken, in a controlled setting. Since 2 November, higher level creatures have more health, which may change rage from damage taken.
-- Reckless Swings: do Bloodthirst, Whirlwind, Heroic Strike and misses use up one of its 4 charges? Is the extra rage doubled on a crit, or raised by Dual Wield Specialization on the off hand? The book assumes that landed attacks of any kind use a charge, and that the 5 rage is never multiplied.
-- Record mid-log hand swaps in the metadata, since one log shows both weapons being used in both hands.
 
 ## Changelog {#rage-changelog}
 

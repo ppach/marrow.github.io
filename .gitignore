@@ -32,3 +32,5 @@ eternal/data/__pycache__/
 eternal/data/logs/incoming/
 eternal/data/*.zip
 eternal/data/talents/data.json
+eternal/_preview/
+eternal/data/*.log.err

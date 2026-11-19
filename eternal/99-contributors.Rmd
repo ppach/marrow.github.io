@@ -4,6 +4,7 @@
 # Keep this the last chapter. Add a row whenever the book uses someone's logs, data or analysis.
 contributors_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.10.1", "2026-11-19", "Nodrak's credit no longer points to the attack power open question, which was removed from How Damage Scales.",
   "1.10.0", "2026-11-18", "Added the wowsims team: today's game is now simmed in wowsims.",
   "1.9.0",  "2026-11-17", "Added the new How the Rules Changed chapter to where Blizzard's 30 September announcement, the development notes and Zirene's post are used.",
   "1.8.0",  "2026-11-04", "Rage Design Proposals archived (written for the September rules, which no longer apply), so it's gone from where each contribution is used.",
@@ -25,7 +26,7 @@ contributors <- tribble(
   "elvenfresh (Hasterage)",     "A haste test with the Troll racial Berserking ([discussion #14](https://github.com/magey/forever-warrior/discussions/14)), which showed a hasted swing gives the full rage.", "Rage Generation, How Damage Scales, Flurry",
   "Ceece",                       "Two combat logs with Fishliver Oil, a one-hander and a two-hander ([discussion #13](https://github.com/magey/forever-warrior/discussions/13)), which showed Fishliver Oil hastes swings and a hasted swing gives the full rage.", "Rage Generation, How Damage Scales, Flurry, Abilities",
   "Budder (Budder Pinda)",       "Two combat logs with a 3.6 speed two-hander and Unbridled Wrath at 1/5 and 2/5 ([discussion #10](https://github.com/magey/forever-warrior/discussions/10), [#11](https://github.com/magey/forever-warrior/discussions/11), posted by budder3).", "Rage Generation, Known Bugs",
-  "Nodrak",                      "Pointed out that the mobs in the logs cast Demoralizing Shout on the warrior, which led to a closer look at the attack power open question (now in How Damage Scales): the logged attack power already includes the debuff, and attack power adds damage at the Classic rate.", "How Damage Scales",
+  "Nodrak",                      "Pointed out that the mobs in the logs cast Demoralizing Shout on the warrior, which led to a closer look at the attack power in the logs: the logged attack power already includes the debuff, and attack power adds damage at the Classic rate.", "How Damage Scales",
   "Nooch",                       "A combat log with 1.3 speed daggers, used as a check on the Unbridled Wrath proc rate.", "Rage Generation",
   "magey",                       "The [forever-warrior](https://github.com/magey/forever-warrior) repository: the log guidelines and metadata format, the testing questions (including whether Unbridled Wrath uses procs per minute), and the first analysis of the Unbridled Wrath logs. The [Classic warrior wiki](https://github.com/magey/classic-warrior/wiki), for the attack table, crit suppression and Windfury Totem.", "Rage Generation, How Damage Scales, Flurry, Abilities, Known Bugs",
   "GuybrushGit ([WarriorSim](https://github.com/GuybrushGit/WarriorSim))", "The Classic warrior simulator we check our fight simulator against: the rage formula, rage from dodges, rage refunds, the Heroic Strike queue, Deep Wounds and Windfury Totem.", "Rage Generation, How Damage Scales, Flurry, Abilities",

@@ -11,7 +11,9 @@ source("data/flurry.R")     # how much Flurry speeds up your swings, used in the
 
 scaling_changelog <- tribble(
   ~version, ~date,        ~change,
-  "3.0.0",  "2026-11-18", "Today's game now follows wowsims (github.com/wowsims/forever), the community simulator, as the source of truth. The Reckless Swings and Windfury (Forever) tables are simmed in wowsims, and the formula check has a wowsims column. Our simulator now follows wowsims' rules: Whirlwind costs 25 (Raging Blows isn't in the launch tree), glancing blows do 70% damage, Heroic Strike is rank 8, Unbridled Wrath also rolls on Heroic Strike, Windfury Totem's strike uses no Flurry charge, and Reckless Swings takes a 1 sec global cooldown and gets its charges from landed white swings and every Heroic Strike, not Bloodthirst or Whirlwind (wowsims' logs). The Reckless Swings rules section now shows how much the old assumption differed.",
+  "3.0.2",  "2026-11-19", "Wording: the gear phases are modeled on what warriors wore in Classic, since Forever's gear isn't known yet, so the chapter now says phase 2-like gear (and so on) instead of phase 2. No numbers change. Also removed the Why are the logged hits smaller? section.",
+  "3.0.1",  "2026-11-18", "Correction: glancing blows do 65% damage on average in Forever (a roll between 55% and 75% in wowsims), as before. Version 3.0.0 wrongly said 70%.",
+  "3.0.0",  "2026-11-18", "Today's game now follows wowsims (github.com/wowsims/forever), the community simulator, as the source of truth. The Reckless Swings and Windfury (Forever) tables are simmed in wowsims, and the formula check has a wowsims column. Our simulator now follows wowsims' rules: Whirlwind costs 25 (Raging Blows isn't in the launch tree), Heroic Strike is rank 8, Unbridled Wrath also rolls on Heroic Strike, Windfury Totem's strike uses no Flurry charge, and Reckless Swings takes a 1 sec global cooldown and gets its charges from landed white swings and every Heroic Strike, not Bloodthirst or Whirlwind (wowsims' logs). The Reckless Swings rules section now shows how much the old assumption differed.",
   "2.2.0",  "2026-11-04", "Added a Reckless Swings section: what it's worth at each phase, why it adds less rage than it hands out (most of it goes to Heroic Strikes, which replace white swings), how much the rules its tooltip leaves open matter, and what its health cost means.",
   "2.1.0",  "2026-11-04", "The 2 Nov tree (Blizzard's 2 Nov development notes, the launch build): Flurry 3/3 gives 30% (it was 25% at 5/5), Improved Whirlwind cuts Whirlwind's cooldown to 8 seconds (about 6.5 a minute) and adds 30% to its damage, and Reckless Swings gives a steady 1.33 rage per second. Forever has more rage left for Heroic Strike at every phase, but its damage still grows in a straight line with gear.",
   "2.0.0",  "2026-10-28", "Today's rules, from Blizzard's 1 Oct development notes and hotfixes: a crit gives twice a normal swing's rage, Dual Wield Specialization gives +50% off-hand rage (not +100%) and its off-hand hit moved to Furious Precision, Bloodthirst is back to 45% of attack power, Whirlwind costs 22 with Raging Blows, Boundless Rage is gone, and a queued Heroic Strike no longer raises off-hand hit. Forever's rage still doesn't move with weapon damage or attack power, so the shapes stand, but crit is now a rage stat in its own right.",
@@ -59,14 +61,15 @@ ladder <- function(game, dps, ap = ap_for(dps), crit = crit_fixed, ww_pm = ww_pe
   hand_m <- c(MH = 1, OH = 0.5 * p$oh_dmg_mult)
   miss   <- c(MH = p$miss, OH = p$miss - p$oh_hit_bonus)
   land   <- 1 - miss - p$dodge
+  cr_w   <- pmin(land - p$glance, cr)                                                # white crit stops where the table is full
   hit    <- (dps + ap / 14) * spd * p$armor * hand_m                                 # one normal hit
-  swing  <- hit * (p$glance * p$glance_dmg + cr * 2 + (land - p$glance - cr))       # an average swing, misses included
+  swing  <- hit * (p$glance * p$glance_dmg + cr_w * 2 + (land - p$glance - cr_w))   # an average swing, misses included
   yl     <- 1 - p$yellow_miss - p$dodge
   yellow <- yl * (1 + cr * (p$crit_mult_yellow - 1))                                 # an average yellow attack, per normal hit
-  swings <- flurry_stats(cr, p$flurry_haste, yellow_cps = 1 / p$bt_cd + ww_pm / 60,
-                         crit_yellow = cr * yl)$swing_mult / spd                     # swings per second, with Flurry
+  swings <- flurry_stats(cr_w[["MH"]], p$flurry_haste, yellow_cps = 1 / p$bt_cd + ww_pm / 60,
+                         crit_yellow = cr * yl)$swing_mult / spd * p$extra_haste     # swings per second, with Flurry and haste
   # Forever: rate x speed on every landed swing, and a crit gives `crit_rage_mult` times that
-  rage_swing <- (if (game == "Forever") c(MH = forever_mh, OH = forever_oh * p$oh_rage_mult) * spd * (land + (p$crit_rage_mult - 1) * cr)
+  rage_swing <- (if (game == "Forever") c(MH = forever_mh, OH = forever_oh * p$oh_rage_mult) * spd * (land + (p$crit_rage_mult - 1) * cr_w)
                  else classic_k / C60 * (swing + p$dodge_rage * p$dodge * hit)) + p$ubw_chance * land
   bt_rage <- p$bt_cost * (1 - p$refund * (1 - yl))                                   # after refunds on misses
   hs_rage <- p$hs_cost * (1 - p$refund * (1 - yl)) + rage_swing[["MH"]] -          # plus the rage of the swing it replaces,
@@ -110,11 +113,13 @@ This chapter builds up what that difference means, one step at a time: from a si
 
 We'll use the same warrior as the rest of the book: level 60, dual wielding a `r sim_defaults$mh_speed` speed main hand and a `r sim_defaults$oh_speed` speed off hand, with the most popular 17/34/0 Fury build in each game, fighting a boss. In Forever that's the tree from Blizzard's 2 November notes, the one the game launched with: Flurry 3/3 (30% attack speed), Improved Whirlwind 2/2 and Reckless Swings, on top of Dual Wield Specialization, Furious Precision, Unbridled Wrath, Anger Management and Bloodthirst. (Raging Blows, which took 3 rage off Whirlwind on the 1 October build, isn't in the launch tree, so Whirlwind costs 25.)
 
-To keep things simple, we'll measure gear with a single number: the **main-hand weapon's DPS** (its average damage per second, as shown on the tooltip). The off hand has the same DPS, and attack power rises along with the weapon, following our rough guesses for each phase. Crit stays at `r crit_fixed * 100`% on the character sheet the whole way, so that the only thing that changes is how hard you hit. Crit and haste get their own section at the end.
+To keep things simple, we'll measure gear with a single number: the **main-hand weapon's DPS** (its average damage per second, as shown on the tooltip). The off hand has the same DPS, and attack power rises along with the weapon, following our rough guesses for each phase.
+
+Those phases are Classic's, not Forever's. We don't know yet what gear Forever's phases will bring, so we borrow what a raiding warrior wore at each point in Classic: pre-BiS (the best gear before raiding), then phases 1 to 4. When the book says "phase 2-like gear", it means gear like Classic's phase 2. The whole book uses these same gear levels. Crit stays at `r crit_fixed * 100`% on the character sheet the whole way, so that the only thing that changes is how hard you hit. Crit and haste get their own section at the end.
 
 ```{r}
 gear %>% transmute(Phase = phase, `Main-hand weapon DPS` = dps, `Attack power (our guess)` = ap) %>%
-  knitr::kable(caption = "The gear phases. Between and around them, attack power follows the straight line through these guesses.")
+  knitr::kable(caption = "The gear phases, modeled on what warriors wore at each phase in Classic. Between and around them, attack power follows the straight line through these guesses.")
 ```
 
 Two more assumptions, the same in both games:
@@ -136,7 +141,7 @@ Damage = \left(\text{weapon DPS} + \frac{AP}{14}\right) \times \text{weapon spee
 - **AP / 14 × weapon speed** is what attack power adds: 1 damage for every 14 attack power, for each second of weapon speed.
 - **armor** is the share of the damage the boss's armor lets through, about `r sim_defaults$armor * 100`% with Sunder Armor and Faerie Fire up.
 
-This is the Classic formula, and we assume Forever uses the same one. The logs agree with its attack power part (attack power adds damage at the Classic rate), but the logged hits come out lower than the formula gives, which is still an open question (see [Why are the logged hits smaller?](#scaling-hit-gap)). What matters here is its shape. Every piece is either added or multiplied by a fixed number, so **the damage of a swing grows in a straight line with your gear**, in both games.
+This is the Classic formula, and we assume Forever uses the same one. What matters here is its shape. Every piece is either added or multiplied by a fixed number, so **the damage of a swing grows in a straight line with your gear**, in both games.
 
 The rage that swing gives is where the two games split:
 
@@ -199,7 +204,7 @@ income_p2 <- set_names(map_dbl(games, ~ ladder(.x, p2_dps)$income), games)
 dpr_p2 <- function(g, a) p2_ladders$dpr[p2_ladders$game == g & p2_ladders$ability == a]
 ```
 
-```{r scaling-blocks, fig.cap="What each point of rage buys with phase 2 gear. Each block is one ability: as wide as the rage per second it can use, and as tall as the damage it adds for each point of rage. Rage fills the blocks from the left (the dashed line is how much rage you get each second), and the filled area is the damage your rage turns into each second. Classic's rage runs out just before the end of Whirlwind. Forever's covers Bloodthirst and Whirlwind and reaches a little way into Heroic Strike.", fig.height=5.5}
+```{r scaling-blocks, fig.cap="What each point of rage buys with phase 2-like gear. Each block is one ability: as wide as the rage per second it can use, and as tall as the damage it adds for each point of rage. Rage fills the blocks from the left (the dashed line is how much rage you get each second), and the filled area is the damage your rage turns into each second. Classic's rage runs out just before the end of Whirlwind. Forever's covers Bloodthirst and Whirlwind and reaches a little way into Heroic Strike.", fig.height=5.5}
 ggplot(p2_ladders) +
   geom_rect(aes(xmin = start, xmax = end, ymin = 0, ymax = dpr), fill = "grey96", colour = "grey70") +
   geom_rect(data = ~ filter(.x, start < income),
@@ -218,7 +223,7 @@ A few things are worth noticing:
 
 - **The blocks are in a different order of height.** In Classic, Bloodthirst is the best use of rage (`r round(dpr_p2("Classic", "Bloodthirst"), 1)` damage per rage, against `r round(dpr_p2("Classic", "Whirlwind"), 1)` for Whirlwind). In Forever it's Whirlwind, which now hits with both weapons (`r round(dpr_p2("Forever", "Whirlwind"), 1)` against `r round(dpr_p2("Forever", "Bloodthirst"), 1)`). The [Abilities chapter](#abilities) goes into this.
 - **Heroic Strike is the wide, low block at the end** in both games: it can take a lot of rage (up to one per main-hand swing), but it gives the least for it: about `r round(dpr_p2("Classic", "Heroic Strike"))` damage per rage in Classic and `r round(dpr_p2("Forever", "Heroic Strike"))` in Forever.
-- **The dashed line is where the story of this chapter happens.** With phase 2 gear, Classic gets `r round(income_p2[["Classic"]], 1)` rage a second and Forever `r round(income_p2[["Forever"]], 1)`. In Forever that line never moves. In Classic, it moves right every time your gear gets better.
+- **The dashed line is where the story of this chapter happens.** With phase 2-like gear, Classic gets `r round(income_p2[["Classic"]], 1)` rage a second and Forever `r round(income_p2[["Forever"]], 1)`. In Forever that line never moves. In Classic, it moves right every time your gear gets better.
 
 ## Step 3: the formula {#scaling-formula}
 
@@ -286,7 +291,7 @@ ws_range <- range(check$ws_diff, na.rm = TRUE) * 100
 
 *`r wowsims_scaling_stamp`.*
 
-The formula lands within `r round(max(abs(check$diff)) * 100, 1)`% of the simulator at every phase, in both games. For today's Forever we can also check our simulator against wowsims, the community simulator, which plays the same warrior out under the game's real rules: ours comes out `r sprintf("%+.1f%%", ws_range[1])` to `r sprintf("%+.1f%%", ws_range[2])` from it. Our simulator is a simplified model (no reaction time, a simpler attack queue), and from here on wowsims gives the numbers for today's game wherever it can; our simulator stays for Classic and for the comparisons wowsims can't run. It sits a little above it, most of all for Classic at pre-BiS, where rage is shortest: in a real fight, waiting for rage also means abilities come back at awkward moments, which an average can't see. (Forever's difference is the same at every phase because its simulated fights play out swing for swing the same with any weapon, so they share the same luck.) Over a whole fight, the lucky and unlucky moments mostly cancel out, so the simple picture of blocks filling up is a good description of what's really going on. That means we can use it to understand *why* damage scales the way it does, and use the simulator for the numbers.
+The formula lands within `r round(max(abs(check$diff)) * 100, 1)`% of the simulator at every phase, in both games. For today's Forever we can also check our simulator against wowsims, the community simulator, which plays the same warrior out under the game's real rules: ours comes out `r sprintf("%+.1f%%", ws_range[1])` to `r sprintf("%+.1f%%", ws_range[2])` from it. Our simulator is a simplified model (no reaction time, a simpler attack queue), and from here on wowsims gives the numbers for today's game wherever it can; our simulator stays for Classic and for the comparisons wowsims can't run. It sits a little above it, most of all for Classic with pre-BiS-like gear, where rage is shortest: in a real fight, waiting for rage also means abilities come back at awkward moments, which an average can't see. (Forever's difference is the same at every phase because its simulated fights play out swing for swing the same with any weapon, so they share the same luck.) Over a whole fight, the lucky and unlucky moments mostly cancel out, so the simple picture of blocks filling up is a good description of what's really going on. That means we can use it to understand *why* damage scales the way it does, and use the simulator for the numbers.
 
 ## Step 4: what a better weapon changes
 
@@ -319,7 +324,7 @@ Here's each piece, one at a time:
 
 The third term is where the two games part ways. In Classic, rage comes from damage, so $dR/dg = 7.5 / C \times$ (the extra white damage per second), which is always positive. **In Forever, rage doesn't depend on damage at all, so $dR/dg = 0$ and the whole third term disappears.**
 
-Here's what that looks like for a big upgrade, from a pre-BiS weapon straight to a phase 4 one:
+Here's what that looks like for a big upgrade, from a pre-BiS-like weapon straight to a phase 4-like one:
 
 ```{r}
 pre_dps <- phases$dps[phases$phase == "Pre-BiS"]; p4_dps <- phases$dps[phases$phase == "Phase 4"]
@@ -342,7 +347,7 @@ up_gain <- up_rects %>% mutate(area = (xmax - xmin) * (ymax - ymin)) %>% group_b
 ug <- function(g, pt) sum(up_gain$area[up_gain$game == g & up_gain$part == pt])
 ```
 
-```{r scaling-upgrade, fig.cap="Upgrading from a pre-BiS weapon to a phase 4 one, in rage blocks. Light grey: what your rage bought before. Blue: the same rage buys more, because every ability hits harder (both games). Orange: new rage from your bigger hits, spent on the next abilities in line. Only Classic gets any: in Forever, your rage stays where it was.", fig.height=5.5}
+```{r scaling-upgrade, fig.cap="Upgrading from a pre-BiS-like weapon to a phase 4-like one, in rage blocks. Light grey: what your rage bought before. Blue: the same rage buys more, because every ability hits harder (both games). Orange: new rage from your bigger hits, spent on the next abilities in line. Only Classic gets any: in Forever, your rage stays where it was.", fig.height=5.5}
 ggplot(upgrade) +
   geom_rect(aes(xmin = start1, xmax = end1, ymin = 0, ymax = dpr1), fill = NA, colour = "grey75") +
   geom_rect(data = up_rects, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = part)) +
@@ -350,7 +355,7 @@ ggplot(upgrade) +
   geom_vline(aes(xintercept = R0), linetype = "dashed", colour = "grey40") +
   geom_vline(aes(xintercept = R1), linetype = "dashed") +
   geom_text(data = ~ .x %>% distinct(game, R0, R1) %>%
-              mutate(label = if_else(abs(R1 - R0) < 0.05, "rage with either weapon", "rage with the phase 4 weapon")),
+              mutate(label = if_else(abs(R1 - R0) < 0.05, "rage with either weapon", "rage with the phase 4-like weapon")),
             aes(x = R1, y = 1.5, label = label), hjust = -0.05, size = 3) +
   geom_text(data = ~ .x %>% distinct(game, R0, R1) %>% filter(abs(R1 - R0) >= 0.05),
             aes(x = R0, y = 1.5, label = "pre-BiS"), hjust = 1.1, size = 3, colour = "grey30") +
@@ -363,7 +368,7 @@ ggplot(upgrade) +
   theme(legend.position = "bottom")
 ```
 
-In Classic, this upgrade adds `r round(ug("Classic", "The same rage buys more") + ug("Classic", "New rage"))` damage per second through rage: `r round(ug("Classic", "The same rage buys more"))` because the rage it already had buys more, and `r round(ug("Classic", "New rage"))` from new rage, which pays for the Whirlwinds it couldn't afford before and the first Heroic Strikes. In Forever it adds `r round(ug("Forever", "The same rage buys more"))`, all of it from the rage buying more. That's how Classic catches up: at pre-BiS, Forever's rage buys `r round(ug("Forever", "What your rage bought before"))` damage per second against Classic's `r round(ug("Classic", "What your rage bought before"))`, and at phase 4 it's `r round(filled(ladder("Forever", p4_dps)$blocks, ladder("Forever", p4_dps)$income))` against `r round(filled(ladder("Classic", p4_dps)$blocks, ladder("Classic", p4_dps)$income))`.
+In Classic, this upgrade adds `r round(ug("Classic", "The same rage buys more") + ug("Classic", "New rage"))` damage per second through rage: `r round(ug("Classic", "The same rage buys more"))` because the rage it already had buys more, and `r round(ug("Classic", "New rage"))` from new rage, which pays for the Whirlwinds it couldn't afford before and the first Heroic Strikes. In Forever it adds `r round(ug("Forever", "The same rage buys more"))`, all of it from the rage buying more. That's how Classic catches up: with pre-BiS-like gear, Forever's rage buys `r round(ug("Forever", "What your rage bought before"))` damage per second against Classic's `r round(ug("Classic", "What your rage bought before"))`, and with phase 4-like gear it's `r round(filled(ladder("Forever", p4_dps)$blocks, ladder("Forever", p4_dps)$income))` against `r round(filled(ladder("Classic", p4_dps)$blocks, ladder("Classic", p4_dps)$income))`.
 
 ### What that does to the shape
 
@@ -377,7 +382,7 @@ Once Bloodthirst and Whirlwind are covered, new rage goes to Heroic Strike, and 
 
 $$\eta_{HS} = \frac{\text{Heroic Strike's damage} - \text{the swing's damage}}{`r sim_defaults$hs_cost` + \text{the swing's rage}}$$
 
-grow with gear, and they roughly cancel out: Classic's Heroic Strike gives about `r round(ladder("Classic", pre_dps)$blocks$dpr[3], 1)` damage per rage at pre-BiS and `r round(ladder("Classic", p4_dps)$blocks$dpr[3], 1)` at phase 4, while Forever's, whose swing always gives the same rage, climbs from `r round(ladder("Forever", pre_dps)$blocks$dpr[3], 1)` to `r round(ladder("Forever", p4_dps)$blocks$dpr[3], 1)`. With a flat block at the margin, the third term of Equation \@ref(eq:scaling-dd) settles down to a steady extra, and Classic's damage straightens out into a line that's steeper than Forever's. Much further up, when Heroic Strike goes out on every swing and the rage bar fills up, new rage is wasted, $\eta = 0$, and the extra disappears again. Our warrior never gets that far.
+grow with gear, and they roughly cancel out: Classic's Heroic Strike gives about `r round(ladder("Classic", pre_dps)$blocks$dpr[3], 1)` damage per rage with pre-BiS-like gear and `r round(ladder("Classic", p4_dps)$blocks$dpr[3], 1)` with phase 4-like gear, while Forever's, whose swing always gives the same rage, climbs from `r round(ladder("Forever", pre_dps)$blocks$dpr[3], 1)` to `r round(ladder("Forever", p4_dps)$blocks$dpr[3], 1)`. With a flat block at the margin, the third term of Equation \@ref(eq:scaling-dd) settles down to a steady extra, and Classic's damage straightens out into a line that's steeper than Forever's. Much further up, when Heroic Strike goes out on every swing and the rage bar fills up, new rage is wasted, $\eta = 0$, and the extra disappears again. Our warrior never gets that far.
 
 Where each game's rage runs out, across all the gear in between, shows all of this at a glance:
 
@@ -421,13 +426,13 @@ sources <- expand_grid(game = games, phase = phases$phase[c(1, 3, 5)]) %>%
   })) %>% unnest(s) %>%
   mutate(source = factor(source, levels = rev(src_levels)), game = factor(game, levels = rev(games)))
 srcv <- function(g, ph, so) sources$rage[sources$game == g & sources$phase == ph & sources$source == so]
-# how much of the gap in rage per second between the two games at pre-BiS is the off hand
+# how much of the gap in rage per second between the two games with pre-BiS-like gear is the off hand
 src_total <- function(g, ph) sum(sources$rage[sources$game == g & sources$phase == ph])
 oh_gap_share <- (srcv("Forever", "Pre-BiS", "Off hand") - srcv("Classic", "Pre-BiS", "Off hand")) /
   (src_total("Forever", "Pre-BiS") - src_total("Classic", "Pre-BiS"))
 ```
 
-```{r scaling-sources, fig.cap=paste0("Where the rage per second comes from, for our dual wielder against a boss, at three phases. The main hands (blue) are close at pre-BiS, and Classic's pulls ahead as its hits get bigger. The big difference is the off hand (orange): Forever's gives about ", sprintf("%.1f", srcv("Forever", "Pre-BiS", "Off hand") / srcv("Classic", "Pre-BiS", "Off hand")), " times as much rage as Classic's at pre-BiS, and ", if (srcv("Forever", "Phase 4", "Off hand") > srcv("Classic", "Phase 4", "Off hand")) "more than Classic's even at phase 4." else "about as much as Classic's by phase 4."), fig.height=4.2}
+```{r scaling-sources, fig.cap=paste0("Where the rage per second comes from, for our dual wielder against a boss, at three phases. The main hands (blue) are close with pre-BiS-like gear, and Classic's pulls ahead as its hits get bigger. The big difference is the off hand (orange): Forever's gives about ", sprintf("%.1f", srcv("Forever", "Pre-BiS", "Off hand") / srcv("Classic", "Pre-BiS", "Off hand")), " times as much rage as Classic's with pre-BiS-like gear, and ", if (srcv("Forever", "Phase 4", "Off hand") > srcv("Classic", "Phase 4", "Off hand")) "more than Classic's even with phase 4-like gear." else "about as much as Classic's by phase 4."), fig.height=4.2}
 ggplot2::ggplot(sources, aes(rage, game, fill = source)) +   # values on the x axis, so x starts at 0 instead
   geom_col(width = 0.65) +
   expand_limits(x = 0) +
@@ -442,7 +447,7 @@ ggplot2::ggplot(sources, aes(rage, game, fill = source)) +   # values on the x a
   theme(legend.position = "bottom")
 ```
 
-At pre-BiS, Forever's main hand is ahead (`r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Main hand"))` per second, against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Main hand"))` in Classic), partly because its crits give double rage. The off hands are further apart: `r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Off hand"))` against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Off hand"))`. That one bar is `r round(oh_gap_share * 100)`% of the gap between the two games. Forever's new **Reckless Swings** (purple) is another `r round(srcv("Forever", "Pre-BiS", "Reckless Swings") / (src_total("Forever", "Pre-BiS") - src_total("Classic", "Pre-BiS")) * 100)`%, added on 2 November: every `r sim_defaults$rs_cd` seconds, your next `r sim_defaults$rs_charges` attacks give `r forever_talents$rs_rage` extra rage each. A dual wielder lands that many attacks well within its `r sim_defaults$rs_dur` seconds, so it's a steady `r sprintf("%.2f", srcv("Forever", "Pre-BiS", "Reckless Swings"))` rage per second at every phase, for 25% of your base health each time. It gets its own section [below](#reckless-swings).
+With pre-BiS-like gear, Forever's main hand is ahead (`r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Main hand"))` per second, against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Main hand"))` in Classic), partly because its crits give double rage. The off hands are further apart: `r sprintf("%.1f", srcv("Forever", "Pre-BiS", "Off hand"))` against `r sprintf("%.1f", srcv("Classic", "Pre-BiS", "Off hand"))`. That one bar is `r round(oh_gap_share * 100)`% of the gap between the two games. Forever's new **Reckless Swings** (purple) is another `r round(srcv("Forever", "Pre-BiS", "Reckless Swings") / (src_total("Forever", "Pre-BiS") - src_total("Classic", "Pre-BiS")) * 100)`%, added on 2 November: every `r sim_defaults$rs_cd` seconds, your next `r sim_defaults$rs_charges` attacks give `r forever_talents$rs_rage` extra rage each. A dual wielder lands that many attacks well within its `r sim_defaults$rs_dur` seconds, so it's a steady `r sprintf("%.2f", srcv("Forever", "Pre-BiS", "Reckless Swings"))` rage per second at every phase, for 25% of your base health each time. It gets its own section [below](#reckless-swings).
 
 ### Why the off hands are so different
 
@@ -504,7 +509,7 @@ ggplot(dws_wide, aes(dps)) +
   theme(legend.position = "bottom")
 ```
 
-In Forever, Dual Wield Specialization is worth `r sprintf("%.1f", dws_gain("Forever", "Phase 2"))` rage per second, at every phase. That's about `r round(dws_gain("Forever", "Phase 2") / (ladder("Classic", phases$dps[5])$income - ladder("Classic", phases$dps[1])$income) * 100)`% of all the rage a Classic warrior gains from going from a pre-BiS weapon to a phase 4 one. Take it away, and Forever's rage (`r sprintf("%.1f", f_without)` per second) `r if (f_without < edges$end[2]) "no longer quite covers" else "only just covers"` Bloodthirst and Whirlwind, about where a `r if (f_without < ladder("Classic", p2_dps)$income) "phase 1" else "phase 2"` Classic warrior is. In Classic, the same talent adds `r sprintf("%.1f", dws_gain("Classic", "Pre-BiS"))` to `r sprintf("%.1f", dws_gain("Classic", "Phase 4"))` rage per second, as a side effect of its bigger off-hand hits.
+In Forever, Dual Wield Specialization is worth `r sprintf("%.1f", dws_gain("Forever", "Phase 2"))` rage per second, at every phase. That's about `r round(dws_gain("Forever", "Phase 2") / (ladder("Classic", phases$dps[5])$income - ladder("Classic", phases$dps[1])$income) * 100)`% of all the rage a Classic warrior gains from going from a pre-BiS-like weapon to a phase 4-like one. Take it away, and Forever's rage (`r sprintf("%.1f", f_without)` per second) `r if (f_without < edges$end[2]) "no longer quite covers" else "only just covers"` Bloodthirst and Whirlwind, about where a `r if (f_without < ladder("Classic", p2_dps)$income) "phase 1" else "phase 2"` Classic warrior is. In Classic, the same talent adds `r sprintf("%.1f", dws_gain("Classic", "Pre-BiS"))` to `r sprintf("%.1f", dws_gain("Classic", "Phase 4"))` rage per second, as a side effect of its bigger off-hand hits.
 
 The formula from Step 3 can also tell us what that rage is worth in damage. Switching the talent off takes away its bigger off-hand hits and its extra rage, and we can split the two by first holding the rage where it would be without the talent:
 
@@ -555,7 +560,7 @@ ggplot(dps_curve, aes(dps, med, colour = game, fill = game)) +
   labs(x = "Main-hand weapon DPS", y = "Damage per second")
 ```
 
-From pre-BiS to phase 4, Forever's damage goes up by `r round(growth("Forever") * 100)`% and Classic's by `r round(growth("Classic") * 100)`%. Classic starts `r round((1 - at("Classic", "Pre-BiS") / at("Forever", "Pre-BiS")) * 100)`% behind, because a fresh level 60's small hits don't give enough rage to pay for every Bloodthirst and Whirlwind, and it closes the gap because every upgrade also pays it in rage, ending `r round((1 - at("Classic", "Phase 4") / at("Forever", "Phase 4")) * 100)`% behind at phase 4. (Before 1 October, with Forever's off hand at double rage but no crit bonus and Bloodthirst at 35%, Classic passed Forever between phases 3 and 4.)
+From pre-BiS-like to phase 4-like gear, Forever's damage goes up by `r round(growth("Forever") * 100)`% and Classic's by `r round(growth("Classic") * 100)`%. Classic starts `r round((1 - at("Classic", "Pre-BiS") / at("Forever", "Pre-BiS")) * 100)`% behind, because a fresh level 60's small hits don't give enough rage to pay for every Bloodthirst and Whirlwind, and it closes the gap because every upgrade also pays it in rage, ending `r round((1 - at("Classic", "Phase 4") / at("Forever", "Phase 4")) * 100)`% behind with phase 4-like gear. (Before 1 October, with Forever's off hand at double rage but no crit bonus and Bloodthirst at 35%, Classic passed Forever between phases 3 and 4.)
 
 How much of each upgrade comes from each of the three effects in Equation \@ref(eq:scaling-dd)? The formula can answer that exactly, one extra point of weapon DPS at a time:
 
@@ -588,7 +593,7 @@ splits %>%
   theme(legend.position = "bottom")
 ```
 
-In Classic, new rage makes up about `r round(rs("Pre-BiS") * 100)`% of what an upgrade is worth at pre-BiS, `r round(rs("Phase 2") * 100)`% at phase 2 and `r round(rs("Phase 4") * 100)`% at phase 4: a fairly steady fifth. The total grows until Classic can afford every Whirlwind, and then levels off. That's the bend and the straightening from Step 4, seen from a different angle: while the total is growing, each upgrade is worth a bit more than the one before, and once it's flat, every upgrade is worth the same, just more than in Forever. In Forever, the total never changes, and new rage is zero at every phase.
+In Classic, new rage makes up about `r round(rs("Pre-BiS") * 100)`% of what an upgrade is worth with pre-BiS-like gear, `r round(rs("Phase 2") * 100)`% with phase 2-like gear and `r round(rs("Phase 4") * 100)`% with phase 4-like gear: a fairly steady fifth. The total grows until Classic can afford every Whirlwind, and then levels off. That's the bend and the straightening from Step 4, seen from a different angle: while the total is growing, each upgrade is worth a bit more than the one before, and once it's flat, every upgrade is worth the same, just more than in Forever. In Forever, the total never changes, and new rage is zero at every phase.
 
 A handy way to sum all this up is to ask what a 10% upgrade is worth: a weapon and attack power both 10% better.
 
@@ -683,12 +688,12 @@ rsv <- function(ph, col) rs_tbl[[col]][rs_tbl$phase == ph]
 
 The rage columns barely move from phase to phase: Forever's rage doesn't depend on gear, and each phase's fights start from the same random seeds. Two things stand out:
 
-- **It gives less rage than it says.** Reckless Swings itself hands out `r sprintf("%.2f", rsv("Phase 2", "rs_rps_TRUE"))` rage per second, but your total only goes up by `r sprintf("%.1f", rsv("Phase 2", "rps_TRUE") - rsv("Phase 2", "rps_FALSE"))` at phase 2. Most of that extra rage ends up in Heroic Strike (`r sprintf("%.1f", rsv("Phase 2", "hs_TRUE") - rsv("Phase 2", "hs_FALSE"))` more a minute), and in Forever every Heroic Strike replaces a white swing whose rage you never get. Bloodthirst and Whirlwind were already close to covered, so it's mostly Heroic Strike money.
+- **It gives less rage than it says.** Reckless Swings itself hands out `r sprintf("%.2f", rsv("Phase 2", "rs_rps_TRUE"))` rage per second, but your total only goes up by `r sprintf("%.1f", rsv("Phase 2", "rps_TRUE") - rsv("Phase 2", "rps_FALSE"))` with phase 2-like gear. Most of that extra rage ends up in Heroic Strike (`r sprintf("%.1f", rsv("Phase 2", "hs_TRUE") - rsv("Phase 2", "hs_FALSE"))` more a minute), and in Forever every Heroic Strike replaces a white swing whose rage you never get. Bloodthirst and Whirlwind were already close to covered, so it's mostly Heroic Strike money.
 - **It's worth about the same at every phase**: `r sprintf("%+.1f%%", min(rs_tbl$gain) * 100)` to `r sprintf("%+.1f%%", max(rs_tbl$gain) * 100)` damage. Its rage doesn't grow with gear, but each Heroic Strike it buys hits harder, so the gain holds steady as a share. That's a lot for one talent point.
 
 ### How much the charge rule matters
 
-Before wowsims' logs settled it, this chapter assumed Bloodthirst and Whirlwind used charges too. Here's what each reading of the tooltip would give at phase 2, in our simulator (a simplified model, since wowsims only runs the real rule):
+Before wowsims' logs settled it, this chapter assumed Bloodthirst and Whirlwind used charges too. Here's what each reading of the tooltip would give with phase 2-like gear, in our simulator (a simplified model, since wowsims only runs the real rule):
 
 ```{r}
 rs_rules <- list(
@@ -711,7 +716,7 @@ rs_rule_tbl <- rs_rule_sims %>% mutate(rule = factor(rule, names(rs_rules))) %>%
 rs_rule_tbl %>%
   transmute(Rule = rule, `From Reckless Swings` = sprintf("%.2f", rs), `All rage per second` = sprintf("%.2f", rps),
             `Heroic Strikes per minute` = sprintf("%.1f", hs), DPS = sprintf("%.0f", dps)) %>%
-  knitr::kable(caption = paste0("Reckless Swings under each reading of its tooltip, at phase 2 over ", n_scaling, " fights each in our simulator."))
+  knitr::kable(caption = paste0("Reckless Swings under each reading of its tooltip, with phase 2-like gear over ", n_scaling, " fights each in our simulator."))
 rr <- function(i, col) rs_rule_tbl[[col]][i]
 ```
 
@@ -724,17 +729,11 @@ The rage from Reckless Swings itself runs from `r sprintf("%.2f", min(rs_rule_tb
 ## Where the numbers come from
 
 - **Measured:** the rage per swing in Forever, and that it doesn't depend on damage or level (from level 1 to 17). That a hasted swing gives the full rage. From wowsims' combat logs: which attacks use a Reckless Swings charge, what Windfury Totem's strike does, and that Heroic Strike rolls Unbridled Wrath.
-- **From wowsims:** the numbers for today's game in the phase table, the Windfury table (Forever) and the Reckless Swings table, and the game's rules wherever our simulator models them (Whirlwind's 25 rage, glancing blows at 70% damage, Heroic Strike rank 8, Reckless Swings' global cooldown).
+- **From wowsims:** the numbers for today's game in the phase table, the Windfury table (Forever) and the Reckless Swings table, and the game's rules wherever our simulator models them (Whirlwind's 25 rage, Heroic Strike rank 8, Reckless Swings' global cooldown, and glancing blows doing 55% to 75% damage, 65% on average).
 - **Announced:** that a crit gives twice the rage, Dual Wield Specialization's +50% off-hand rage, and the 2 November talents: Flurry's 30%, Improved Whirlwind and Reckless Swings.
-- **Assumed from Classic:** that a swing's damage follows the same formula in Forever (the logs match how attack power adds damage, but the hits come out lower than the formula gives, which is still open), the attack table, and that the rage per swing stays the same up to level 60.
+- **Assumed from Classic:** that a swing's damage follows the same formula in Forever, the attack table, and that the rage per swing stays the same up to level 60.
 - **From tooltips:** Bloodthirst, Whirlwind, Heroic Strike, Improved Whirlwind and Reckless Swings.
-- **Our guesses:** the gear at each phase, the same in both games, and without world buffs, since Forever won't have them. In real Classic raids, world buffs made warriors hit much harder, so Classic's rage line in Figure \@ref(fig:scaling-side) would have started higher and climbed faster, and its damage would have bent upward sooner.
-
-### Why are the logged hits smaller? {#scaling-hit-gap}
-
-The swings in our logs (from the Rage Generation chapter) hit for less than the Classic damage formula gives. The logs show 380 to 480 attack power at levels 13 to 16, and with the Classic rule (1 damage for every 14 attack power, for each second of weapon speed) that should add about 100 damage to every Battle Axe swing, but the logged Battle Axe hits are only 69 to 88. Nodrak pointed out that the mobs in these logs cast Demoralizing Shout, which lowers the warrior's attack power, and they do: in Zomd's Battle Axe log, the Witchwing Slayers put it on Zomd over and over. But the attack power in the logs already includes the debuff (it drops from about 420 to 440 down to 375 to 400 while it's up), so the debuff doesn't explain the gap on its own. What the logs do show is that attack power adds damage at the Classic rate: across the logged hits, each point of attack power adds 0.28 damage (give or take 0.02) to a Battle Axe swing, where the Classic rule gives 0.27. It's the starting point that's off: the hits are lower than the Classic formula gives at any attack power. So the open question is the base of the formula (the weapon's damage, or a reduction we haven't found), not how attack power scales. Logs against mobs that don't shout, with the weapon's damage range posted, would settle it.
-
-Now that the game has launched, the most useful logs for this chapter would show a Bloodthirst and Whirlwind rotation at level 36 or above, with the gear and buffs posted, so we can check the rage income and the damage per rage of each block directly.
+- **Our guesses:** the gear at each phase, modeled on Classic's phases and the same in both games, and without world buffs, since Forever won't have them. In real Classic raids, world buffs made warriors hit much harder, so Classic's rage line in Figure \@ref(fig:scaling-side) would have started higher and climbed faster, and its damage would have bent upward sooner.
 
 ## Conclusion
 
@@ -752,7 +751,7 @@ Here's what the chapter comes down to:
 
 6. **In Forever, an upgrade is worth what it looks like.** Gear that's 10% better gives a little under 10% more damage, since a few parts of your damage don't scale with gear at all. In Classic, the same upgrade gave more than 10%, because part of it came back as rage.
 
-7. **In Forever, a better weapon doesn't change your rotation.** You press the same abilities just as often with a pre-BiS weapon as with a phase 4 one; only the numbers get bigger. The gear that gives Forever more rage is gear that makes you land more swings (haste, hit and extra attacks) and, since 1 October, crit, which doubles a swing's rage and speeds you up through Flurry.
+7. **In Forever, a better weapon doesn't change your rotation.** You press the same abilities just as often with a pre-BiS-like weapon as with a phase 4-like one; only the numbers get bigger. The gear that gives Forever more rage is gear that makes you land more swings (haste, hit and extra attacks) and, since 1 October, crit, which doubles a swing's rage and speeds you up through Flurry.
 
 The simulations behind this chapter are simplified, and their exact numbers rest on our guesses about gear, so they're there to illustrate what's happening, not to predict how a warrior will perform. The shapes are the part to take away: they follow from how each game turns swings into rage.
 

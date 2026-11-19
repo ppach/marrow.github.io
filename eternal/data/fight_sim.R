@@ -15,7 +15,7 @@
 # the same mechanics, except where wowsims (github.com/wowsims/forever, the source of truth for today's game: its code
 # and its combat-log evidence, docs/evidence/EV-*.md) says otherwise: rage per white swing, no rage from dodged swings
 # or Heroic Strike, a crit giving twice the rage, Whirlwind hitting with both weapons for 25 rage (there is no Raging
-# Blows), glancing blows at 70% damage, Heroic Strike rank 8 (+138 damage), Unbridled Wrath rolling on landed white
+# Blows), glancing blows at 55-75% damage (65% on average), Heroic Strike rank 8 (+138 damage), Unbridled Wrath rolling on landed white
 # swings, Windfury Totem's strike and Heroic Strike (EV-0148), Reckless Swings charges spent by landed white swings,
 # Windfury Totem's strike and each Heroic Strike cast whether it lands or not, but not by Bloodthirst or Whirlwind
 # (EV-0138), Windfury Totem's strike using no Flurry charge (EV-0138, EV-0140), and a queued Heroic Strike no longer
@@ -70,14 +70,14 @@ sim_defaults <- list(
 # rage), Furious Precision 3/3 (+10% off-hand hit), Anger Management (1 rage every 3 sec), Reckless Swings, Flurry 3/3
 # (30%), Improved Whirlwind 2/2 (8 sec cooldown, +30% damage), Unbridled Wrath 60% (tooltip; wowsims' logs measure
 # 58.8%, EV-0148), Bloodthirst 45% of AP + 48 (rank 4), Whirlwind 25 rage, Heroic Strike rank 8 (+138, 12 rage with
-# Improved Heroic Strike), glancing blows at 70% damage. No Boundless Rage any more, so the cap is 100. Whirlwind hits with both weapons without a talent. A white crit gives twice
+# Improved Heroic Strike), glancing blows at 55-75% damage (65% on average), as in Classic. No Boundless Rage any more, so the cap is 100. Whirlwind hits with both weapons without a talent. A white crit gives twice
 # the rage of a normal hit (`crit_rage_mult`). A dodged white swing gives no rage (logs), and a queued Heroic
 # Strike no longer raises off-hand hit.
 forever_talents <- list(
   oh_dmg_mult = 1.25, oh_rage_mult = 1.5, oh_hit_bonus = 0.10, anger_rps = 1 / 3, rage_cap = 100,
   ww_offhand = TRUE, ww_cost = 25, ww_cd = 8, ww_dmg_mult = 1.3, flurry_haste = 0.30, flurry_charges = 3,
   ubw_chance = 0.60, bt_ap = 0.45, bt_flat = 48, dodge_rage = 0, crit_rage_mult = 2, hs_oh_hit = FALSE, rs_rage = 5,
-  glance_dmg = 0.70, hs_bonus = 138, ubw_hs = TRUE, wf_flurry = FALSE
+  glance_dmg = 0.65, hs_bonus = 138, ubw_hs = TRUE, wf_flurry = FALSE
 )
 # Classic 17/34/0: Dual Wield Specialization only adds damage, Whirlwind only hits with the main hand, Flurry 30%,
 # Unbridled Wrath 40%, Bloodthirst 45% of AP. A dodged white swing gives the rage of 75% of an average hit

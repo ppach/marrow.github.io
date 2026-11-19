@@ -13,7 +13,8 @@
 # R wraps those in a RaidSimRequest (as the CLI itself does for a SIML file) with three things SIML can't say: the
 # book's weapons as custom items (any DPS and speed, no stats), a fixed random seed, and, on request, the combat log
 # of the first iteration. Each result carries the wowsims commit that produced it (`res$version`). A cached result is
-# keyed on the request and the wowsims commit, so every cached number goes stale when wowsims changes.
+# keyed on the request and the basis commit: the last wowsims commit that changed the book's results (see
+# wowsims_basis() below), so a wowsims commit that changes nothing the book uses keeps every cache.
 # See SIMS.md for how the book's sims run and how to refresh them.
 
 # The wowsims clone and the shared tools (wowsims_update.ps1, statsheet) sit next to this repo, under one parent folder
@@ -39,7 +40,104 @@ wowsims_ensure <- function() {
   head <- system2("git", c("-C", shQuote(wowsims_repo()), "rev-parse", "HEAD"), stdout = TRUE)
   if (!identical(v$commit, head)) stop("wowsimcli was built from ", v$short, " but the clone is at ", substr(head, 1, 7), call. = FALSE)
   .wowsims$version <- v
+  .wowsims$basis <- wowsims_check_basis(v)
   v
+}
+
+# ---- Which commit the caches are keyed on ----------------------------------------------------------------------------
+# wowsims commits many times a day, and most commits change nothing the book's warrior does. So the caches aren't keyed
+# on the commit wowsims is at, but on a basis commit: the last commit that changed the book's results. When wowsims
+# moves, wowsims_check_basis() runs the canaries (a small set of sims that cover every part of wowsims the book uses,
+# each with a fixed seed) and compares them with the basis commit's. If every number is identical, the new commit is
+# recorded as giving the same results, and every cache stays valid. If any number differs, the new commit becomes the
+# basis, and every cache re-runs as it's needed. Each result still carries the commit that produced it ($version).
+# The record is data/sim_cache/wowsims/basis.rds. options(wowsims.strict = TRUE) keys the caches on the exact commit.
+wowsims_basis <- function() {
+  v <- wowsims_ensure()
+  # A session that loaded an older copy of this file has a version but no basis yet
+  if (is.null(.wowsims$basis)) .wowsims$basis <- wowsims_check_basis(v)
+  if (isTRUE(getOption("wowsims.strict"))) .wowsims$version$commit else .wowsims$basis
+}
+
+# The canaries: one run of each kind the book makes (the warrior at phase 2-like gear; Windfury; the execute phase
+# without Improved Execute; no Reckless Swings; white swings only without Flurry; Whirlwind first; low hit with haste,
+# expertise and weapon skill), a few logged fights (what wowsims_fights() reads from the logs), and the character sheet
+# (what book_bonus_stats() and the Stat Weights chapter measure). Everything here must be identical across two commits
+# for them to share a cache, so add a canary whenever the book starts using a new part of wowsims.
+wowsims_canaries <- function() {
+  p2 <- function(p = list()) book_wowsims(58, 1300, 0.28, 0.07, p)
+  setups <- list(
+    plain    = p2(),
+    windfury = p2(list(raid_buffs = "windfury_totem")),
+    execute  = p2(list(execute = 0.2, talents = book_talents(11, 0))),
+    no_rs    = p2(list(talents = book_talents(10, 0))),
+    white    = p2(list(apl = "data/wowsims/white_only.apl.siml", talents = book_talents(17, 0))),
+    ww_first = p2(list(apl = "data/wowsims/book_ww_first.apl.siml")),
+    low_hit  = book_wowsims(42, 1000, 0.20, 0, list(weapon_skill = 5,
+                                                     bonus_stats = c(haste_rating = 100, expertise_rating = 50))))
+  runs <- lapply(setups, function(p) {
+    r <- wowsims_run(utils::modifyList(p, list(iterations = 2000, seed = 11)))
+    # wowsims lists actions and rage sources in no fixed order, so sort them before comparing
+    tidy <- function(df) { df <- df[order(df$id, df$tag), ]; rownames(df) <- NULL; df }
+    r$actions <- tidy(r$actions); r$rage <- tidy(r$rage)
+    r[c("dps", "iterations", "per_second", "actions", "rage")]
+  })
+  fights <- lapply(setups[c("plain", "execute")], function(p) {
+    req <- wowsims_request(p); dur <- utils::modifyList(wowsims_defaults, p)$duration
+    do.call(rbind, lapply(1:3, function(i) {
+      req$simOptions <- list(iterations = 1, randomSeed = 500 + i, debugFirstIteration = TRUE)
+      fight_summary(wowsims_exec(req, dur, log = TRUE), dur)
+    }))
+  })
+  sheet <- lapply(list(base = numeric(0), str = c(strength = 100), agi = c(agility = 100), crit = c(crit_rating = 140),
+                       hit = c(hit_rating = 100), haste = c(haste_rating = 100), exp = c(expertise_rating = 100)),
+                  function(b) {
+                    p <- p2()
+                    for (n in names(b)) p$bonus_stats[[n]] <- (if (n %in% names(p$bonus_stats)) p$bonus_stats[[n]] else 0) + b[[n]]
+                    wowsims_sheet(p)
+                  })
+  list(runs = runs, fights = fights, sheet = sheet)
+}
+
+wowsims_check_basis <- function(v) {
+  f <- "data/sim_cache/wowsims/basis.rds"
+  rec <- if (file.exists(f)) readRDS(f)
+  canaries_code <- rlang::hash(deparse(wowsims_canaries))
+  same <- function(rec) identical(rec$canaries_code, canaries_code)
+  known <- !is.null(rec) && v$commit %in% c(rec$basis$commit, rec$same_as$commit)
+  if (known && same(rec)) return(rec$basis$commit)
+  if (known) {   # a canary was added or changed: refresh the reference at a commit already known to match the basis
+    message("wowsims_check_basis: the canaries changed; refreshing them @", v$short, ", which matches the basis @", rec$basis$short)
+    rec$canaries <- wowsims_canaries(); rec$canaries_code <- canaries_code
+    saveRDS(rec, f)
+    return(rec$basis$commit)
+  }
+  if (isTRUE(getOption("wowsims.cached_only")) && !is.null(rec)) {
+    message("wowsims @", v$short, " isn't checked against the basis yet; a preview keeps the basis @", rec$basis$short)
+    return(rec$basis$commit)
+  }
+  message("wowsims_check_basis: running the canaries @", v$short)
+  now <- wowsims_canaries()
+  if (!is.null(rec) && same(rec) && identical(now, rec$canaries)) {
+    message("wowsims_check_basis: @", v$short, " gives the same results as the basis @", rec$basis$short,
+            "; the caches stay valid")
+    rec$same_as <- rbind(rec$same_as, data.frame(commit = v$commit, short = v$short, date = v$date,
+                                                 checked = format(Sys.time(), "%Y-%m-%d %H:%M")))
+    saveRDS(rec, f)
+    return(rec$basis$commit)
+  }
+  if (!is.null(rec) && same(rec)) {
+    diff <- names(Filter(isFALSE, Map(identical, now, rec$canaries)))
+    message("wowsims_check_basis: @", v$short, " changes the book's results (", paste(diff, collapse = ", "),
+            ") against @", rec$basis$short, "; it becomes the basis, and every cache re-runs as needed")
+  } else if (!is.null(rec)) {
+    message("wowsims_check_basis: the canaries changed and @", v$short, " is new, so there's nothing to compare with; ",
+            "it becomes the basis")
+  }
+  rec <- list(basis = v, canaries = now, canaries_code = canaries_code,
+              same_as = data.frame(commit = character(0), short = character(0), date = character(0), checked = character(0)))
+  saveRDS(rec, f)
+  v$commit
 }
 
 # ---- Setups ----------------------------------------------------------------------------------------------------------
@@ -81,12 +179,16 @@ wowsims_siml <- function(p) {
         collapse = "\n")
 }
 
-# The book's weapons as custom items: average damage = dps x speed, spread +-25% around it.
-book_weapon <- function(id, dps, speed, hand) {
+# The book's weapons as custom items: fist weapons, average damage = dps x speed, spread +-25% around it. No race gets
+# weapon skill in Forever, so it only comes from gear: `skill` adds that much fist weapon skill, as an item bonus (every
+# copy counts, so the Stat Weights chapter puts it on the main hand only, and it applies to both hands).
+book_weapon <- function(id, dps, speed, hand, skill = 0) {
   avg <- dps * speed
+  scaling <- list(weaponDamageMin = avg * 0.75, weaponDamageMax = avg * 1.25, unroundedDps = dps)
+  if (skill) scaling$weaponSkills <- list(list(skill = "WeaponSkillFistWeapons", value = skill))
   list(id = id, name = sprintf("Book %s %.1f DPS %.1f", hand, dps, speed), type = "ItemTypeWeapon",
        weaponType = "WeaponTypeFist", handType = "HandTypeOneHand", weaponSpeed = speed, quality = "ItemQualityEpic",
-       scalingOptions = list(`0` = list(weaponDamageMin = avg * 0.75, weaponDamageMax = avg * 1.25, unroundedDps = dps)))
+       scalingOptions = list(`0` = scaling))
 }
 
 # The player's settings (IndividualSimSettings, as a list) for a setup, with the book's weapons in place.
@@ -100,7 +202,7 @@ wowsims_settings <- function(p) {
   if (!is.null(p$weapons)) {
     items <- s$player$equipment$items %||% rep(list(json_obj()), 17)
     while (length(items) < 17) items <- c(items, list(json_obj()))
-    mh <- book_weapon(990001L, p$weapons$mh[[1]], p$weapons$mh[[2]], "MH")
+    mh <- book_weapon(990001L, p$weapons$mh[[1]], p$weapons$mh[[2]], "MH", p$weapon_skill %||% 0)
     oh <- book_weapon(990002L, p$weapons$oh[[1]], p$weapons$oh[[2]], "OH")
     items[[15]] <- list(id = mh$id); items[[16]] <- list(id = oh$id)
     s$player$equipment$items <- items
@@ -224,7 +326,7 @@ wowsims_fights <- function(name, setups, n, seed0 = 1000, log = TRUE,
   v <- wowsims_ensure()
   reqs <- lapply(setups, wowsims_request)
   durs <- vapply(setups, function(p) utils::modifyList(wowsims_defaults, p)$duration, 0)
-  key <- rlang::hash(list(reqs, n, seed0, log, v$commit, body(fight_summary), body(wowsims_log_events)))
+  key <- rlang::hash(list(reqs, n, seed0, log, wowsims_basis(), body(fight_summary), body(wowsims_log_events)))
   dir <- "data/sim_cache/wowsims"; dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   path <- file.path(dir, paste0(name, ".rds"))
   if (file.exists(path)) {
@@ -310,7 +412,7 @@ book_talents <- function(fury_pos, rank, talents = wowsims_defaults$talents) {
 # are measured on the sheet, not assumed; the result is checked, and it stops if the sheet misses by more than 0.5 AP
 # or 0.01%.
 book_bonus_stats <- function(p, ap, crit, hit) {
-  key <- rlang::hash(list(p[c("talents", "settings", "weapons", "gear", "bonus_stats", "buffs", "raid_buffs", "debuffs")], wowsims_ensure()$commit))
+  key <- rlang::hash(list(p[c("talents", "settings", "weapons", "weapon_skill", "gear", "bonus_stats", "buffs", "raid_buffs", "debuffs")], wowsims_ensure()$commit))
   if (is.null(.wowsims$rates[[key]])) {
     s0 <- sheet_numbers(wowsims_sheet(p))
     probe <- function(stat, amount) sheet_numbers(wowsims_sheet(utils::modifyList(p, list(bonus_stats = c(p$bonus_stats, setNames(amount, stat))))))
@@ -338,7 +440,7 @@ cached_wowsims <- function(name, p = list()) {
   # The SIML names the rotation file by its absolute path; leave it out, so the cache survives moving the repo (the
   # rotation itself is in the key through its lines).
   siml_key <- sub("use \"[^\"]*\"", "use", wowsims_siml(full))
-  key <- rlang::hash(list(setup = full, siml = siml_key, apl = readLines(full$apl), commit = v$commit))
+  key <- rlang::hash(list(setup = full, siml = siml_key, apl = readLines(full$apl), commit = wowsims_basis()))
   dir <- "data/sim_cache/wowsims"; dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   path <- file.path(dir, paste0(name, ".rds"))
   if (file.exists(path)) {
@@ -349,6 +451,47 @@ cached_wowsims <- function(name, p = list()) {
   value <- wowsims_run(p)
   saveRDS(list(key = key, value = value), path)
   value
+}
+
+# Many runs of the book's warrior at once, on `workers` R processes. `jobs` is a named list (the names are the cache
+# names); each job is a list of arguments to book_wowsims() (dps, ap, crit, hit, p) plus `iterations` and `seed`.
+# Each result is cached in data/sim_cache/wowsims/jobs/name.rds, keyed on the job's arguments, the wowsims commit, the
+# rotation, the defaults and the code that builds the warrior. So a cached job comes back without building its setup,
+# which needs a few character-sheet calls. Returns the results in the order of `jobs`.
+cached_wowsims_many <- function(jobs, workers = max(1, min(12, parallel::detectCores() - 2))) {
+  v <- wowsims_ensure()
+  dir <- "data/sim_cache/wowsims/jobs"; dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+  code <- lapply(list(book_wowsims, book_bonus_stats, book_weapon, wowsims_settings, wowsims_request, wowsims_siml), deparse)
+  basis <- wowsims_basis()
+  keys <- lapply(jobs, function(j) rlang::hash(list(j, basis, readLines(j$p$apl %||% wowsims_defaults$apl),
+                                                     wowsims_defaults[setdiff(names(wowsims_defaults), "apl")], code)))
+  path <- file.path(dir, paste0(names(jobs), ".rds"))
+  hit <- mapply(function(f, k) file.exists(f) && identical(readRDS(f)$key, k), path, keys)
+  run <- function(j, key, f) {
+    p <- book_wowsims(j$dps, j$ap, j$crit, j$hit, j$p %||% list())
+    value <- wowsims_run(utils::modifyList(p, list(iterations = j$iterations, seed = j$seed)))
+    value$log <- NULL
+    saveRDS(list(key = key, value = value), f)
+    NULL
+  }
+  environment(run) <- environment(book_wowsims)   # don't ship this function's frame (and the cluster) to the workers
+  todo <- which(!hit)
+  # A preview render (options(wowsims.cached_only = TRUE)) runs nothing: jobs not cached yet come back as NULL.
+  if (isTRUE(getOption("wowsims.cached_only"))) {
+    if (length(todo)) message(length(todo), " wowsims jobs not cached yet; left out of this preview")
+    return(stats::setNames(lapply(seq_along(path), function(i) if (hit[[i]]) readRDS(path[[i]])$value), names(jobs)))
+  }
+  if (length(todo)) {
+    message("Running ", length(todo), " wowsims jobs @", v$short)
+    if (length(todo) > 4 && workers > 1) {
+      cl <- parallel::makeCluster(min(workers, length(todo))); on.exit(parallel::stopCluster(cl))
+      parallel::clusterCall(cl, setwd, getwd())
+      parallel::clusterExport(cl, c("v", "run"), envir = environment())
+      invisible(parallel::clusterEvalQ(cl, { source("data/wowsims.R"); .wowsims$version <- v; NULL }))
+      parallel::clusterMap(cl, run, jobs[todo], keys[todo], path[todo], .scheduling = "dynamic")
+    } else Map(run, jobs[todo], keys[todo], path[todo])
+  }
+  stats::setNames(lapply(path, function(f) readRDS(f)$value), names(jobs))
 }
 
 # "Simmed with wowsims forever @abc1234, 2026-11-18", from one result or a list of them (they should share a commit;

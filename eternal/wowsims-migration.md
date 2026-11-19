@@ -47,7 +47,7 @@ Categories:
 | Reckless Swings global cooldown | None (assumed) | 1 sec | `rs_gcd`; 02 text. |
 | Windfury's strike and Flurry | Uses a charge | Uses none (EV-0138, EV-0140) | `wf_flurry`; 02 text. |
 | Whirlwind cost | 22 (Raging Blows) | 25: Raging Blows isn't in the launch tree | `ww_cost = 25` (22 stays for the 1 Oct build); 02, 03, 05 text. |
-| Glancing blow damage | 65% | 70% in Forever | `glance_dmg = 0.70` for Forever; 03 text. |
+| Glancing blow damage | 65% | A 55–75% roll, 65% on average (`sim/core/target.go`; 64.7% over 71 logged glances) | None needed. (A first reading of one log line said 70%; corrected the same day.) |
 | Heroic Strike | Rank 9, +157 | Rank 8, +138 (measured from the log) | `hs_bonus = 138` for Forever. |
 | Crit suppression (Rage on Crit) | None (Bored's spreadsheet) | 4.8% against a level 63 boss | 03's attack table and text. |
 | Rage per swing, crit ×2, no rage from dodges or Heroic Strike, Flurry 30%, Bloodthirst 45% AP + 48, Improved Whirlwind 8 sec / +30%, 80% refund, Execute 15 rage per point | | Same | Agrees. |

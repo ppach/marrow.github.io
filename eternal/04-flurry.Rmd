@@ -14,6 +14,7 @@ classic_rps <- function(dps, ap = 1200, armor = 0.75) {
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.0.1",  "2026-11-19", "Wording: the gear phases are modeled on what warriors wore in Classic, since Forever's gear isn't known yet, so the chapter now says phase 2-like gear (and so on) instead of phase 2. No numbers change.",
   "2.0.0",  "2026-11-18", "The check of the Markov chain now runs in wowsims (github.com/wowsims/forever), the community simulator the book follows for today's game: Flurry 3/3 against 0/3 with white swings only, with the chain fed the crit per swing wowsims measures. The haste-in-fights check still uses our simulator.",
   "1.5.0",  "2026-11-04", "Blizzard's 2 Nov development notes (the launch build): Flurry is now 3 points for 30% attack speed, the same as Classic's 5/5 (it was 5 points for 25%), and it no longer needs Death Wish. Flurry's extra rage goes up by about a fifth, and the comparison is now with the 25% Flurry Forever had before 2 Nov. The Bloodthirst and Whirlwind rotation behind the yellow crits uses Improved Whirlwind's 8-second cooldown.",
   "1.4.0",  "2026-10-31", "Added Haste breakpoints: on average, every bit of haste adds the same number of swings. Breakpoints only happen when a window always starts at the same point in your swing, which takes more than a static fight, and Flurry scrambles the swing timers within a few swings, so in the fight simulator a Fury warrior's rage and damage climb in a straight line with haste. Simulators and spreadsheets that start every fight on a swing and end it at a fixed time show breakpoints the game doesn't have.",
@@ -196,11 +197,11 @@ crit_rage <- function(dps, s) {
 }
 ```
 
-In Classic, 1% crit gave you rage twice over: the crit itself did more damage (so more rage), and it pushed Flurry up (so more swings). Forever works the same way now: a crit gives double rage, and it pushes Flurry up. For a phase 2 warrior at 28% sheet crit, 1% crit is worth about **`r round(crit_rage(58, 0.28)$forever, 1)` rage per minute in Forever** (`r round(crit_rage(58, 0.28)$forever_flurry, 1)` of it through Flurry), against about `r round(crit_rage(58, 0.28)$classic, 1)` in Classic. Before October, when only the Flurry part counted, it was a much weaker rage stat than in Classic. `r if (crit_rage(58, 0.28)$forever > crit_rage(58, 0.28)$classic) "Now it's a stronger one" else "Now it's close to Classic's"`, because Classic's crit rage follows the damage of each swing, and a phase 2 warrior's swings don't hit hard enough to give more than Forever's double lump.
+In Classic, 1% crit gave you rage twice over: the crit itself did more damage (so more rage), and it pushed Flurry up (so more swings). Forever works the same way now: a crit gives double rage, and it pushes Flurry up. For a phase 2-like warrior at 28% sheet crit, 1% crit is worth about **`r round(crit_rage(58, 0.28)$forever, 1)` rage per minute in Forever** (`r round(crit_rage(58, 0.28)$forever_flurry, 1)` of it through Flurry), against about `r round(crit_rage(58, 0.28)$classic, 1)` in Classic. Before October, when only the Flurry part counted, it was a much weaker rage stat than in Classic. `r if (crit_rage(58, 0.28)$forever > crit_rage(58, 0.28)$classic) "Now it's a stronger one" else "Now it's close to Classic's"`, because Classic's crit rage follows the damage of each swing, and a phase 2-like warrior's swings don't hit hard enough to give more than Forever's double lump.
 
 ## By gear phase
 
-To put numbers on each phase, we need a typical sheet crit for each one. These are rough guesses for a raiding dual wielder, not measured values:
+To put numbers on each phase, we need a typical sheet crit for each one. These are rough guesses for a raiding dual wielder in Classic-like gear (see [How Damage Scales](#scaling)), not measured values:
 
 ```{r}
 phase_crit <- c(0.20, 0.25, 0.28, 0.30, 0.32)
@@ -431,7 +432,7 @@ A static fight only takes care of the third. In a real raid, the first two almos
 And for a Fury warrior, the third doesn't hold either, because of Flurry. Each swing is either normal or `r haste_forever * 100`% faster, depending on whether you crit recently, which is down to luck. A hasted `r bp_speed` speed swing comes `r round(bp_speed - bp_speed / (1 + haste_forever), 2)` seconds sooner, so every few swings, your timer shifts by a random amount. Even if a window opens right after a swing, by the time it closes your swings could be anywhere.
 
 ```{r}
-bp_crit  <- eff_crit(crit_fixed)                                # white crit per swing at phase 2, after crit suppression
+bp_crit  <- eff_crit(crit_fixed)                                # white crit per swing with phase 2-like gear, after crit suppression
 bp_spd   <- c(sim_defaults$mh_speed, sim_defaults$oh_speed)
 win_grid <- c(10, 30)
 n_win    <- 20000
@@ -523,9 +524,9 @@ h_top <- which.max(haste_fights$h)
 haste_gain <- function(col) haste_fights[[col]][h_top] / haste_fights[[col]][haste_fights$h == 0] - 1
 ```
 
-Our fight simulator (a simplified model; this check hasn't moved to wowsims yet) starts each weapon's swing timer at a random point, then plays out every swing, crit, Flurry charge, Bloodthirst, Whirlwind and Heroic Strike. If anything in a real fight (the rotation, rage running out, Heroic Strike taking the place of main-hand swings) brought breakpoints back, rage and damage would climb in steps as haste goes up. Here are `r n_haste` three-minute fights at every amount of haste from 0 to 20%, in steps of 0.5%, for our phase 2 warrior:
+Our fight simulator (a simplified model; this check hasn't moved to wowsims yet) starts each weapon's swing timer at a random point, then plays out every swing, crit, Flurry charge, Bloodthirst, Whirlwind and Heroic Strike. If anything in a real fight (the rotation, rage running out, Heroic Strike taking the place of main-hand swings) brought breakpoints back, rage and damage would climb in steps as haste goes up. Here are `r n_haste` three-minute fights at every amount of haste from 0 to 20%, in steps of 0.5%, for our phase 2-like warrior:
 
-```{r haste-sim, fig.cap=paste0("Extra rage and damage per second from haste (on top of Flurry), in ", n_haste, " simulated three-minute fights at each point, for our phase 2 Forever warrior with the full rotation. Both climb in a straight line (the line is the best fit through the points), with no steps."), fig.height=3.8, fig.width=9}
+```{r haste-sim, fig.cap=paste0("Extra rage and damage per second from haste (on top of Flurry), in ", n_haste, " simulated three-minute fights at each point, for our phase 2-like Forever warrior with the full rotation. Both climb in a straight line (the line is the best fit through the points), with no steps."), fig.height=3.8, fig.width=9}
 ggplot(haste_extra, aes(h, extra)) +
   geom_line(aes(y = fit), colour = "grey60") +
   geom_point(colour = "#2c7fb8", size = 1.6) +
