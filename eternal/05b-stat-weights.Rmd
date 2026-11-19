@@ -11,6 +11,7 @@ pc  <- function(x) paste0(round(x * 100, 1), "%"); pc0 <- function(x) paste0(rou
 
 weights_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.0.1",  "2026-11-19", "Exchange rates rise as you gear up, not fall: crit's weight grows faster than attack power's.",
   "1.0.0",  "2026-11-19", "First version: what a stat weight is (the slope of your damage in one stat's direction), why it changes with your gear, and the attack table and damage formula behind each stat (attack power, weapon DPS, crit, hit, expertise, haste and weapon skill). The weights at each phase, the landscape of crit and hit, exchange rates in attack power, an interactive map of the best stat for your next rating points, and how to use weights to compare gear. All simmed in wowsims."
 )
 
@@ -371,7 +372,7 @@ ph_ap %>% filter(stat %in% sw_order) %>%
 
 With phase 2-like gear, 1% crit is worth `r f0(ape("crit"))` attack power, 1% expertise `r f0(ape("exp"))`, 1% hit `r f0(ape("hit"))` and 1% haste `r f0(ape("haste"))`. A point of weapon DPS is worth `r f0(ape("dps"))` attack power, and +5 weapon skill `r f0(ape("skill5"))`.
 
-The rates fall as you gear up: from pre-BiS-like to phase 4-like gear, 1% crit goes from `r f0(ape("crit", "Pre-BiS"))` attack power to `r f0(ape("crit", "Phase 4"))`. That's not because crit gets worse; in damage per second it gets better (`r f1(wp("crit", "Pre-BiS"))` to `r f1(wp("crit", "Phase 4"))`). Attack power gets better faster, because every point of it is multiplied by your crit and hit, which grow with your gear too.
+The rates rise as you gear up: from pre-BiS-like to phase 4-like gear, 1% crit goes from `r f0(ape("crit", "Pre-BiS"))` attack power to `r f0(ape("crit", "Phase 4"))`. Both weights grow, but crit's grows faster: from `r f1(wp("crit", "Pre-BiS"))` to `r f1(wp("crit", "Phase 4"))` damage per second (`r pc0(wp("crit", "Phase 4") / wp("crit", "Pre-BiS") - 1)` more), while attack power's goes from `r f2(wp("ap", "Pre-BiS"))` to `r f2(wp("ap", "Phase 4"))` (`r pc0(wp("ap", "Phase 4") / wp("ap", "Pre-BiS") - 1)` more). A crit adds one more hit's damage, so crit's weight grows with the size of your hits, and better weapons and more attack power make them much bigger. Attack power's weight only grows as more of your swings land and crit.
 
 Across the whole grid, the exchange rates move a lot:
 
