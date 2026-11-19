@@ -16,18 +16,21 @@
 # keyed on the request and the wowsims commit, so every cached number goes stale when wowsims changes.
 # See SIMS.md for how the book's sims run and how to refresh them.
 
-wowsims_repo <- function() normalizePath(Sys.getenv("WOWSIMS_REPO", "C:/Users/pedro/src/wowsims-forever"), "/", mustWork = FALSE)
+# The wowsims clone and the shared tools (wowsims_update.ps1, statsheet) sit next to this repo, under one parent folder
+# (see ../../wow-sim-tools/README.md). Override with WOWSIMS_REPO and WOW_SIM_TOOLS.
+wowsims_repo  <- function() normalizePath(Sys.getenv("WOWSIMS_REPO", "../../wowsims-forever"), "/", mustWork = FALSE)
+wowsims_tools <- function() normalizePath(Sys.getenv("WOW_SIM_TOOLS", "../../wow-sim-tools"), "/", mustWork = FALSE)
 wowsims_bin  <- function(name = "wowsimcli") file.path(wowsims_repo(), "bin", paste0(name, ".exe"))
 .wowsims <- if (exists(".wowsims", inherits = FALSE) && is.environment(.wowsims)) .wowsims else new.env(parent = emptyenv())   # kept when sourced again
 `%||%` <- function(a, b) if (is.null(a)) b else a
 json_obj <- function(x = list()) if (length(x)) x else structure(list(), names = character(0))   # {} in JSON
 
-# Run data/wowsims_update.ps1 (fetch, fast-forward, rebuild if needed), once per R session. With
+# Run wow-sim-tools/wowsims_update.ps1 (fetch, fast-forward, rebuild if needed), once per R session. With
 # options(wowsims.offline = TRUE) it skips the fetch but still rebuilds a binary that doesn't match the checkout.
 # Stops if the update or the build fails, or if the binary isn't from the checked-out commit.
 wowsims_ensure <- function() {
   if (!is.null(.wowsims$version)) return(.wowsims$version)
-  script <- normalizePath("data/wowsims_update.ps1", mustWork = TRUE)
+  script <- normalizePath(file.path(wowsims_tools(), "wowsims_update.ps1"), mustWork = TRUE)
   args <- c("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", shQuote(script), "-Repo", shQuote(wowsims_repo()))
   if (isTRUE(getOption("wowsims.offline"))) args <- c(args, "-Offline")
   status <- system2("powershell", args)
@@ -44,7 +47,7 @@ wowsims_ensure <- function() {
 # A setup is a list. Its fields, with the defaults below:
 #   talents      the talent string (wowsims order). The default is the book's Forever 17/34/0.
 #   apl          the rotation file, data/wowsims/book.apl.siml by default (the book's warrior; the site's fury rotation
-#                is data/wowsims/fury.apl.siml)
+#                is ../../auction-watch/gear-sim/fury.apl.siml)
 #   settings     SIML settings lines (race, stance, ...)
 #   weapons      list(mh = c(dps, speed), oh = c(dps, speed)): custom fist weapons with no stats, so no racial weapon
 #                skill applies. NULL to use the `gear` slot rows instead.
@@ -269,7 +272,7 @@ wowsims_action <- function(res, name, hand = NULL) {
 
 # ---- The character sheet ---------------------------------------------------------------------------------------------
 
-# The sheet wowsims computes for a setup (data/wowsims/statsheet): a list of stats and pseudo-stats.
+# The sheet wowsims computes for a setup (wow-sim-tools/statsheet): a list of stats and pseudo-stats.
 wowsims_sheet <- function(p = list()) {
   wowsims_ensure()
   s <- wowsims_settings(p)$settings
@@ -332,7 +335,10 @@ book_bonus_stats <- function(p, ap, crit, hit) {
 cached_wowsims <- function(name, p = list()) {
   v <- wowsims_ensure()
   full <- utils::modifyList(wowsims_defaults, p)
-  key <- rlang::hash(list(setup = full, siml = wowsims_siml(full), apl = readLines(full$apl), commit = v$commit))
+  # The SIML names the rotation file by its absolute path; leave it out, so the cache survives moving the repo (the
+  # rotation itself is in the key through its lines).
+  siml_key <- sub("use \"[^\"]*\"", "use", wowsims_siml(full))
+  key <- rlang::hash(list(setup = full, siml = siml_key, apl = readLines(full$apl), commit = v$commit))
   dir <- "data/sim_cache/wowsims"; dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   path <- file.path(dir, paste0(name, ".rds"))
   if (file.exists(path)) {

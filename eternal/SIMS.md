@@ -4,8 +4,9 @@ The book uses two simulators.
 
 1. **wowsims** ([github.com/wowsims/forever](https://github.com/wowsims/forever)) is the community simulator. The
    book treats it as the source of truth for how today's game works. Where the book's text or its own model
-   disagrees with wowsims, the book changes. A local clone lives at `C:\Users\pedro\src\wowsims-forever`, or wherever
-   the `WOWSIMS_REPO` environment variable points.
+   disagrees with wowsims, the book changes. A local clone lives next to this repo, at
+   `C:\Users\pedro\wow\wowsims-forever` (or wherever `WOWSIMS_REPO` points). The update script and the `statsheet`
+   helper are shared with the gear sim, in `C:\Users\pedro\wow\wow-sim-tools` (or `WOW_SIM_TOOLS`).
 2. **Our simulator** (`data/fight_sim.R`, `data/flurry.R`) is a simplified model. It runs what wowsims can't:
    Classic, the older Forever builds, the readings of a tooltip that turned out not to be the rule, and the
    rage-block formula. Its Forever rules follow wowsims (see the header of `fight_sim.R`). The text labels its
@@ -34,7 +35,7 @@ things.
 
 | Function                            | What it does                                                                                       |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `wowsims_ensure()`                  | Runs `data/wowsims_update.ps1` once per R session. Every wowsims call goes through it.             |
+| `wowsims_ensure()`                  | Runs `wow-sim-tools/wowsims_update.ps1` once per R session. Every wowsims call goes through it.    |
 | `cached_wowsims(name, p)`           | One multi-iteration run, cached in `data/sim_cache/wowsims/name.rds`.                              |
 | `wowsims_fights(name, setups, n)`   | `n` one-iteration fights per setup, on parallel workers. Fight *i* gets seed `seed0 + i` in every setup, so setups are paired. Each fight's combat log gives Heroic Strike times, rage per Execute and an approximate "Bloodthirst starved" share. Returns the columns of `fight_sim.R`'s `simulate_fight`, cached. |
 | `wowsims_sheet(p)`                  | The character sheet wowsims computes (the `statsheet` helper).                                     |
@@ -46,12 +47,12 @@ with them.
 
 ## Keeping wowsims current
 
-`data/wowsims_update.ps1` runs these steps:
+`wow-sim-tools/wowsims_update.ps1` runs these steps (the gear sim calls it too):
 
 1. It runs `git fetch`. If `origin/master` moved, it fast-forwards the clone. Then it prints the commit range and
    the commits that touch `sim/warrior`, `sim/common/forever`, `sim/core` or `proto`.
 2. If the binary isn't from the checked-out commit, it regenerates the protos and rebuilds `bin\wowsimcli.exe`. It
-   also builds `bin\wowsimcli-statsheet.exe` (from `data/wowsims/statsheet`). A running binary is moved aside, not
+   also builds `bin\wowsimcli-statsheet.exe` (from `wow-sim-tools/statsheet`). A running binary is moved aside, not
    overwritten.
 3. It writes `bin\wowsimcli.version.json` with the commit hash and date.
 
@@ -65,7 +66,7 @@ binary whose version file doesn't match the checkout, so the book never quietly 
   re-runs only the sims whose inputs or wowsims commit changed. A full re-run of the wowsims sims takes about an hour
   on 12 workers. The biggest part is the 441-cell crit grid in Rage on Crit.
 - **No network:** set `options(wowsims.offline = TRUE)` before you render.
-- **Update wowsims by hand:** run `powershell -ExecutionPolicy Bypass -File data\wowsims_update.ps1` (add `-Force`
+- **Update wowsims by hand:** run `powershell -ExecutionPolicy Bypass -File ..\..\wow-sim-tools\wowsims_update.ps1` (add `-Force`
   to rebuild anyway).
 - **Force every sim to run again:** delete `data/sim_cache/` (our simulator) or `data/sim_cache/wowsims/` (wowsims).
 - **When wowsims changes a rule:** the numbers update by themselves, but the text and `fight_sim.R` don't. Read the

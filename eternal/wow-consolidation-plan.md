@@ -1,6 +1,8 @@
 # Plan: put the WoW projects side by side under C:\Users\pedro\wow
 
-Status: a proposal. Nothing has moved. Written 18 Nov 2026.
+Status: **done on 18 Nov 2026** (steps 1 to 7 below). The old folders are still in place as a fallback (step 8). One
+change from the proposal: the site's fury rotation stayed in the gear sim, since the book doesn't use it, so nothing is
+copied twice.
 
 ## Target layout
 
@@ -21,8 +23,7 @@ things: "update and rebuild wowsims first" and the fury rotation files. Today th
 - `wowsims_update.ps1` (moved from the book), which also builds the `statsheet` helper
 - `statsheet/` (today `eternal/data/wowsims/statsheet`): prints wowsims' character sheet for a setup. The gear sim
   could use it to show stats next to each swap.
-- `apl/fury.apl.siml` (the site's rotation); the book's own rotations (`book*.apl.siml`, `white_only.apl.siml`) stay in
-  the book
+- (not moved: the site's fury rotation stays in `gear-sim/`, the only user; the book's own rotations stay in the book)
 - `siml.py`, the SIML builder and CLI runner pulled out of `gear-sim/sim_swaps.py`
 
 The R bridge (`data/wowsims.R`) stays in the book. It would find the tools through a `WOW_SIM_TOOLS` environment
