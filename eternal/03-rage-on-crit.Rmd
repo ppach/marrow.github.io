@@ -6,10 +6,12 @@
 # (the 2 Nov build). The older rule versions (v0, v1, v2 on the 1 Oct build) are still simulated here, because Classic
 # comes from the same saved grid and How the Rules Changed uses the versions.
 source("data/sim_cache.R")
+source("data/wowsims.R")   # today's game is simmed in wowsims (see SIMS.md)
 library(parallel)
 
 crit_changelog <- tribble(
   ~version, ~date,        ~change,
+  "4.0.0",  "2026-11-18", "Today's game is now simmed in wowsims (github.com/wowsims/forever), the community simulator, which the book follows as the source of truth: every rage map, the Heroic Strike waits and the gear-point table for today's Forever. The attack table follows wowsims for every set of rules: a boss three levels up takes 4.8% off your crit (the chapter used to assume no crit suppression), and Forever's glancing blows do 70% damage. Classic, the older versions and the no-crit-bonus line stay on our simulator, a simplified model.",
   "3.0.0",  "2026-11-17", "Rebuilt on today's game (the 2 Nov build: crits x2, off hand x1.5, Flurry 30%, Improved Whirlwind and Reckless Swings) against Classic, at every crit, hit and attack power, with today's game without the crit bonus to show what the rule adds. The comparison of the rule versions (v0, v1 and v2 on the 1 Oct build) moved to How the Rules Changed, and the two design ideas were taken out. The check against Bored's spreadsheet stays.",
   "2.1.0",  "2026-11-04", "Added Since 2 November: Blizzard's 2 Nov notes gave Fury Flurry 3/3 at 30%, Improved Whirlwind and Reckless Swings. The crit rules are unchanged, so the versions stay on the build they were announced for (1 Oct to 2 Nov), and today's game is simulated alongside them at every crit and hit.",
   "2.0.0",  "2026-10-28", "v2 is in the game: Blizzard's 1 Oct development notes give crits 100% more rage, and the hotfixed talent tree gives Dual Wield Specialization +50% off-hand rage, with its off-hand hit moved to Furious Precision. The rest of the book now uses v2. Every version is simulated on today's build otherwise (Bloodthirst at 45% of attack power, a 100 rage cap without Boundless Rage, Whirlwind for 22 rage with Raging Blows, and a queued Heroic Strike no longer raising off-hand hit), and the rage Bloodthirst and Whirlwind need comes from the How Damage Scales chapter's rage blocks.",
@@ -18,11 +20,12 @@ crit_changelog <- tribble(
 
 C60 <- conv(60)
 crit_wpn <- 58   # the phase 2 weapon from the How Damage Scales chapter, held fixed
-# The attack table against a level 63 boss with 300 weapon skill, with no hit or crit suppression (in-game tooltips,
-# Bored's spreadsheet): 27% white miss for a dual wielder and 8% for abilities before hit from gear, 6.5% dodge, and 40%
-# glancing blows at 65% damage. Windfury Totem is always up.
-crit_table <- function(hit) list(crit_suppression = 0, miss = 0.27 - hit, yellow_miss = max(0.08 - hit, 0),
-                                 dodge = 0.065, glance = 0.40, glance_dmg = 0.65, wf = TRUE)
+# The attack table against a level 63 boss with 300 weapon skill, as wowsims has it: 27% white miss for a dual wielder
+# and 8% for abilities before hit from gear, 6.5% dodge, 40% glancing blows (70% damage in Forever, 65% in Classic,
+# from each game's profile), and the boss takes 4.8% off your crit (sim_defaults$crit_suppression). Windfury Totem is
+# always up.
+crit_table <- function(hit) list(miss = 0.27 - hit, yellow_miss = max(0.08 - hit, 0),
+                                 dodge = 0.065, glance = 0.40, wf = TRUE)
 # Each version of the rage rules. Forever versions use the 17/34/0 Forever build as it was from 1 Oct to 2 Nov
 # (`forever_oct_talents`: Bloodthirst at 45%, a 100 rage cap, Whirlwind for 22 rage, Flurry 25%); only the off-hand
 # rage multiplier (Dual Wield Specialization), the crit multiplier and the Flurry bonus change, so the versions differ
@@ -134,13 +137,32 @@ now_grid <- bind_rows(
   expand_grid(model = "Forever", ap = seq(1000, 3000, 250), crit = seq(0.15, 0.45, 0.05), hit = seq(0, 0.15, 0.025)),
   expand_grid(model = "Forever, no crit bonus", ap = 2000, crit = seq(0.15, 0.45, 0.05), hit = seq(0, 0.15, 0.025))
 ) %>% mutate(across(c(crit, hit), ~ round(.x, 3)))
-crit_res_now <- cached_sim("crit_grid_now", deps = list(now_grid, now_versions, deparse(crit_table), gear_points, n_crit, crit_fight_len, crit_wpn, forever_draws, sim_defaults, forever_talents), {
+# Today's Forever in wowsims: every cell of the grid, 30 ten-minute fights each, fight by fight so the Heroic Strike
+# waits come from the combat logs. The no-crit-bonus game can't be run in wowsims, so it stays on our simulator.
+n_crit_ws <- 30
+now_ws_grid <- filter(now_grid, model == "Forever")
+now_ws_setups <- setNames(pmap(now_ws_grid, function(model, ap, crit, hit) {
+  book_wowsims(crit_wpn, ap, crit, hit, p = list(raid_buffs = "windfury_totem", duration = crit_fight_len))
+}), paste(now_ws_grid$ap, now_ws_grid$crit, now_ws_grid$hit, sep = "|"))
+now_ws_fights <- wowsims_fights("crit_grid_now", now_ws_setups, n_crit_ws, seed0 = 900)
+crit_ws_stamp <- wowsims_stamp(list(version = attr(now_ws_fights, "version")))
+crit_res_now_ws <- now_ws_fights %>%
+  separate(setup, c("ap", "crit", "hit"), sep = "\\|", convert = TRUE) %>%
+  group_by(ap, crit, hit) %>%
+  summarise(rps = mean(rps), dps = mean(total_dps), bt = mean(bt_pm), ww = mean(ww_pm), hs = mean(hs_pm),
+            starved = mean(starved_share), wasted = NA_real_, gaps = list(unlist(lapply(hs_t, diff))), .groups = "drop") %>%
+  mutate(model = "Forever", gap_med = map_dbl(gaps, median), gap_p90 = map_dbl(gaps, ~ unname(quantile(.x, 0.9))),
+         keep = pmap_lgl(list(ap, crit, hit), function(a, c, h)
+           any(abs(gear_points$crit - c) < 1e-9 & abs(gear_points$hit - h) < 1e-9 & gear_points$ap == a)),
+         gaps = map2(gaps, keep, ~ if (.y) .x else NULL)) %>%
+  select(-keep)
+crit_res_now_nb <- cached_sim("crit_grid_now", deps = list(filter(now_grid, model != "Forever"), now_versions, deparse(crit_table), gear_points, n_crit, crit_fight_len, crit_wpn, forever_draws, sim_defaults, forever_talents), {
   cl <- makeCluster(max(1, min(14, detectCores() - 2)))
   on.exit(stopCluster(cl))
   clusterCall(cl, setwd, getwd())
   clusterExport(cl, c("now_versions", "crit_table", "gear_points", "n_crit", "crit_fight_len", "crit_wpn", "forever_draws"), envir = environment())
   invisible(clusterEvalQ(cl, { suppressMessages(library(tidyverse)); source("data/fight_sim.R") }))
-  rows <- split(now_grid, seq_len(nrow(now_grid)))
+  rows <- split(filter(now_grid, model != "Forever"), seq_len(sum(now_grid$model != "Forever")))
   bind_rows(parLapplyLB(cl, rows, function(j) {
     p <- modifyList(modifyList(modifyList(sim_defaults, forever_talents), crit_table(j$hit)),
                     c(list(ap = j$ap, crit = j$crit, fight_len = crit_fight_len), now_versions[[j$model]]$p))
@@ -148,13 +170,13 @@ crit_res_now <- cached_sim("crit_grid_now", deps = list(now_grid, now_versions, 
     r <- map_dfr(seq_len(n_crit), function(i) { set.seed(900 + i); simulate_fight(rage_fn, crit_wpn, p) })
     gaps <- unlist(lapply(r$hs_t, diff))   # seconds between one Heroic Strike and the next
     # keep every gap only at the three gear points (the no-bonus game stands in at any attack power)
-    keep <- any(abs(gear_points$crit - j$crit) < 1e-9 & abs(gear_points$hit - j$hit) < 1e-9 &
-                (gear_points$ap == j$ap | j$model != "Forever"))
+    keep <- any(abs(gear_points$crit - j$crit) < 1e-9 & abs(gear_points$hit - j$hit) < 1e-9)
     tibble(j, rps = mean(r$rps), dps = mean(r$total_dps), bt = mean(r$bt_pm), ww = mean(r$ww_pm), hs = mean(r$hs_pm),
            starved = mean(r$starved_share), wasted = mean(r$wasted_pm),
            gap_med = median(gaps), gap_p90 = unname(quantile(gaps, 0.9)), gaps = list(if (keep) gaps else NULL))
   }))
 })
+crit_res_now <- bind_rows(crit_res_now_ws, crit_res_now_nb)
 ```
 
 ```{r crit-helpers, include=FALSE}
@@ -337,17 +359,19 @@ This chapter asks what the rule does for a Fury warrior in today's game. How muc
 
 ## Our warrior
 
-Our warrior is the one from the rest of the book: level 60, dual wielding a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand and a `r sprintf('%.1f', sim_defaults$oh_speed)` speed off hand (both a phase 2 weapon, `r crit_wpn` DPS), with the 17/34/0 Fury build the game launched with: Flurry 3/3 (`r pc0(forever_talents$flurry_haste)` attack speed), Improved Whirlwind and Reckless Swings, on top of Dual Wield Specialization, Furious Precision, Raging Blows, Unbridled Wrath and Anger Management. What's different in this chapter:
+Our warrior is the one from the rest of the book: level 60, dual wielding a `r sprintf('%.1f', sim_defaults$mh_speed)` speed main hand and a `r sprintf('%.1f', sim_defaults$oh_speed)` speed off hand (both a phase 2 weapon, `r crit_wpn` DPS), with the 17/34/0 Fury build the game launched with: Flurry 3/3 (`r pc0(forever_talents$flurry_haste)` attack speed), Improved Whirlwind and Reckless Swings, on top of Dual Wield Specialization, Furious Precision, Unbridled Wrath and Anger Management. What's different in this chapter:
 
-- **The boss is level 63,** and we have no weapon skill from gear or race. Before any hit from gear, `r pc(0.27)` of white swings miss (it's high because dual wielding adds 19%), and `r pc(0.08)` of abilities do. `r pc(0.065)` are dodged, and `r pc(0.40)` of white swings are glancing blows, which do `r pc(0.65)` damage and can't crit.
-- **No hit or crit suppression.** In Classic, a boss three levels above you took away 1% of your hit and some of your crit. The Forever tooltips don't, so we don't either.
+- **The boss is level 63,** and we have no weapon skill from gear or race. Before any hit from gear, `r pc(0.27)` of white swings miss (it's high because dual wielding adds 19%), and `r pc(0.08)` of abilities do. `r pc(0.065)` are dodged, and `r pc(0.40)` of white swings are glancing blows, which do `r pc(forever_talents$glance_dmg)` damage in Forever (`r pc(classic_talents$glance_dmg)` in Classic) and can't crit.
+- **The boss takes `r pc(sim_defaults$crit_suppression)` off your crit,** as in wowsims: so 30% crit on your character sheet is about `r pc(0.30 - sim_defaults$crit_suppression)` against a boss. (This chapter used to assume no crit suppression, following Bored's spreadsheet and the tooltips; wowsims has it, and the book follows wowsims.)
 - **Windfury Totem is always up** (a 20% chance of an extra main-hand swing, as in WarriorSim).
 - **Gear is three numbers:** attack power from 1000 to 3000, crit on the character sheet from 15% to 45%, and hit from gear from 0% to 15%. Most warriors will have **5 to 10% hit**, and the plots mark that range.
 - **Heroic Strike is queued at `r sim_defaults$hs_threshold` rage**, as in the rest of the book.
 
-Each combination of gear is played `r n_crit` times, in fights of `r crit_fight_len / 60` minutes, in today's Forever and in Classic. To see what the crit rule itself adds, we also play today's Forever with no crit bonus (a crit gives the same rage as a normal hit), with everything else the same.
+Each combination of gear is played in fights of `r crit_fight_len / 60` minutes: `r n_crit_ws` times in today's Forever, in wowsims, and `r n_crit` times in Classic, in our simulator (a simplified model, since wowsims only runs today's game). To see what the crit rule itself adds, we also play today's Forever with no crit bonus (a crit gives the same rage as a normal hit), with everything else the same. That one can't be run in wowsims, so it's played in our simulator, as Classic is.
 
-The Forever rage per swing comes from the combat logs shared by Tarch, Ryqenz (Zomd Aya), Siax, Budder, Ceece and elvenfresh. The attack table and Windfury follow GuybrushGit's [WarriorSim](https://github.com/GuybrushGit/WarriorSim). The check at the end of the chapter, and the no-suppression attack table, come from Bored's [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml) (with thanks to Mikasax and Char). Everyone is credited in the [Contributors](#contributors) chapter.
+*Today's Forever: `r crit_ws_stamp`.*
+
+The Forever rage per swing comes from the combat logs shared by Tarch, Ryqenz (Zomd Aya), Siax, Budder, Ceece and elvenfresh. The attack table and Windfury follow GuybrushGit's [WarriorSim](https://github.com/GuybrushGit/WarriorSim). The check at the end of the chapter comes from Bored's [Forever rage spreadsheet](https://docs.google.com/spreadsheets/d/e/2PACX-1vQLlq64gK7zXzv3HD5VRjT__BzzIiPwzu2zvz5JQtIJcKDU_Tskpd1M0Nf1r3NsM77hdR5-D_7xlpo9/pubhtml) (with thanks to Mikasax and Char). Everyone is credited in the [Contributors](#contributors) chapter.
 
 ## Step 1: one swing
 
@@ -359,7 +383,7 @@ $$
 \underbrace{L}_{\text{every landed swing}} \; + \; \underbrace{(m - 1)\,c}_{\text{the extra from crits}}
 $$
 
-With `r pc(0.30)` crit and `r pc(0.075)` hit, `r pc0(1 - (0.27 - 0.075) - 0.065)` of your main-hand swings land, so the crit bonus adds `r pc0(0.30 / (1 - (0.27 - 0.075) - 0.065))` to your main hand's rage. Every extra 1% of crit adds about `r pc(0.01 / (1 - (0.27 - 0.075) - 0.065))` more.
+With `r pc(0.30)` crit on your sheet (`r pc(0.30 - sim_defaults$crit_suppression)` against the boss) and `r pc(0.075)` hit, `r pc0(1 - (0.27 - 0.075) - 0.065)` of your main-hand swings land, so the crit bonus adds `r pc0((0.30 - sim_defaults$crit_suppression) / (1 - (0.27 - 0.075) - 0.065))` to your main hand's rage. Every extra 1% of crit adds about `r pc(0.01 / (1 - (0.27 - 0.075) - 0.065))` more.
 
 This sum leaves out Flurry, Windfury, Unbridled Wrath and Reckless Swings, which the simulations include. Flurry matters here: more crits mean more Flurry, so more swings, and that rage grows with crit too, with or without the crit rule. Reckless Swings gives the same rage whatever your crit.
 
@@ -408,7 +432,7 @@ hit_gain  <- function(m) gv(m, 0.30, 0.10) - gv(m, 0.30, 0)
 
 What the simulation shows:
 
-- **Today's Forever covers Bloodthirst and Whirlwind with any gear in our range.** Across the whole grid it has `r f2(min(f_all$rps))` to `r f2(max(f_all$rps))` rage per second, above the `r bt_ww_need_now` the two use, even with 15% crit and no hit. Even with no crit bonus it would only just cover them (`r f2(min(nb_all$rps))` at the lowest), because Reckless Swings, Flurry and Dual Wield Specialization's off-hand bonus give it a high floor. So the rage the crit rule adds goes to Heroic Strike.
+- **Today's Forever covers Bloodthirst and Whirlwind with any gear in our range.** Across the whole grid it has `r f2(min(f_all$rps))` to `r f2(max(f_all$rps))` rage per second, above the `r bt_ww_need_now` the two use, even with 15% crit and no hit. With no crit bonus it would fall a little short at the lowest gear (`r f2(min(nb_all$rps))`), so it's the crit rule that keeps both covered everywhere, on top of the high floor from Reckless Swings, Flurry and Dual Wield Specialization's off-hand bonus. Past that, the rage the crit rule adds goes to Heroic Strike.
 - **The crit bonus is where the growth comes from.** It adds `r f2(min(bonus_diff$d))` to `r f2(max(bonus_diff$d))` rage per second across the grid. At 7.5% hit, going from 15% to 45% crit adds `r f2(crit_gain("Forever"))` rage per second, against `r f2(crit_gain("Forever, no crit bonus"))` with no crit bonus, which comes from Flurry alone.
 - **Classic starts lower and ends higher.** Classic's rage grows with attack power as well as crit, so it starts well below Forever at early gear and passes it by late gear. At 30% crit and 7.5% hit, it passes Forever at about `r format(round(ap_cross, -2), big.mark = ",")` attack power. At early gear, a Classic warrior is waiting for rage for Bloodthirst `r pc(at_point("Classic", "Early", "starved"))` of the time, against `r pc(at_point("Forever", "Early", "starved"))` in Forever.
 
@@ -475,7 +499,7 @@ Across the whole grid, attack power moves Forever's rage by `r f2(ap_spread$s[ap
 
 ### The ceiling
 
-Every line in Figure \@ref(fig:crit-lines) flattens out after about 35% crit, Classic's included. At 7.5% hit, today's Forever gains `r f2(gv("Forever", 0.35, 0.075) - gv("Forever", 0.15, 0.075))` rage per second from 15% to 35% crit, and only `r f2(gv("Forever", 0.45, 0.075) - gv("Forever", 0.35, 0.075))` from 35% to 45%. That isn't a rule anyone wrote. It comes from the attack table.
+Every line in Figure \@ref(fig:crit-lines) flattens out after about 35 to 40% crit on the character sheet, Classic's included. At 7.5% hit, today's Forever gains `r f2(gv("Forever", 0.35, 0.075) - gv("Forever", 0.15, 0.075))` rage per second from 15% to 35% crit, and only `r f2(gv("Forever", 0.45, 0.075) - gv("Forever", 0.35, 0.075))` from 35% to 45%. That isn't a rule anyone wrote. It comes from the attack table.
 
 Every white swing gets exactly one result from a single roll: a miss, a dodge, a glancing blow, a crit or a normal hit. Those shares have to add up to 100%. Against a level 63 boss, `r pc(0.40)` of white swings are glancing blows, which can't crit, so a white swing can crit at most
 
@@ -483,7 +507,7 @@ $$
 c_{\max} \; = \; 1 \; - \; \text{miss} \; - \; \text{dodge} \; - \; \underbrace{0.40}_{\text{glancing}}
 $$
 
-of the time. Past that, more crit on your character sheet doesn't give a single extra crit on a white swing, so it gives no more rage either.
+of the time. Past that, more crit doesn't give a single extra crit on a white swing, so it gives no more rage either. Since the boss takes `r pc(sim_defaults$crit_suppression)` off your crit first, your character sheet reaches the ceiling at about `r pc(sim_defaults$crit_suppression)` above it.
 
 ```{r}
 tibble(hit = c(0, 0.05, 0.075, 0.10, 0.15)) %>%
@@ -491,7 +515,7 @@ tibble(hit = c(0, 0.05, 0.075, 0.10, 0.15)) %>%
   knitr::kable(caption = "The most a white swing can crit against a level 63 boss, at each level of hit. The off hand has more room, because Furious Precision gives it 10% more hit.")
 ```
 
-With `r pc(0.075)` hit, the main hand can't crit more than `r pc(crit_cap(0.075, "MH"))` of the time, and the ceiling moves up with hit: every 1% of hit gives 1% more room for crits. So Forever's rage already has a cap. It's set by the attack table, not by the crit rule, and it sits near the top of the gear we expect.
+With `r pc(0.075)` hit, the main hand can't crit more than `r pc(crit_cap(0.075, "MH"))` of the time (about `r pc(crit_cap(0.075, "MH") + sim_defaults$crit_suppression)` on your character sheet), and the ceiling moves up with hit: every 1% of hit gives 1% more room for crits. So Forever's rage already has a cap. It's set by the attack table, not by the crit rule, and it sits near the top of the gear we expect.
 
 ## Step 5: how it feels
 
@@ -595,7 +619,8 @@ Two smaller things in the spreadsheet are worth knowing about. It applies the cr
 
 - **Announced:** the crit bonus (twice a normal swing's rage, in both hands), Dual Wield Specialization's +50% off-hand rage, Furious Precision's off-hand hit, and the 2 November talents (Flurry's 30%, Improved Whirlwind and Reckless Swings).
 - **Measured:** the rage per swing for each hand, that it doesn't depend on damage, and that a hasted swing gives the full rage (the [Rage Generation chapter](#rage)).
-- **Assumed:** the attack table against a level 63 boss with no suppression (from the tooltips), that Windfury swings give rage like any other swing, and Windfury itself, since it needs a shaman in the group.
+- **From wowsims:** today's Forever at every gear point, including the Heroic Strike waits (from its combat logs), the attack table against a level 63 boss with its crit suppression, and what Windfury Totem's strike gives.
+- **Assumed:** Windfury itself, since it needs a shaman in the group.
 - **Our guesses:** the gear ranges, and the rotation, with Heroic Strike queued at `r sim_defaults$hs_threshold` rage.
 
 The most useful logs for this chapter would come from level 60 dual wielders, with their gear posted, to replace our guessed gear ranges with real ones.
@@ -606,10 +631,10 @@ The most useful logs for this chapter would come from level 60 dual wielders, wi
 2. **Any gear covers Bloodthirst and Whirlwind.** Today's warrior has at least `r f2(min(f_all$rps))` rage per second in our grid, against the `r bt_ww_need_now` the two use. Reckless Swings, Flurry and the off-hand bonus nearly cover them on their own, so the crit bonus goes to Heroic Strike.
 3. **Hit gives rage, but the crit rule doesn't make it worth more.** It turns misses into normal hits, not into crits.
 4. **Attack power still gives no rage**, so Forever's rage can't run away like Classic's did. Forever starts ahead of Classic, and Classic passes it at about `r format(round(ap_cross, -2), big.mark = ",")` attack power (at 30% crit and 7.5% hit).
-5. **There's already a ceiling.** A white swing can't crit more than the attack table leaves room for (about `r pc(crit_cap(0.075, "MH"))` for the main hand at 7.5% hit), so rage flattens out after about 35% crit.
+5. **There's already a ceiling.** A white swing can't crit more than the attack table leaves room for (about `r pc(crit_cap(0.075, "MH"))` for the main hand at 7.5% hit, or `r pc(crit_cap(0.075, "MH") + sim_defaults$crit_suppression)` on the character sheet), so rage flattens out after about 35 to 40% crit.
 6. **The crit bonus makes the rotation steadier.** At mid gear, the 1-in-10 wait between Heroic Strikes is `r f0(at_point("Forever", "Mid", "gap_p90"))` seconds, against `r f0(at_point("Forever, no crit bonus", "Mid", "gap_p90"))` with no crit bonus. At early gear, Forever is much steadier than Classic.
 
-These simulations are simplified, and the gear ranges are our guesses, so the exact numbers are there to illustrate what's happening, not to predict it. The shapes are the part to take away.
+Today's Forever comes from wowsims, which follows the game's rules; Classic and the no-crit-bonus line come from our simplified simulator. The gear ranges are our guesses, so the exact numbers are there to illustrate what's happening, not to predict your own. The shapes are the part to take away.
 
 ## Changelog {#crit-changelog}
 

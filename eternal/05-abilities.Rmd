@@ -4,6 +4,7 @@
 # Reuses `phases`, `C60`, `forever_draws`, `n_fights` and the fight simulator from the earlier chapters.
 abilities_changelog <- tribble(
   ~version, ~date,        ~change,
+  "4.0.0",  "2026-11-18", "Forever's fights (damage per rage across the phases, the whole-fight shares, Whirlwind first, and the execute phase) are now simmed in wowsims (github.com/wowsims/forever), the community simulator the book follows as the source of truth. Classic stays on our simulator. Whirlwind costs 25 in Forever (Raging Blows isn't in the launch tree), Heroic Strike is rank 8, and Improved Execute takes Execute to 10 rage, as in wowsims.",
   "3.1.0",  "2026-11-04", "The 2 Nov tree (Blizzard's 2 Nov development notes, the launch build): Improved Whirlwind cuts Whirlwind's cooldown to 8 seconds and adds 30% to its damage, Reckless Swings adds 1.33 rage per second, and Flurry gives 30%. Whirlwind does more damage per rage than before, and Forever has more rage for Heroic Strike and Execute.",
   "3.0.0",  "2026-10-28", "Today's rules, from Blizzard's 1 Oct development notes and hotfixes: Bloodthirst is back to 45% of attack power (plus 48), so it's a little stronger than Classic's rather than much weaker, and the attack power where it beats Execute drops below Classic's. Whirlwind hits with both weapons without a talent and costs 22 with Raging Blows. Forever's rage now grows with crit, so its Executes grow a little with gear, and both games cap rage at 100.",
   "2.0.0",  "2026-09-25", "Classic's rage corrected to 7.5 x damage / C (it was 15), and the simulator now follows WarriorSim and ClassicSim for crit suppression, rage refunds, the Heroic Strike queue and Deep Wounds. Forever now does more damage than Classic until phase 4, putting Whirlwind first helps Forever and costs Classic a little (as damage per rage predicts), and at pre-BiS Classic affords fewer Executes than Forever.",
@@ -15,6 +16,9 @@ abilities_changelog <- tribble(
 )
 
 n_fights <- 500   # simulated fights for each game and phase
+source("data/wowsims.R")   # Forever is simmed in wowsims, fight by fight (see SIMS.md)
+# The book's Forever warrior at a phase, as a wowsims setup (the phase's weapon, attack power and crit, 7% hit)
+ws_phase <- function(ph, p = list()) { g <- gear[gear$phase == ph, ]; book_wowsims(g$dps, g$ap, g$crit, p = p) }
 talents_ref   <- read_csv("data/talents/warrior_talents.csv", show_col_types = FALSE)
 abilities_ref <- read_csv("data/talents/warrior_abilities.csv", show_col_types = FALSE)
 
@@ -60,7 +64,7 @@ tribble(
   "Whirlwind",    "Main-hand weapon damage, to up to 4 enemies",
                   "Damage from both weapons, to up to 4 enemies",
   "Cost and cooldown", "Bloodthirst 30 rage, 6 sec. Whirlwind 25 rage, 10 sec",
-                  "The same, but Raging Blows (Fury, row 4) takes 3 rage off Whirlwind, so 22 in the popular build",
+                  "The same (Raging Blows, which took Whirlwind to 22 on the 1 Oct build, isn't in the launch tree)",
   "Talents", "None for either",
                   "Improved Whirlwind (Fury, row 6, new on 2 Nov): Whirlwind's cooldown 2 sec shorter, and 30% more damage to the closest enemy. Bloodthirst now needs Death Wish"
 ) %>% knitr::kable(caption = "Bloodthirst and Whirlwind in the two games, from the game's tooltips (via talentsforever.com) and Blizzard's 1 Oct and 2 Nov development notes.")
@@ -127,7 +131,7 @@ cast_summary %>%
   knitr::kable(caption = "Damage per rage of single casts with phase 2 gear.")
 ```
 
-With phase 2 gear, Bloodthirst goes from about `r round(cs("Classic", "Bloodthirst", "mean"))` damage per rage in Classic to `r round(cs("Forever", "Bloodthirst", "mean"))` in Forever, thanks to its flat bonus, while Whirlwind jumps from `r round(cs("Classic", "Whirlwind", "mean"))` to `r round(cs("Forever", "Whirlwind", "mean"))`, with a second hit, a lower cost and, since 2 November, Improved Whirlwind's +`r round((forever_talents$ww_dmg_mult - 1) * 100)`% (it was `r round(ww_oct_dpr)` before that). **In Classic, Bloodthirst was the better use of rage. In Forever it's Whirlwind, by a wide margin.**
+With phase 2 gear, Bloodthirst goes from about `r round(cs("Classic", "Bloodthirst", "mean"))` damage per rage in Classic to `r round(cs("Forever", "Bloodthirst", "mean"))` in Forever, thanks to its flat bonus, while Whirlwind jumps from `r round(cs("Classic", "Whirlwind", "mean"))` to `r round(cs("Forever", "Whirlwind", "mean"))`, with a second hit and, since 2 November, Improved Whirlwind's +`r round((forever_talents$ww_dmg_mult - 1) * 100)`% (it was `r round(ww_oct_dpr)` before that). **In Classic, Bloodthirst was the better use of rage. In Forever it's Whirlwind, by a wide margin.**
 
 Forever's Whirlwind is also more reliable. A Classic Whirlwind or any Bloodthirst does nothing `r (sim_defaults$yellow_miss + sim_defaults$dodge) * 100`% of the time (a miss or a dodge), while Forever's Whirlwind only does nothing when *both* hits miss, which is about `r round(cs("Forever", "Whirlwind", "miss") * 100, 1)`% of casts.
 
@@ -145,7 +149,18 @@ expand_grid(game = c("Classic", "Forever"), phase = gear$phase) %>%
   })) %>% unnest(res) %>%
   mutate(phase = factor(phase, levels = levels(phases$phase)))
 })
+ability_sims_r <- ability_sims   # both games in our simulator: How the Rules Changed compares builds on it
+# Forever in wowsims: the same phases, n_fights one-iteration fights each, seeds 1001 to 1500 (shared with the
+# Whirlwind-first fights below, so those are paired)
+ws_fights <- wowsims_fights("abilities_fights", setNames(lapply(levels(gear$phase), ws_phase), levels(gear$phase)), n_fights, seed0 = 1000)
+abilities_stamp <- wowsims_stamp(list(version = attr(ws_fights, "version")))
+ability_sims <- bind_rows(
+  filter(ability_sims_r, game == "Classic"),
+  ws_fights %>% mutate(game = "Forever", phase = factor(setup, levels = levels(phases$phase))) %>% select(-setup, -fight)
+)
 ```
+
+*Forever: `r abilities_stamp`. Classic: our simulator, a simplified model.*
 
 ```{r fig.cap="Damage per rage of Bloodthirst and Whirlwind at each phase, averaged over each simulated fight. The dots are the typical fight, and the lines cover the middle 90% of fights.", fig.height=4.5}
 ability_sims %>%
@@ -169,7 +184,7 @@ dpr_phase <- ability_sims %>% group_by(game, phase) %>%
 dp <- function(g, ph, col) dpr_phase[[col]][dpr_phase$game == g & dpr_phase$phase == ph]
 ```
 
-In Classic, Bloodthirst stays ahead at every phase, by a fairly steady `r round(min((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` to `r round(max((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` damage per rage. In Forever it's the other way round from the start, and the gap grows with every phase, since Whirlwind gets two weapons' worth out of each weapon upgrade: even at pre-BiS, Whirlwind gets `r round(dp("Forever", "Pre-BiS", "ww") / dp("Forever", "Pre-BiS", "bt"), 1)` times Bloodthirst's damage per rage, and by phase 4 it's `r round(dp("Forever", "Phase 4", "ww") / dp("Forever", "Phase 4", "bt"), 1)` times. Even with all the luck of a single fight, Whirlwind comes out ahead in `r round(min(dpr_phase$ww_wins[dpr_phase$game == "Forever"]) * 100)`% or more of Forever fights at every phase, against `r round(max(dpr_phase$ww_wins[dpr_phase$game == "Classic"]) * 100)`% or fewer in Classic.
+In Classic, Bloodthirst stays ahead at every phase, by a fairly steady `r round(min((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` to `r round(max((dpr_phase$bt - dpr_phase$ww)[dpr_phase$game == "Classic"]), 0)` damage per rage. In Forever it's the other way round from the start, and the gap grows with every phase, since Whirlwind gets two weapons' worth out of each weapon upgrade: even at pre-BiS, Whirlwind gets `r round(dp("Forever", "Pre-BiS", "ww") / dp("Forever", "Pre-BiS", "bt"), 1)` times Bloodthirst's damage per rage, and by phase 4 it's `r round(dp("Forever", "Phase 4", "ww") / dp("Forever", "Phase 4", "bt"), 1)` times. Even with all the luck of a single fight, Whirlwind comes out ahead in `r ww_min <- min(dpr_phase$ww_wins[dpr_phase$game == "Forever"]); if (round(ww_min * 100) == 100) "practically every Forever fight" else paste0("at least ", round(ww_min * 100), "% of Forever fights")` at every phase, against `r round(max(dpr_phase$ww_wins[dpr_phase$game == "Classic"]) * 100)`% or fewer in Classic.
 
 ## What it means for a whole fight
 
@@ -206,17 +221,17 @@ sh <- function(ph, g) ability_sims %>% filter(phase == ph, game == g) %>%
   summarise(bt = median(dps_bt / total_dps), ww = median(dps_ww / total_dps))
 ```
 
-Bloodthirst still does more damage per second than Whirlwind in both games, simply because it comes off cooldown more often (every 6 seconds, against 10 in Classic and `r forever_talents$ww_cd` in Forever with Improved Whirlwind). But the balance shifts a lot: in Classic, Bloodthirst makes up about `r round(sh("Phase 2", "Classic")$bt * 100)`% of a phase 2 warrior's damage and Whirlwind `r round(sh("Phase 2", "Classic")$ww * 100)`%, while in Forever it's `r round(sh("Phase 2", "Forever")$bt * 100)`% and `r round(sh("Phase 2", "Forever")$ww * 100)`%. The totals tell a story of their own: Forever does more damage than Classic at pre-BiS (`r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Pre-BiS"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Pre-BiS"]))`), and Classic closes most of the gap by phase 4 (`r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Phase 4"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Phase 4"]))`). That's rage again: early on, a Classic warrior's hits are too small to pay for every Bloodthirst and Whirlwind (look at the casts per minute), while Forever's rage covers both from the first day. The [Scaling chapter](#scaling) follows this through every phase.
+Bloodthirst still does more damage per second than Whirlwind in both games, simply because it comes off cooldown more often (every 6 seconds, against 10 in Classic and `r forever_talents$ww_cd` in Forever with Improved Whirlwind). But the balance shifts a lot: in Classic, Bloodthirst makes up about `r round(sh("Phase 2", "Classic")$bt * 100)`% of a phase 2 warrior's damage and Whirlwind `r round(sh("Phase 2", "Classic")$ww * 100)`%, while in Forever it's `r round(sh("Phase 2", "Forever")$bt * 100)`% and `r round(sh("Phase 2", "Forever")$ww * 100)`%. The totals tell a story of their own: Forever does more damage than Classic at every phase, `r round((median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Pre-BiS"]) / median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Pre-BiS"]) - 1) * 100)`% more at pre-BiS (`r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Pre-BiS"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Pre-BiS"]))`) and `r round((median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Phase 4"]) / median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Phase 4"]) - 1) * 100)`% more at phase 4 (`r round(median(ability_sims$total_dps[ability_sims$game == "Forever" & ability_sims$phase == "Phase 4"]))` against `r round(median(ability_sims$total_dps[ability_sims$game == "Classic" & ability_sims$phase == "Phase 4"]))`). Classic catches up as it gears, but doesn't get there. (Forever comes from wowsims here and Classic from our simulator, which comes out a few percent above wowsims for Forever's warrior, so if anything Classic is flattered.) That's rage again: early on, a Classic warrior's hits are too small to pay for every Bloodthirst and Whirlwind (look at the casts per minute), while Forever's rage covers both from the first day. The [Scaling chapter](#scaling) follows this through every phase.
 
 Improved Whirlwind, new on 2 November, is a large part of Whirlwind's share. [How the Rules Changed](#ww-since-nov) compares the same warrior on the build before it.
 
 ## Should Whirlwind come first?
 
-If Whirlwind is the better use of rage in Forever, should it go ahead of Bloodthirst in the rotation? We can test that directly: play the same fights with each priority, and compare. To make the comparison fair, each pair of fights starts from the same random numbers, so the difference comes from the priority rather than from luck.
+If Whirlwind is the better use of rage in Forever, should it go ahead of Bloodthirst in the rotation? We can test that directly: play the same fights with each priority, and compare. To make the comparison fair, each pair of fights starts from the same random numbers (in wowsims, the same seed), so the difference comes from the priority rather than from luck. Forever is played in wowsims, Classic in our simulator.
 
 ```{r}
-prio_sims <- cached_sim("abilities_priority", deps = list(classic_k, gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents), {
-expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4")) %>%
+prio_sims_r <- cached_sim("abilities_priority", deps = list(classic_k, gear, C60, n_fights, sim_defaults, classic_talents), {
+expand_grid(game = "Classic", phase = c("Pre-BiS", "Phase 2", "Phase 4")) %>%
   mutate(res = map2(game, phase, function(g, ph) {
     d <- gear$dps[gear$phase == ph]
     map_dfr(seq_len(n_fights), function(i) {
@@ -226,6 +241,17 @@ expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Pha
     })
   })) %>% unnest(res)
 })
+# Forever in wowsims: Whirlwind first (data/wowsims/book_ww_first.apl.siml) against the Bloodthirst-first fights above,
+# fight for fight with the same seeds
+prio_phases <- c("Pre-BiS", "Phase 2", "Phase 4")
+ww_first <- wowsims_fights("abilities_priority", setNames(lapply(prio_phases, ws_phase, p = list(apl = "data/wowsims/book_ww_first.apl.siml")), prio_phases),
+                           n_fights, seed0 = 1000)
+prio_sims <- bind_rows(
+  prio_sims_r,
+  ww_first %>% select(phase = setup, fight, b = total_dps) %>%
+    inner_join(ws_fights %>% select(phase = setup, fight, a = total_dps), by = c("phase", "fight")) %>%
+    transmute(game = "Forever", phase, diff = b - a, rel = b / a - 1)
+)
 ```
 
 ```{r}
@@ -354,9 +380,9 @@ A few things stand out:
 An Execute's damage depends almost entirely on how much rage you have when you press it, which is where Classic and Forever differ. To see how, we add an execute phase to the fight simulation: for the last 20% of each three-minute fight, the warrior stops using Bloodthirst, Whirlwind and Heroic Strike, and presses Execute with all their rage every time the global cooldown is free, with and without Improved Execute.
 
 ```{r}
-exec_sims <- cached_sim("abilities_execute", deps = list(classic_k, gear, forever_draws, C60, n_fights, sim_defaults, forever_talents, classic_talents, imp_exec), {
+exec_sims_r <- cached_sim("abilities_execute", deps = list(classic_k, gear, C60, n_fights, sim_defaults, classic_talents, imp_exec), {
 set.seed(20)
-expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Phase 4"), talent = names(imp_exec)) %>%
+expand_grid(game = "Classic", phase = c("Pre-BiS", "Phase 2", "Phase 4"), talent = names(imp_exec)) %>%
   mutate(res = pmap(list(game, phase, talent), function(g, ph, tl) {
     p <- modifyList(phase_p(g, ph), list(execute_at = 0.8 * sim_defaults$fight_len,
                                          exec_cost = sim_defaults$exec_cost - imp_exec[[tl]]))
@@ -364,6 +390,17 @@ expand_grid(game = c("Classic", "Forever"), phase = c("Pre-BiS", "Phase 2", "Pha
   })) %>% unnest(res) %>%
   mutate(phase = factor(phase, levels = levels(phases$phase)))
 })
+# Forever in wowsims: the last 20% of the fight is the execute phase (Execute with all your rage, nothing else), with
+# Improved Execute 2/2 and 0/2 (Fury talent 11 in wowsims' order)
+exec_setups <- unlist(lapply(prio_phases, function(ph) {
+  setNames(list(ws_phase(ph, list(execute = 0.2)), ws_phase(ph, list(execute = 0.2, talents = book_talents(11, 0)))),
+           paste(ph, c("2/2", "0/2"), sep = "|"))
+}), recursive = FALSE)
+exec_ws <- wowsims_fights("abilities_execute", exec_setups, n_fights, seed0 = 2000)
+exec_sims <- bind_rows(
+  exec_sims_r,
+  exec_ws %>% separate(setup, c("phase", "talent"), sep = "\\|") %>% mutate(game = "Forever")
+) %>% mutate(phase = factor(phase, levels = levels(phases$phase)))
 exec_window <- 0.2 * sim_defaults$fight_len
 exec_each <- exec_sims %>% select(game, phase, talent, exec_rage) %>% unnest(exec_rage)
 ```
@@ -402,6 +439,8 @@ ex <- function(g, ph, col, tl = "0/2") exec_summary[[col]][exec_summary$game == 
 
 Without Improved Execute, the typical Execute uses about the same rage in both games (`r round(ex("Classic", "Phase 2", "rage_med"))` at phase 2 in Classic, `r round(ex("Forever", "Phase 2", "rage_med"))` in Forever), since pressing Execute every global cooldown keeps spending the rage as fast as it comes in. The difference is in how many you can afford, and how that changes as you gear up. At pre-BiS, Classic can only afford `r round(ex("Classic", "Pre-BiS", "per_min"), 1)` Executes a minute, against Forever's `r round(ex("Forever", "Pre-BiS", "per_min"), 1)`. By phase 4 Classic fits in `r round(ex("Classic", "Phase 4", "per_min"), 1)`, and Forever `r round(ex("Forever", "Phase 4", "per_min"), 1)`: Forever's rage grows too now, through crit, but more slowly. From pre-BiS to phase 4, Classic's Execute damage grows by `r round((ex("Classic", "Phase 4", "exec_dps") / ex("Classic", "Pre-BiS", "exec_dps") - 1) * 100)`%, against `r round((ex("Forever", "Phase 4", "exec_dps") / ex("Forever", "Pre-BiS", "exec_dps") - 1) * 100)`% in Forever.
 
+*Forever: `r wowsims_stamp(list(version = attr(exec_ws, "version")))`.*
+
 Improved Execute helps both games: `r round((ex("Forever", "Phase 2", "exec_dps", "2/2") / ex("Forever", "Phase 2", "exec_dps") - 1) * 100)`% to Forever's Execute damage at phase 2, and `r round((ex("Classic", "Phase 2", "exec_dps", "2/2") / ex("Classic", "Phase 2", "exec_dps") - 1) * 100)`% in Classic. A cheaper Execute can be pressed sooner after each one, so you get more of them (`r round(ex("Forever", "Phase 2", "per_min", "2/2"), 1)` a minute instead of `r round(ex("Forever", "Phase 2", "per_min"), 1)` in Forever), each carrying the full 600 base damage. Either way, Execute is one of the clearest places where the two games' rage differs: in Classic, gear gave you many more Executes, and in Forever it gives you a few more, only through crit.
 
 ## What to test
@@ -409,7 +448,7 @@ Improved Execute helps both games: `r round((ex("Forever", "Phase 2", "exec_dps"
 Neither ability could be learned in the beta, which was capped at level 30. Now that the game has launched, these are the things to check in the logs:
 
 1. **Bloodthirst's damage:** is it 45% of attack power plus 48 at rank 4? Hits against a mob with known armor, at a known attack power, would settle it.
-2. **Whirlwind's off-hand hit:** does it do half damage, does Dual Wield Specialization's +25% apply, and does it roll separately from the main hand? And does Raging Blows bring the cost to 22?
+2. **Whirlwind's off-hand hit:** does it do half damage, does Dual Wield Specialization's +25% apply, and does it roll separately from the main hand? (wowsims says yes to all three, and Whirlwind costs 25.)
 3. **Whirlwind's speed:** does it use a normalised speed (2.4 for one-handers) or the weapon's real speed?
 4. **Crits:** do Bloodthirst and Whirlwind crits trigger Flurry (see the [Flurry chapter](#flurry))?
 5. **Improved Whirlwind:** is the cooldown 8 seconds, and does the 30% apply to both hands' hits on a single target?

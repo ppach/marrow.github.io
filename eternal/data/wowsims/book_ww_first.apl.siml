@@ -1,0 +1,11 @@
+siml 1
+spec dps_warrior
+
+priority:
+  // The book's rotation with Whirlwind first (data/fight_sim.R, "ww_first"): as book.apl.siml, but Whirlwind whenever
+  // it's ready, and Bloodthirst after it.
+  cast reckless_swings
+  cast execute if is_execute_phase(e20)
+  cast whirlwind if not is_execute_phase(e20)
+  cast bloodthirst if not is_execute_phase(e20)
+  cast heroic_strike if not is_execute_phase(e20) and current_rage >= 72

@@ -14,6 +14,7 @@ classic_rps <- function(dps, ap = 1200, armor = 0.75) {
 
 flurry_changelog <- tribble(
   ~version, ~date,        ~change,
+  "2.0.0",  "2026-11-18", "The check of the Markov chain now runs in wowsims (github.com/wowsims/forever), the community simulator the book follows for today's game: Flurry 3/3 against 0/3 with white swings only, with the chain fed the crit per swing wowsims measures. The haste-in-fights check still uses our simulator.",
   "1.5.0",  "2026-11-04", "Blizzard's 2 Nov development notes (the launch build): Flurry is now 3 points for 30% attack speed, the same as Classic's 5/5 (it was 5 points for 25%), and it no longer needs Death Wish. Flurry's extra rage goes up by about a fifth, and the comparison is now with the 25% Flurry Forever had before 2 Nov. The Bloodthirst and Whirlwind rotation behind the yellow crits uses Improved Whirlwind's 8-second cooldown.",
   "1.4.0",  "2026-10-31", "Added Haste breakpoints: on average, every bit of haste adds the same number of swings. Breakpoints only happen when a window always starts at the same point in your swing, which takes more than a static fight, and Flurry scrambles the swing timers within a few swings, so in the fight simulator a Fury warrior's rage and damage climb in a straight line with haste. Simulators and spreadsheets that start every fight on a swing and end it at a fixed time show breakpoints the game doesn't have.",
   "1.3.0",  "2026-10-28", "Today's rules (Blizzard's 1 Oct development notes and hotfixes): a crit gives twice a normal swing's rage, so crit gives Forever rage directly as well as through Flurry, and 1% crit is now worth more rage in Forever than in Classic. The white rage baseline uses Dual Wield Specialization's +50% off-hand rage (it was +100%) and Furious Precision's +10% off-hand hit. Flurry now needs Death Wish instead of Enrage.",
@@ -107,29 +108,37 @@ In the plain white-only case, the chain gives exactly $1 - (1 - P(Crit))^3$ for 
 
 ## Checking the model
 
-To make sure the maths is right, we can run the same warrior through the book's fight simulator, with only white swings and Unbridled Wrath turned off, and see how much extra rage Flurry gives compared with the same fights without it:
+To make sure the maths is right, we can run the same warrior through wowsims, the community simulator that the book follows for today's game, with only white swings, and count how many more swings Flurry gives compared with the same fights without the talent. wowsims also tells us the crit per white swing it ended up with (against a level 63 boss, after the boss's crit suppression and the attack table's ceiling), and that's what goes into the chain:
 
 ```{r flurry-check}
-flurry_check <- cached_sim("flurry_check", deps = list(sim_defaults, forever_mh, forever_oh, crit_cap, haste_forever), {
-set.seed(60)
-fr <- function(hand, dmg, speed) (if (hand == "MH") forever_mh else forever_oh) * speed
-p_check <- modifyList(sim_defaults, list(fight_len = 600, ubw_chance = 0, hs_threshold = 1e4, bt_cost = 1e4, ww_cost = 1e4, anger_rps = 0,
-                                         crit_suppression = 0,    # the crit here is the crit per swing
-                                         crit_rage_mult = 1))     # so rage only changes with the number of swings
-flurry_check <- map_dfr(c(0.05, 0.15, 0.25, 0.35), function(c) {
-  on  <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c)))$rps)
-  off <- replicate(100, simulate_fight(fr, 60, modifyList(p_check, list(crit = c, flurry_haste = 0)))$rps)
-  tibble(crit = c, sim = mean(on) / mean(off), chain = flurry_stats(min(c, crit_cap), haste_forever)$swing_mult)
-})
-})
+source("data/wowsims.R")
+# White swings only (data/wowsims/white_only.apl.siml), with Flurry 3/3 and 0/3, 2000 ten-minute fights each. The sheet
+# crit is set so the crit per swing before the attack table's ceiling is 5% to 35%: the boss's suppression is added back.
+flurry_setups <- unlist(lapply(c(0.05, 0.15, 0.25, 0.35), function(c) {
+  on <- book_wowsims(60, 1200, c + sim_defaults$crit_suppression,
+                     p = list(apl = "data/wowsims/white_only.apl.siml", duration = 600, iterations = 2000))
+  setNames(list(on, modifyList(on, list(talents = book_talents(17, 0)))), paste0(c, c("|on", "|off")))
+}), recursive = FALSE)
+flurry_ws <- imap(flurry_setups, ~ cached_wowsims(paste0("flurry_check_", sub("\\|", "_", .y)), .x))
+flurry_check <- imap_dfr(flurry_ws, function(r, nm) {
+  w <- r$actions[r$actions$name == "Melee", ]
+  tibble(crit = as.numeric(sub("\\|.*", "", nm)), flurry = sub(".*\\|", "", nm), swings = sum(w$casts),
+         crit_per_swing = sum(w$crits) / sum(w$casts))
+}) %>%
+  pivot_wider(names_from = flurry, values_from = c(swings, crit_per_swing)) %>%
+  mutate(sim = swings_on / swings_off, crit_ws = crit_per_swing_off,
+         chain = map_dbl(crit_ws, ~ flurry_stats(.x, haste_forever)$swing_mult))
 flurry_check %>%
-  transmute(`White crit per swing` = sprintf("%.0f%%", crit * 100),
-            `Simulator` = sprintf("+%.1f%%", (sim - 1) * 100),
+  transmute(`Crit per swing (target)` = sprintf("%.0f%%", crit * 100),
+            `Crit per swing (wowsims)` = sprintf("%.1f%%", crit_ws * 100),
+            `wowsims` = sprintf("+%.1f%%", (sim - 1) * 100),
             `Markov chain` = sprintf("+%.1f%%", (chain - 1) * 100)) %>%
-  knitr::kable(caption = "Extra white swings (and so extra white rage) from Flurry: 100 ten-minute simulated fights against the Markov chain. At 35% the crit is above the crit cap, so both are capped.")
+  knitr::kable(caption = "Extra white swings (and so extra white rage) from Flurry: 2,000 ten-minute fights in wowsims with Flurry 3/3 and 0/3, against the Markov chain at the crit per swing wowsims measured. At the 35% target the crit is above the ceiling the attack table allows, so wowsims caps it.")
 ```
 
-The two agree to within about a percentage point, which is about as close as 100 simulated fights can get (each simulated fight has its own luck with crits). So from here on we can use the chain, which is instant and has no randomness.
+*`r wowsims_stamp(flurry_ws)`.*
+
+The two agree to within `r sprintf("%.1f", max(abs(flurry_check$sim - flurry_check$chain)) * 100)` percentage points. So from here on we can use the chain, which is instant and has no randomness.
 
 ## Classic vs Forever
 
@@ -514,7 +523,7 @@ h_top <- which.max(haste_fights$h)
 haste_gain <- function(col) haste_fights[[col]][h_top] / haste_fights[[col]][haste_fights$h == 0] - 1
 ```
 
-The fight simulator used in the rest of the book starts each weapon's swing timer at a random point, then plays out every swing, crit, Flurry charge, Bloodthirst, Whirlwind and Heroic Strike. If anything in a real fight (the rotation, rage running out, Heroic Strike taking the place of main-hand swings) brought breakpoints back, rage and damage would climb in steps as haste goes up. Here are `r n_haste` three-minute fights at every amount of haste from 0 to 20%, in steps of 0.5%, for our phase 2 warrior:
+Our fight simulator (a simplified model; this check hasn't moved to wowsims yet) starts each weapon's swing timer at a random point, then plays out every swing, crit, Flurry charge, Bloodthirst, Whirlwind and Heroic Strike. If anything in a real fight (the rotation, rage running out, Heroic Strike taking the place of main-hand swings) brought breakpoints back, rage and damage would climb in steps as haste goes up. Here are `r n_haste` three-minute fights at every amount of haste from 0 to 20%, in steps of 0.5%, for our phase 2 warrior:
 
 ```{r haste-sim, fig.cap=paste0("Extra rage and damage per second from haste (on top of Flurry), in ", n_haste, " simulated three-minute fights at each point, for our phase 2 Forever warrior with the full rotation. Both climb in a straight line (the line is the best fit through the points), with no steps."), fig.height=3.8, fig.width=9}
 ggplot(haste_extra, aes(h, extra)) +

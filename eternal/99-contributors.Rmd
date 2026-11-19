@@ -4,6 +4,7 @@
 # Keep this the last chapter. Add a row whenever the book uses someone's logs, data or analysis.
 contributors_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.10.0", "2026-11-18", "Added the wowsims team: today's game is now simmed in wowsims.",
   "1.9.0",  "2026-11-17", "Added the new How the Rules Changed chapter to where Blizzard's 30 September announcement, the development notes and Zirene's post are used.",
   "1.8.0",  "2026-11-04", "Rage Design Proposals archived (written for the September rules, which no longer apply), so it's gone from where each contribution is used.",
   "1.7.0",  "2026-11-04", "Added Blizzard's 2 November development notes as a source, and talentsforever.com's 3 November read of the launch tree, which the whole book now uses.",
@@ -17,6 +18,7 @@ contributors_changelog <- tribble(
 )
 contributors <- tribble(
   ~Contributor,                  ~Contribution,                                                                                   ~`Used in`,
+  "The wowsims team ([wowsims forever](https://github.com/wowsims/forever))", "The community simulator for WoW: Forever, and the book's source of truth for today's game: every fight of today's Forever is simmed in it, and its combat-log evidence settled which attacks use a Reckless Swings charge, what rolls Unbridled Wrath, what Windfury Totem's strike does, and Whirlwind's cost.", "How Damage Scales, Rage on Crit, Flurry, Abilities, Known Bugs",
   "Tarch",                       "Eight combat logs with Unbridled Wrath at 1/5 to 4/5, dual wield and two-handed, recorded at every rank with the same character, weapons and mobs.", "Rage Generation, How Damage Scales, Flurry, Abilities, Known Bugs",
   "Ryqenz (Zomd Aya)",           "Two combat logs with Unbridled Wrath at 5/5, dual wield and two-handed ([discussion #8](https://github.com/magey/forever-warrior/discussions/8), [#9](https://github.com/magey/forever-warrior/discussions/9), posted by kninib12a).", "Rage Generation, How Damage Scales, Flurry, Abilities, Known Bugs",
   "Siax",                        "A dual wield combat log with Unbridled Wrath ([discussion #6](https://github.com/magey/forever-warrior/discussions/6), posted by Critthulu).", "Rage Generation, How Damage Scales, Flurry, Abilities, Known Bugs",

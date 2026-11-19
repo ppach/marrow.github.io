@@ -1,0 +1,6 @@
+siml 1
+spec dps_warrior
+
+priority:
+  // White swings only: no abilities, so Flurry is started by white crits alone (the Flurry chapter's check).
+  cast bloodthirst if false

@@ -1,0 +1,13 @@
+siml 1
+spec dps_warrior
+
+priority:
+  // The book's Fury warrior (the rotation of data/fight_sim.R, "bt_first"): Reckless Swings whenever it's ready,
+  // Execute with all your rage in the execute phase, otherwise Bloodthirst, then Whirlwind if Bloodthirst is more than
+  // 1 sec away, and Heroic Strike queued at 72 rage or more (60 left over after its 12 rage cost). No shouts, stance
+  // dancing, Bloodrage, Death Wish or other cooldowns, so that only the rage rules move the numbers.
+  cast reckless_swings
+  cast execute if is_execute_phase(e20)
+  cast bloodthirst if not is_execute_phase(e20)
+  cast whirlwind if not is_execute_phase(e20) and spell(bloodthirst).time_to_ready > 1s
+  cast heroic_strike if not is_execute_phase(e20) and current_rage >= 72

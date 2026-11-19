@@ -12,11 +12,15 @@
 # WarriorSim (github.com/GuybrushGit/WarriorSim) and ClassicSim (github.com/timhul/ClassicSim), and the
 # Classic warrior wiki (github.com/magey/classic-warrior/wiki), which we use to check our assumptions.
 # Where WarriorSim and ClassicSim disagree we follow WarriorSim, which is still maintained. Forever uses
-# the same mechanics, except where our logs or Blizzard's notes show otherwise: rage per white swing, no rage
-# from dodged swings, no rage from Heroic Strike, Unbridled Wrath only from landed white hits (logs), and a
-# crit giving twice the rage, Whirlwind hitting with both weapons and a queued Heroic Strike no longer
-# raising off-hand hit (notes). Since 2 Nov: Flurry 3/3 gives 30%, Improved Whirlwind 2/2 cuts Whirlwind's cooldown
-# to 8 sec and adds 30% to its damage, and Reckless Swings gives 5 extra rage on each of your next 4 attacks (notes).
+# the same mechanics, except where wowsims (github.com/wowsims/forever, the source of truth for today's game: its code
+# and its combat-log evidence, docs/evidence/EV-*.md) says otherwise: rage per white swing, no rage from dodged swings
+# or Heroic Strike, a crit giving twice the rage, Whirlwind hitting with both weapons for 25 rage (there is no Raging
+# Blows), glancing blows at 70% damage, Heroic Strike rank 8 (+138 damage), Unbridled Wrath rolling on landed white
+# swings, Windfury Totem's strike and Heroic Strike (EV-0148), Reckless Swings charges spent by landed white swings,
+# Windfury Totem's strike and each Heroic Strike cast whether it lands or not, but not by Bloodthirst or Whirlwind
+# (EV-0138), Windfury Totem's strike using no Flurry charge (EV-0138, EV-0140), and a queued Heroic Strike no longer
+# raising off-hand hit. Since 2 Nov: Flurry 3/3 gives 30%, Improved Whirlwind 2/2 cuts Whirlwind's cooldown to 8 sec
+# and adds 30% to its damage, and Reckless Swings gives 5 extra rage on each of your next 4 attacks.
 
 sim_defaults <- list(
   fight_len = 180,        # seconds
@@ -33,7 +37,7 @@ sim_defaults <- list(
   wpn_norm = 2.4,         # normalised speed of a one-handed weapon, used by Whirlwind
   gcd = 1.5,
   bt_cost = 30, bt_cd = 6, ww_cd = 10, ww_dmg_mult = 1,
-  hs_cost = 12, hs_bonus = 157, # rank 9, with Improved Heroic Strike 3/3
+  hs_cost = 12, hs_bonus = 157, # rank 9, with Improved Heroic Strike 3/3 (Classic; Forever has rank 8, see forever_talents)
   hs_threshold = 60,      # queue Heroic Strike when rage is at least this much
   refund = 0.80,          # share of the cost given back when Bloodthirst or Heroic Strike misses or is dodged
                           # (not Whirlwind or Execute)
@@ -45,30 +49,35 @@ sim_defaults <- list(
   execute_at = NA,        # seconds into the fight when the boss reaches 20% health (NA: no execute phase)
   exec_cost = 15, exec_base = 600, exec_per_rage = 15,   # rank 5, the same in both games
   ubw_rage = 1,
-  # Reckless Swings (Forever only): pressed whenever it's ready, off the global cooldown. Your next `rs_charges`
-  # landed attacks within `rs_dur` sec each give `rs_rage` extra rage. We count white swings, Heroic Strike,
-  # Bloodthirst and Whirlwind (once per cast); misses and dodges don't use a charge. Its health cost (25% of base
-  # health) is left to the healers. `rs_rage = 0` switches it off. The rules the tooltip doesn't settle, all off by
-  # default: only white swings use a charge (`rs_white_only`), a missed or dodged white swing uses one for nothing
-  # (`rs_miss`), a white crit doubles the extra rage like the swing's own (`rs_crit`), and Dual Wield
-  # Specialization raises it on off-hand swings (`rs_oh`).
-  rs_rage = 0, rs_charges = 4, rs_dur = 8, rs_cd = 15,
-  rs_white_only = FALSE, rs_miss = FALSE, rs_crit = FALSE, rs_oh = FALSE,
+  # Reckless Swings (Forever only): pressed whenever it and the global cooldown are ready (first in the priority, as in wowsims). Your next `rs_charges`
+  # attacks within `rs_dur` sec each give `rs_rage` extra rage. As in wowsims (EV-0138), a charge goes to each landed
+  # white swing (Windfury Totem's strike included) and to each Heroic Strike cast, landed or not; a missed or dodged
+  # white swing, Bloodthirst and Whirlwind use none. Its health cost (25% of base health) is left to the healers.
+  # `rs_rage = 0` switches it off. Other readings, for comparison: Bloodthirst and Whirlwind use a charge when they
+  # land (`rs_bt_ww`), a Heroic Strike only uses one when it lands (`rs_hs_land`), only white swings use a charge
+  # (`rs_white_only`), a missed or dodged white swing uses one for nothing (`rs_miss`), a white crit doubles the extra
+  # rage (`rs_crit`), and Dual Wield Specialization raises it on off-hand swings (`rs_oh`).
+  rs_rage = 0, rs_charges = 4, rs_dur = 8, rs_cd = 15, rs_gcd = 1,   # it triggers a 1 sec global cooldown (wowsims)
+  rs_bt_ww = FALSE, rs_hs_land = FALSE, rs_white_only = FALSE, rs_miss = FALSE, rs_crit = FALSE, rs_oh = FALSE,
+  ubw_hs = FALSE,         # Unbridled Wrath also rolls on a landed Heroic Strike (Forever, EV-0148)
+  wf_flurry = TRUE,       # Windfury Totem's extra swing uses a Flurry charge (Classic, WarriorSim); not in Forever
   # Off unless switched on (the Rage on Crit chapter):
   flurry_rage = 0,        # extra rage from each white swing that lands while Flurry speeds it up (a design option)
   extra_haste = 1         # attack speed from outside Flurry, e.g. 1.03 for weapon enchants
 )
 
-# Forever 17/34/0 (the 2 Nov tree): Dual Wield Specialization 5/5 (+25% off-hand damage, +50% off-hand rage),
-# Furious Precision 3/3 (+10% off-hand hit), Anger Management (1 rage every 3 sec), Raging Blows (Whirlwind costs 3
-# less), Reckless Swings, Flurry 3/3 (30%), Improved Whirlwind 2/2 (8 sec cooldown, +30% damage), Unbridled Wrath
-# 60% (tooltip), Bloodthirst 45% of AP + 48 (rank 4). No Boundless Rage any more, so the cap is 100. Whirlwind hits with both weapons without a talent. A white crit gives twice
+# Forever 17/34/0 (the 2 Nov tree, as in wowsims): Dual Wield Specialization 5/5 (+25% off-hand damage, +50% off-hand
+# rage), Furious Precision 3/3 (+10% off-hand hit), Anger Management (1 rage every 3 sec), Reckless Swings, Flurry 3/3
+# (30%), Improved Whirlwind 2/2 (8 sec cooldown, +30% damage), Unbridled Wrath 60% (tooltip; wowsims' logs measure
+# 58.8%, EV-0148), Bloodthirst 45% of AP + 48 (rank 4), Whirlwind 25 rage, Heroic Strike rank 8 (+138, 12 rage with
+# Improved Heroic Strike), glancing blows at 70% damage. No Boundless Rage any more, so the cap is 100. Whirlwind hits with both weapons without a talent. A white crit gives twice
 # the rage of a normal hit (`crit_rage_mult`). A dodged white swing gives no rage (logs), and a queued Heroic
 # Strike no longer raises off-hand hit.
 forever_talents <- list(
   oh_dmg_mult = 1.25, oh_rage_mult = 1.5, oh_hit_bonus = 0.10, anger_rps = 1 / 3, rage_cap = 100,
-  ww_offhand = TRUE, ww_cost = 22, ww_cd = 8, ww_dmg_mult = 1.3, flurry_haste = 0.30, flurry_charges = 3,
-  ubw_chance = 0.60, bt_ap = 0.45, bt_flat = 48, dodge_rage = 0, crit_rage_mult = 2, hs_oh_hit = FALSE, rs_rage = 5
+  ww_offhand = TRUE, ww_cost = 25, ww_cd = 8, ww_dmg_mult = 1.3, flurry_haste = 0.30, flurry_charges = 3,
+  ubw_chance = 0.60, bt_ap = 0.45, bt_flat = 48, dodge_rage = 0, crit_rage_mult = 2, hs_oh_hit = FALSE, rs_rage = 5,
+  glance_dmg = 0.70, hs_bonus = 138, ubw_hs = TRUE, wf_flurry = FALSE
 )
 # Classic 17/34/0: Dual Wield Specialization only adds damage, Whirlwind only hits with the main hand, Flurry 30%,
 # Unbridled Wrath 40%, Bloodthirst 45% of AP. A dodged white swing gives the rage of 75% of an average hit
@@ -76,16 +85,17 @@ forever_talents <- list(
 classic_talents <- list(
   oh_dmg_mult = 1.25, oh_rage_mult = 1, oh_hit_bonus = 0, anger_rps = 1 / 3, rage_cap = 100,
   ww_offhand = FALSE, ww_cost = 25, ww_cd = 10, ww_dmg_mult = 1, flurry_haste = 0.30, flurry_charges = 3,
-  ubw_chance = 0.40, bt_ap = 0.45, bt_flat = 0, dodge_rage = 0.75, crit_rage_mult = 1, hs_oh_hit = TRUE, rs_rage = 0
+  ubw_chance = 0.40, bt_ap = 0.45, bt_flat = 0, dodge_rage = 0.75, crit_rage_mult = 1, hs_oh_hit = TRUE, rs_rage = 0,
+  glance_dmg = 0.65, hs_bonus = 157, ubw_hs = FALSE, wf_flurry = TRUE
 )
 # Forever's rules before the 1 Oct rework (September 2026), which the archived Rage Design Proposals chapter
 # (archive/03-rage-proposals.Rmd) was written against: Dual Wield Specialization doubled off-hand rage and gave +10% off-hand hit, Boundless Rage 3/3 raised the
 # cap to 130, crits gave no extra rage, Bloodthirst was 35% of AP + 48, Whirlwind cost 25 (Raging Blows only gave it
 # the off-hand hit) and a queued Heroic Strike still raised off-hand hit.
-# Forever's rules from the 1 Oct rework until 2 Nov: Flurry 5/5 gave 25%, and there was no Improved Whirlwind or
-# Reckless Swings.
+# Forever's rules from the 1 Oct rework until 2 Nov: Flurry 5/5 gave 25%, there was no Improved Whirlwind or
+# Reckless Swings, and Raging Blows took Whirlwind to 22 rage. The other mechanics are today's, from wowsims.
 forever_oct_talents <- modifyList(forever_talents, list(
-  flurry_haste = 0.25, ww_cd = 10, ww_dmg_mult = 1, rs_rage = 0
+  flurry_haste = 0.25, ww_cd = 10, ww_dmg_mult = 1, rs_rage = 0, ww_cost = 22
 ))
 forever_sep_talents <- modifyList(forever_oct_talents, list(
   oh_rage_mult = 2, rage_cap = 130, crit_rage_mult = 1, bt_ap = 0.35, ww_cost = 25, hs_oh_hit = TRUE
@@ -136,8 +146,8 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     wasted <<- wasted + over
     rage <<- min(rage + x, p$rage_cap)
   }
-  # A landed attack uses a Reckless Swings charge, if there's one left, for `mult` times its rage (0 for a charge
-  # used up by a miss). Yellow attacks (Heroic Strike, Bloodthirst, Whirlwind) don't use one under `rs_white_only`.
+  # An attack uses a Reckless Swings charge, if there's one left, for `mult` times its rage (0 for a charge used up
+  # by a miss). Yellow attacks (Heroic Strike, Bloodthirst, Whirlwind) don't use one under `rs_white_only`.
   rs_hit <- function(mult = 1, yellow = FALSE) {
     if (yellow && p$rs_white_only) return(invisible(NULL))
     if (rs_left > 0 && t <= rs_end) {
@@ -176,7 +186,9 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         rage <<- rage - p$hs_cost; n["hs"] <<- n["hs"] + 1; hs_t <<- c(hs_t, t)
         d <- yellow(base_dmg(speed, hand, ap_bonus) + p$hs_bonus * p$armor)
         dmg["hs"] <<- dmg["hs"] + d
-        if (d == 0) refund(p$hs_cost) else rs_hit(yellow = TRUE)
+        if (d == 0) refund(p$hs_cost)
+        if (d > 0 || !p$rs_hs_land) rs_hit(yellow = TRUE)                  # every cast uses a charge (wowsims)
+        if (d > 0 && p$ubw_hs && runif(1) < p$ubw_chance) add_rage(p$ubw_rage)
         return(d > 0)
       }
     }
@@ -208,7 +220,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     swing("MH", p$wf_ap)
     haste <- if (flurry > 0) 1 + p$flurry_haste else 1
     hasted[["MH"]] <<- flurry > 0
-    if (flurry > 0) flurry <<- flurry - 1
+    if (flurry > 0 && p$wf_flurry) flurry <<- flurry - 1   # Forever: the strike uses no charge (wowsims)
     next_mh <<- t + p$mh_speed / (haste * p$extra_haste)
   }
 
@@ -217,7 +229,7 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     # global cooldown. An ability that is ready but unaffordable is not an event.
     ability_t <- max(gcd_ready, min(bt_ready, ww_ready))
     tick_t <- if (p$anger_rps > 0) (floor(t * p$anger_rps + 1e-9) + 1) / p$anger_rps else Inf
-    rs_t <- if (p$rs_rage > 0 && rs_ready > t) rs_ready else Inf
+    rs_t <- if (p$rs_rage > 0 && max(rs_ready, gcd_ready) > t) max(rs_ready, gcd_ready) else Inf
     t_new <- min(next_mh, next_oh, tick_t, rs_t, if (ability_t > t) ability_t else Inf)
     if (t_new > p$fight_len) break
     # Time spent with Bloodthirst ready but not enough rage to press it.
@@ -225,9 +237,9 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
     t <- t_new; last_t <- t
     deep_wounds_ticks(t)
     if (abs(t - tick_t) < 1e-9) add_rage(1)   # Anger Management: 1 rage every 3 sec
-    # Reckless Swings, whenever it's ready (off the global cooldown)
-    if (p$rs_rage > 0 && t >= rs_ready) {
-      rs_left <- p$rs_charges; rs_end <- t + p$rs_dur; rs_ready <- t + p$rs_cd; n["rs"] <- n["rs"] + 1
+    # Reckless Swings, whenever it and the global cooldown are ready; it takes a 1 sec global cooldown (wowsims)
+    if (p$rs_rage > 0 && t >= rs_ready && t >= gcd_ready) {
+      rs_left <- p$rs_charges; rs_end <- t + p$rs_dur; rs_ready <- t + p$rs_cd; n["rs"] <- n["rs"] + 1; gcd_ready <- t + p$rs_gcd
     }
 
     # Execute phase: Execute with all your rage whenever the global cooldown is free.
@@ -250,13 +262,13 @@ simulate_fight <- function(rage_fn, wpn_dps, p = sim_defaults, trace = FALSE) {
         rage <- rage - p$bt_cost; spent["bt"] <- spent["bt"] + p$bt_cost; bt_ready <- t + p$bt_cd; gcd_ready <- t + p$gcd; n["bt"] <- n["bt"] + 1
         d <- yellow((p$bt_ap * p$ap + p$bt_flat) * p$armor)
         dmg["bt"] <- dmg["bt"] + d
-        if (d == 0) spent["bt"] <- spent["bt"] - refund(p$bt_cost) else { rs_hit(yellow = TRUE); windfury() }
+        if (d == 0) spent["bt"] <- spent["bt"] - refund(p$bt_cost) else { if (p$rs_bt_ww) rs_hit(yellow = TRUE); windfury() }
       } else if (use == "ww") {
         rage <- rage - p$ww_cost; spent["ww"] <- spent["ww"] + p$ww_cost; ww_ready <- t + p$ww_cd; gcd_ready <- t + p$gcd; n["ww"] <- n["ww"] + 1
         d <- yellow(ww_hit("MH", p$mh_speed))
         dmg["ww"] <- dmg["ww"] + d
         if (p$ww_offhand) dmg["ww"] <- dmg["ww"] + yellow(ww_hit("OH", p$oh_speed))
-        if (d > 0) { rs_hit(yellow = TRUE); windfury() }
+        if (d > 0) { if (p$rs_bt_ww) rs_hit(yellow = TRUE); windfury() }
       }
     }
     # Heroic Strike is queued as soon as there's enough rage, and goes off on the next main-hand swing if

@@ -6,6 +6,7 @@
 # `forever_oct_talents` from data/fight_sim.R, so it has to come after Abilities in rmd_files.
 history_changelog <- tribble(
   ~version, ~date,        ~change,
+  "1.1.0",  "2026-11-18", "Both builds in the Whirlwind comparison are played in our simulator, whose rules now follow wowsims (Whirlwind 25 rage on today's build, 22 with Raging Blows on the 1 Oct build; glancing blows at 70%; Heroic Strike rank 8), so the comparison stays like for like.",
   "1.0.0",  "2026-11-17", "First version: the rule changes from the beta to launch in one place. The list of changes since our logs comes from the Rage Generation chapter, the comparison of the crit rule versions (v0, v1 and v2) from the Rage on Crit chapter, and the 1 Oct against 2 Nov Whirlwind comparison from the Abilities chapter."
 )
 ```
@@ -139,7 +140,8 @@ tibble(phase = gear$phase) %>%
   })) %>% unnest(res) %>%
   mutate(phase = factor(phase, levels = levels(phases$phase)))
 })
-ww_cmp <- bind_rows(`1 Oct build` = oct_sims, `2 Nov build` = filter(ability_sims, game == "Forever"), .id = "build") %>%
+# Both builds in our simulator (a simplified model), so the comparison is like for like: wowsims only runs today's build.
+ww_cmp <- bind_rows(`1 Oct build` = oct_sims, `2 Nov build` = filter(ability_sims_r, game == "Forever"), .id = "build") %>%
   group_by(build, phase) %>%
   summarise(ww = median(dps_ww), bt = median(dps_bt), ww_pm = mean(ww_pm), total = median(total_dps),
             ww_share = median(dps_ww / total_dps), .groups = "drop")
@@ -152,7 +154,7 @@ ww_cmp %>% filter(phase %in% c("Pre-BiS", "Phase 2", "Phase 4")) %>%
             `Bloodthirst DPS` = sprintf("%.0f to %.0f", `bt_1 Oct build`, `bt_2 Nov build`),
             `Whirlwind share` = sprintf("%.0f%% to %.0f%%", `ww_share_1 Oct build` * 100, `ww_share_2 Nov build` * 100),
             `Total DPS` = sprintf("%.0f to %.0f", `total_1 Oct build`, `total_2 Nov build`)) %>%
-  knitr::kable(caption = paste0("A Forever warrior's typical fight on the 1 October build, and on today's (2 November), over ", n_fights, " simulated fights at each phase."))
+  knitr::kable(caption = paste0("A Forever warrior's typical fight on the 1 October build, and on today's (2 November), over ", n_fights, " fights at each phase in our simulator (a simplified model; wowsims only runs today's build)."))
 ```
 
 At phase 2, Whirlwind's damage goes from `r round(wc("1 Oct build", "Phase 2", "ww"))` to `r round(wc("2 Nov build", "Phase 2", "ww"))` a second, `r round((wc("2 Nov build", "Phase 2", "ww") / wc("1 Oct build", "Phase 2", "ww") - 1) * 100)`% more: `r round((forever_talents$ww_dmg_mult - 1) * 100)`% from each cast hitting harder, and the rest from casting it `r round(wc("2 Nov build", "Phase 2", "ww_pm"), 1)` times a minute instead of `r round(wc("1 Oct build", "Phase 2", "ww_pm"), 1)`. Bloodthirst barely moves. So the gap between the two abilities closes from `r round(wc("1 Oct build", "Phase 2", "bt") - wc("1 Oct build", "Phase 2", "ww"))` damage per second to `r round(wc("2 Nov build", "Phase 2", "bt") - wc("2 Nov build", "Phase 2", "ww"))`, and Whirlwind's share of your damage goes from `r round(wc("1 Oct build", "Phase 2", "ww_share") * 100)`% to `r round(wc("2 Nov build", "Phase 2", "ww_share") * 100)`%. Bloodthirst still does more damage per second, because it comes back every 6 seconds and each one costs more, but per point of rage Whirlwind is now well ahead.
